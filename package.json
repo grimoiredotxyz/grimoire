@@ -1,0 +1,14 @@
+{
+  "name": "grimoire",
+  "version": "1.0.0",
+  "description": " Monorepo for Grimoire, a captions/transcriptions/lyrics/translations platform for web3 media and content. ",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "format": "prettier --write \"**/*.{ts,tsx,md,css}\"",
+    "dev": "pnpm --stream -r app:dev"
+  },
+ "license": "GPL-3.0",
+  "devDependencies": {
+    "prettier": "^2.8.3"
+  }
+}
