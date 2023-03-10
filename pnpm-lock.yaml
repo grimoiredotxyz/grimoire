@@ -27,7 +27,7 @@ importers:
       '@zag-js/toast': ^0.2.14
       autoprefixer: ^10.4.13
       class-variance-authority: ^0.4.0
-      ethers: ^6.1.0
+      ethers: ^5.7.2
       graphql-request: ^5.2.0
       ipfs-http-client: ^60.0.0
       postcss: ^8.4.21
@@ -46,7 +46,7 @@ importers:
       '@solidjs/meta': 0.28.2_solid-js@1.6.13
       '@solidjs/router': 0.7.1_solid-js@1.6.13
       '@tanstack/solid-query': 4.26.1_solid-js@1.6.13
-      '@wagmi/core': 0.10.1_basynh2elzgegqbshockzkme3i
+      '@wagmi/core': 0.10.1_ohky2aonuhcbszteamkrhl4oyq
       '@zag-js/dialog': 0.2.13
       '@zag-js/menu': 0.3.12
       '@zag-js/popover': 0.2.13
@@ -55,7 +55,7 @@ importers:
       '@zag-js/tabs': 0.2.13
       '@zag-js/toast': 0.2.14
       class-variance-authority: 0.4.0_typescript@4.9.5
-      ethers: 6.1.0
+      ethers: 5.7.2
       graphql-request: 5.2.0
       ipfs-http-client: 60.0.0
       solid-js: 1.6.13
@@ -74,10 +74,6 @@ importers:
       vite: 4.1.4
 
 packages:
-
-  /@adraffy/ens-normalize/1.8.9:
-    resolution: {integrity: sha512-93OmGCV0vO8+JQ3FHG+gZk/MPHzzMPDRiCiFcCQNTCnHaaxsacO3ScTPGlu2wX2dOtgfalbchPcw1cOYYjHCYQ==}
-    dev: false
 
   /@ampproject/remapping/2.2.0:
     resolution: {integrity: sha512-qRmjj8nj9qmLTQXXmaR1cck3UXSRMPrbsLJAasZpF+t3riI71BXed5ebIOYwQntykeZuhjsdweEc9BxH5Jc26w==}
@@ -2097,10 +2093,6 @@ packages:
     resolution: {integrity: sha512-iR8GBkDt0Q3GyaVcIu7mSsVIqnFbkbRzGLWlvhwunacoLwt4J3swfKhfaM6rN6WY+TBGoYT1GtT1mIh2/jGbRQ==}
     dev: false
 
-  /@noble/hashes/1.1.2:
-    resolution: {integrity: sha512-KYRCASVTv6aeUi1tsF8/vpyR7zpfs3FUzy2Jqm+MU+LmUKhQ0y2FpfwqkCcxSg2ua4GALJd8k2R76WxwZGbQpA==}
-    dev: false
-
   /@noble/hashes/1.2.0:
     resolution: {integrity: sha512-FZfhjEDbT5GRswV3C6uvLPHMiVD6lQBmpoX5+eSiPaMTXte/IKqI5dykDxzZB/WBeK/CDuQRBWarPdi3FNY2zQ==}
     dev: false
@@ -2586,7 +2578,7 @@ packages:
       typescript: 4.9.5
     dev: false
 
-  /@wagmi/connectors/0.3.2_luip2attnnn4qspt4o7pusyuye:
+  /@wagmi/connectors/0.3.2_wyxeperp5vwe2x4y5sofikop3i:
     resolution: {integrity: sha512-VZ/lmzR/+Zw4xbQvgXscXvifoNJZbMB4E4rQMUvrlCtHMdK3kxb9BC2KMiPTgfsZmEldz72CMmPbrM8C8X1JCA==}
     peerDependencies:
       '@wagmi/core': '>=0.9.x'
@@ -2602,11 +2594,11 @@ packages:
       '@ledgerhq/connect-kit-loader': 1.0.2
       '@safe-global/safe-apps-provider': 0.15.2
       '@safe-global/safe-apps-sdk': 7.10.0
-      '@wagmi/core': 0.10.1_basynh2elzgegqbshockzkme3i
+      '@wagmi/core': 0.10.1_ohky2aonuhcbszteamkrhl4oyq
       '@walletconnect/ethereum-provider': 2.4.9_typescript@4.9.5
       '@walletconnect/legacy-provider': 2.0.0
       abitype: 0.3.0_wnc3eutrhvkpx2b7oumqzgx5he
-      ethers: 6.1.0
+      ethers: 5.7.2
       eventemitter3: 4.0.7
       typescript: 4.9.5
     transitivePeerDependencies:
@@ -2625,7 +2617,7 @@ packages:
       - zod
     dev: false
 
-  /@wagmi/core/0.10.1_basynh2elzgegqbshockzkme3i:
+  /@wagmi/core/0.10.1_ohky2aonuhcbszteamkrhl4oyq:
     resolution: {integrity: sha512-UmcX4JNBRl20rg8ybPLOA5SEzKdyqEDd0TXqTfowil1T+IMjsZJhoJ/SWdTPkBXbAQyo8GlQ+Yr0lZ3/CKC1Nw==}
     peerDependencies:
       ethers: '>=5.5.1 <6'
@@ -2635,9 +2627,9 @@ packages:
         optional: true
     dependencies:
       '@wagmi/chains': 0.2.11_typescript@4.9.5
-      '@wagmi/connectors': 0.3.2_luip2attnnn4qspt4o7pusyuye
+      '@wagmi/connectors': 0.3.2_wyxeperp5vwe2x4y5sofikop3i
       abitype: 0.3.0_wnc3eutrhvkpx2b7oumqzgx5he
-      ethers: 6.1.0
+      ethers: 5.7.2
       eventemitter3: 4.0.7
       typescript: 4.9.5
       zustand: 4.3.6
@@ -3324,10 +3316,6 @@ packages:
 
   /aes-js/3.1.2:
     resolution: {integrity: sha512-e5pEa2kBnBOgR4Y/p20pskXI74UEz7de8ZGVo58asOtvSVG5YAbJeELPZxOmt+Bnz3rX753YKhfIn4X4l1PPRQ==}
-    dev: false
-
-  /aes-js/4.0.0-beta.3:
-    resolution: {integrity: sha512-/xJX0/VTPcbc5xQE2VUP91y1xN8q/rDfhEzLm+vLc3hYvb5+qHCnpJRuFcrKn63zumK/sCwYYzhG8HP78JYSTA==}
     dev: false
 
   /agentkeepalive/4.3.0:
@@ -4472,21 +4460,6 @@ packages:
       '@ethersproject/wallet': 5.7.0
       '@ethersproject/web': 5.7.1
       '@ethersproject/wordlists': 5.7.0
-    transitivePeerDependencies:
-      - bufferutil
-      - utf-8-validate
-    dev: false
-
-  /ethers/6.1.0:
-    resolution: {integrity: sha512-aC45YGbvgXt7Nses5WsdQwc1cUIrrQt32zeFShNW7ZT3RQCIHBnd4nmbE5sJmrp70uTdwkRHkr4cZr1D/YwFPg==}
-    engines: {node: '>=14.0.0'}
-    dependencies:
-      '@adraffy/ens-normalize': 1.8.9
-      '@noble/hashes': 1.1.2
-      '@noble/secp256k1': 1.7.1
-      aes-js: 4.0.0-beta.3
-      tslib: 2.4.0
-      ws: 8.5.0
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
@@ -6605,10 +6578,6 @@ packages:
     resolution: {integrity: sha512-Xni35NKzjgMrwevysHTCArtLDpPvye8zV/0E4EyYn43P7/7qvQwPh9BGkHewbMulVntbigmcT7rdX3BNo9wRJg==}
     dev: false
 
-  /tslib/2.4.0:
-    resolution: {integrity: sha512-d6xOpEDfsi2CZVlPQzGeux8XMwLT9hssAsaPYExaQMuYskwb+x1x7J371tWlbBdWHroy99KnVB6qIkUbs5X3UQ==}
-    dev: false
-
   /tslib/2.5.0:
     resolution: {integrity: sha512-336iVw3rtn2BUK7ORdIAHTyxHGRIHVReokCR3XjbckJMK7ms8FysBfhLR8IXnAgy7T0PTPNBWKiH514FOW/WSg==}
 
@@ -6940,19 +6909,6 @@ packages:
     dependencies:
       bufferutil: 4.0.7
       utf-8-validate: 5.0.10
-    dev: false
-
-  /ws/8.5.0:
-    resolution: {integrity: sha512-BWX0SWVgLPzYwF8lTzEy1egjhS4S4OEAHfsO8o65WOVsrnSRGaSiUaa9e0ggGlkMTtBlmOpEXiie9RUcBO86qg==}
-    engines: {node: '>=10.0.0'}
-    peerDependencies:
-      bufferutil: ^4.0.1
-      utf-8-validate: ^5.0.2
-    peerDependenciesMeta:
-      bufferutil:
-        optional: true
-      utf-8-validate:
-        optional: true
     dev: false
 
   /xtend/4.0.2:

@@ -1,10 +1,10 @@
 import { configureChains, createClient } from '@wagmi/core'
 import { InjectedConnector } from '@wagmi/core/connectors/injected'
 import { publicProvider } from '@wagmi/core/providers/public'
-import { chains as appChains } from '~/config'
+import { supportedChains } from '../chains'
 
 //@ts-ignore
-export const { chains, provider } = configureChains(appChains, [publicProvider()])
+export const { chains, provider } = configureChains(supportedChains, [publicProvider()])
 
 export const CONNECTORS = {
   injected: new InjectedConnector({

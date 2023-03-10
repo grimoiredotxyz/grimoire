@@ -21,4 +21,4 @@ export const scroll_L2 = {
   },
 } as const satisfies Chain
 
-export const appChains = [gnosisChiado, polygonMumbai, optimismGoerli, filecoinHyperspace]
+export const supportedChains = [gnosisChiado, polygonMumbai, optimismGoerli, filecoinHyperspace]
