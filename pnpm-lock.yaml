@@ -12,6 +12,7 @@ importers:
     specifiers:
       '@felte/solid': ^1.2.7
       '@felte/validator-zod': ^1.0.13
+      '@radix-ui/colors': ^0.1.8
       '@solidjs/meta': ^0.28.2
       '@solidjs/router': ^0.7.0
       '@tailwindcss/typography': ^0.5.9
@@ -62,6 +63,7 @@ importers:
       undici: 5.20.0
       zod: 3.21.4
     devDependencies:
+      '@radix-ui/colors': 0.1.8
       '@tailwindcss/typography': 0.5.9_tailwindcss@3.2.7
       autoprefixer: 10.4.14_postcss@8.4.21
       postcss: 8.4.21
@@ -2174,6 +2176,10 @@ packages:
   /@protobufjs/utf8/1.1.0:
     resolution: {integrity: sha512-Vvn3zZrhQZkkBE8LSuW3em98c0FwgO4nxzv6OdSxPKJIEKY2bGbHn+mhGIPerzI4twdxaP8/0+06HBpwf345Lw==}
     dev: false
+
+  /@radix-ui/colors/0.1.8:
+    resolution: {integrity: sha512-jwRMXYwC0hUo0mv6wGpuw254Pd9p/R6Td5xsRpOmaWkUHlooNWqVcadgyzlRumMq3xfOTXwJReU0Jv+EIy4Jbw==}
+    dev: true
 
   /@rollup/plugin-commonjs/24.0.1_rollup@3.19.1:
     resolution: {integrity: sha512-15LsiWRZk4eOGqvrJyu3z3DaBu5BhXIMeWnijSRvd8irrrg9SHpQ1pH+BUK4H6Z9wL9yOxZJMTLU+Au86XHxow==}

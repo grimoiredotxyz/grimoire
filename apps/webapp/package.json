@@ -2,11 +2,13 @@
   "name": "webapp",
   "scripts": {
     "dev": "solid-start dev",
+    "app:dev": "solid-start dev",
     "build": "solid-start build",
     "start": "solid-start start"
   },
   "type": "module",
   "devDependencies": {
+    "@radix-ui/colors": "^0.1.8",
     "@tailwindcss/typography": "^0.5.9",
     "autoprefixer": "^10.4.13",
     "postcss": "^8.4.21",
