@@ -5,7 +5,7 @@
 @layer base {
   html {
     --interactive: theme('colors.interactive.9');
-    @apply bg-accent-2 font-sans  overflow-x-hidden;
+    @apply bg-accent-1 font-sans  overflow-x-hidden;
     scrollbar-color: var(--interactive) Canvas;
     color-scheme: light;
   }

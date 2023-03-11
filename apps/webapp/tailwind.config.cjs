@@ -3,7 +3,7 @@
 
 const colors = require('@radix-ui/colors')
 
-const { sage, mint, grass, amber, red, gold } = colors
+const { sage, mint, grass, amber, sky, red, gold } = colors
 
 const typography = {
   fontSizeMin: 1.05,
@@ -84,6 +84,9 @@ module.exports = {
     },
 
     extend: {
+      spacing: {
+        '1ex': '1ex',
+      },
       colors: {
         neutral: {
           1: sage.sage1,
@@ -142,18 +145,18 @@ module.exports = {
           12: amber.amber12,
         },
         interactive: {
-          1: amber.amber1,
-          2: amber.amber2,
-          3: amber.amber3,
-          4: amber.amber4,
-          5: amber.amber5,
-          6: amber.amber6,
-          7: amber.amber7,
-          8: amber.amber8,
-          9: amber.amber9,
-          10: amber.amber10,
-          11: amber.amber11,
-          12: amber.amber12,
+          1: sky.sky1,
+          2: sky.sky2,
+          3: sky.sky3,
+          4: sky.sky4,
+          5: sky.sky5,
+          6: sky.sky6,
+          7: sky.sky7,
+          8: sky.sky8,
+          9: sky.sky9,
+          10: sky.sky10,
+          11: sky.sky11,
+          12: sky.sky12,
         },
         negative: {
           1: red.red1,

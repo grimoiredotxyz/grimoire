@@ -3,7 +3,7 @@ import { SUBGRAPH_API_ENDPOINT } from './config'
 /**
  * @param query - get ENS name by user Ethereum address
  */
-export async function getEnsForAddress(args: { query: string }) {
+export async function getEnsForAddress(args: { query: `0x${string}` }) {
   const response = await fetch(SUBGRAPH_API_ENDPOINT, {
     method: 'POST',
     headers: {

@@ -1,14 +1,13 @@
 // @refresh reload
 import { QueryClientProvider } from '@tanstack/solid-query'
 import { Suspense } from 'solid-js'
-import { useLocation, A, Body, ErrorBoundary, FileRoutes, Head, Html, Meta, Routes, Scripts, Title } from 'solid-start'
+import { Body, ErrorBoundary, FileRoutes, Head, Html, Meta, Routes, Scripts, Title } from 'solid-start'
 import { queryClient } from '~/config'
+import { ProviderAuthentication } from '~/hooks'
+import { Base as LayoutBase } from './layouts/Base'
 import './root.css'
 
 export default function Root() {
-  const location = useLocation()
-  const active = (path: string) =>
-    path == location.pathname ? 'border-sky-600' : 'border-transparent hover:border-sky-600'
   return (
     <Html lang="en">
       <Head>
@@ -20,9 +19,13 @@ export default function Root() {
         <Suspense>
           <ErrorBoundary>
             <QueryClientProvider client={queryClient}>
-              <Routes>
-                <FileRoutes />
-              </Routes>
+              <ProviderAuthentication>
+                <LayoutBase>
+                  <Routes>
+                    <FileRoutes />
+                  </Routes>
+                </LayoutBase>
+              </ProviderAuthentication>
             </QueryClientProvider>
           </ErrorBoundary>
         </Suspense>

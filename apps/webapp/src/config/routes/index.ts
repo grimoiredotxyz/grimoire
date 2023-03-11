@@ -1,6 +1,5 @@
-
 const BASE_ROUTE_TRANSCRIPT = '/transcript'
-const BASE_ROUTE_TRANSCRIPT_REVISION =  `${BASE_ROUTE_TRANSCRIPT}/[idTranscript]/revision`
+const BASE_ROUTE_TRANSCRIPT_REVISION = `${BASE_ROUTE_TRANSCRIPT}/[idTranscript]/revision`
 const BASE_ROUTE_USER = '/user'
 const BASE_ROUTE_REQUEST = '/request'
 
@@ -14,6 +13,9 @@ export const ROUTE_SIGN_IN = '/sign-in'
 export const ROUTE_DASHBOARD = '/dashboard'
 
 // Transcripts
+
+// Search transcripts page
+export const ROUTE_TRANSCRIPT_SEARCH = `${BASE_ROUTE_TRANSCRIPT}/search`
 
 // Transcription details page
 export const ROUTE_TRANSCRIPT_DETAILS = `${BASE_ROUTE_TRANSCRIPT}/[idTranscript]`
@@ -32,17 +34,16 @@ export const ROUTE_TRANSCRIPT_REVISION_NEW = `${BASE_ROUTE_TRANSCRIPT_REVISION}/
 // Request
 
 // Ongoing/active requests page
-export const ROUTE_REQUEST_ACTIVE =`${BASE_ROUTE_REQUEST}/active`
+export const ROUTE_REQUEST_ACTIVE = `${BASE_ROUTE_REQUEST}/active`
 
 // Create new request page
-export const ROUTE_REQUEST_NEW =`${BASE_ROUTE_REQUEST}/new`
+export const ROUTE_REQUEST_NEW = `${BASE_ROUTE_REQUEST}/new`
 
 // Request details page
-export const ROUTE_REQUEST_DETAILS =`${BASE_ROUTE_REQUEST}/[idRequest]`
-
+export const ROUTE_REQUEST_DETAILS = `${BASE_ROUTE_REQUEST}/[idRequest]`
 
 // Leaderboard
-export const ROUTE_LEADERBOARD ='/leaderboard'
+export const ROUTE_LEADERBOARD = '/leaderboard'
 
 // Users
 
