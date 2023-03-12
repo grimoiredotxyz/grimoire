@@ -1,7 +1,7 @@
 import * as popover from '@zag-js/popover'
 import * as accordion from '@zag-js/accordion'
 import { normalizeProps, useMachine } from '@zag-js/solid'
-import { createMemo, createUniqueId } from 'solid-js'
+import { createMemo, createUniqueId, onMount } from 'solid-js'
 
 export function useMenuActions() {
   const [statePopover, sendPopover] = useMachine(
@@ -23,6 +23,10 @@ export function useMenuActions() {
   const apiAccordionMenuActions = createMemo(() =>
     accordion.connect(stateAccordionContributions, sendAccordionContributions, normalizeProps),
   )
+
+  onMount(() => { 
+    apiPopoverMenuActions().open()
+  })
 
   return {
     apiPopoverMenuActions,

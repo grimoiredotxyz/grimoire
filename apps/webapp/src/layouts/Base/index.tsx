@@ -6,7 +6,7 @@ import { useAuthentication, ToastProvider } from '~/hooks'
 import { MenuCurrentUser } from './MenuCurrentUser'
 import MenuActions from './MenuActions'
 import { callToAction } from '~/design-system'
-import { IconCaptions, IconClipboardDocument, IconTrophy } from '~/ui'
+import { IconCaptions, IconFeed, IconTrophy } from '~/ui'
 
 export const Base = (props: any) => {
   //@ts-ignore
@@ -25,7 +25,7 @@ export const Base = (props: any) => {
             class="flex items-center justify-center text-accent-11 bg-accent-1 hover:bg-white hover:text-neutral-12 focus:bg-interactive-2 focus:text-interactive-11 font-medium pt-3 xs:py-1 px-[3ex]"
             href={ROUTE_REQUEST_ACTIVE}
           >
-            <IconClipboardDocument class="w-6 h-6 xs:hidden" />
+            <IconFeed class="w-6 h-6 xs:hidden" />
             <span class="sr-only xs:not-sr-only">Requests board</span>
           </A>
           <A
