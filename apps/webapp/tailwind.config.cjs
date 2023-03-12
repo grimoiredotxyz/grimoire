@@ -66,6 +66,7 @@ module.exports = {
       '3xl': remToPx(100),
     },
     fontFamily: {
+      serif: ['serif'],
       sans: ['sans'],
       mono: ['monospace'],
     },

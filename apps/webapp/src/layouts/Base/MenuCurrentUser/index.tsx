@@ -41,9 +41,9 @@ export const MenuCurrentUser = () => {
     }
   })
   return (
-    <div>
+    <>
       <Button
-        class="pointer-events-auto max-w-42 overflow-hidden text-ellipsis"
+        class="hover:shadow pointer-events-auto max-w-42 overflow-hidden text-ellipsis"
         intent="neutral-outline"
         scale="xs"
         {...apiMenuCurrentUser().triggerProps}
@@ -98,7 +98,7 @@ export const MenuCurrentUser = () => {
           </div>
           <div class="border-b border-neutral-4">
             <A
-              class="block cursor-pointer py-1.5 px-3 text-start font-semibold w-full hover:bg-interactive-1 focus:bg-interactive-3 hover:text-interactive-11 focus:text-interactive-12"
+              class="block cursor-pointer py-4 lg:py-2 px-3 text-start font-semibold w-full hover:bg-interactive-1 focus:bg-interactive-3 hover:text-interactive-11 focus:text-interactive-12"
               href={ROUTE_SIGN_IN}
             >
               Switch network
@@ -106,13 +106,13 @@ export const MenuCurrentUser = () => {
           </div>
           <button
             {...apiMenuCurrentUser().getItemProps({ id: 'logout' })}
-            class="cursor-pointer py-1.5 px-3 text-start font-semibold w-full hover:bg-interactive-1 focus:bg-interactive-3 hover:text-interactive-11 focus:text-interactive-12"
+            class="cursor-pointer py-4 lg:py-2 px-3 text-start font-semibold w-full hover:bg-interactive-1 focus:bg-interactive-3 hover:text-interactive-11 focus:text-interactive-12"
             onClick={() => mutationDisconnect.mutate()}
           >
             Log out
           </button>
         </div>
       </div>
-    </div>
+    </>
   )
 }

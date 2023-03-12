@@ -18,6 +18,7 @@ importers:
       '@tailwindcss/typography': ^0.5.9
       '@tanstack/solid-query': ^4.26.1
       '@wagmi/core': ^0.10.1
+      '@zag-js/accordion': ^0.2.13
       '@zag-js/dialog': ^0.2.13
       '@zag-js/menu': ^0.3.12
       '@zag-js/popover': ^0.2.13
@@ -47,6 +48,7 @@ importers:
       '@solidjs/router': 0.7.1_solid-js@1.6.13
       '@tanstack/solid-query': 4.26.1_solid-js@1.6.13
       '@wagmi/core': 0.10.1_ohky2aonuhcbszteamkrhl4oyq
+      '@zag-js/accordion': 0.2.13
       '@zag-js/dialog': 0.2.13
       '@zag-js/menu': 0.3.12
       '@zag-js/popover': 0.2.13
@@ -3057,6 +3059,17 @@ packages:
       qrcode: 1.5.1
     transitivePeerDependencies:
       - react
+    dev: false
+
+  /@zag-js/accordion/0.2.13:
+    resolution: {integrity: sha512-43/iamAXLqSO0rSuI5/ffbm+rJvmOIW3QSQzRO68IBn+zgVjnfW4KKES9NNxDGSXKo/7vWb0OyfVQK0l1UdDsg==}
+    dependencies:
+      '@zag-js/anatomy': 0.1.4
+      '@zag-js/core': 0.2.10
+      '@zag-js/dom-event': 0.0.1
+      '@zag-js/dom-query': 0.1.4
+      '@zag-js/types': 0.3.4
+      '@zag-js/utils': 0.3.3
     dev: false
 
   /@zag-js/anatomy/0.1.4:

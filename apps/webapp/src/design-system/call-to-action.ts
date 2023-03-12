@@ -84,7 +84,7 @@ export const callToAction = cva(
         ],
       },
       scale: {
-        default: ['text-xs py-[0.75em]'],
+        default: ['text-xs py-[0.9em]'],
         lg: ['text-md py-[0.85em]'],
         sm: ['text-2xs py-[0.25em]'],
         xs: ['text-2xs py-[0.25em]'],

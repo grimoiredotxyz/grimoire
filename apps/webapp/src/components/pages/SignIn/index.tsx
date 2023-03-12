@@ -9,9 +9,9 @@ export const SignIn = () => {
 
   return (
     <div class="max-w-screen-2xs mx-auto">
-      <h1 class="text-2xl text-accent-12 font-bold">Make web3 content more accessible with Grimoire !</h1>
+      <h1 class="text-2xl text-accent-12 font-serif font-bold">Make web3 content more accessible with Grimoire !</h1>
       <p class="mt-2 mb-6 text-neutral-11 font-medium">Grimoire is [REDACTED]</p>
-      <div class="px-6 pt-8 bg-neutral-1 rounded-lg border border-neutral-4">
+      <div class="px-6 pt-8 bg-neutral-1 rounded-lg border border-neutral-6">
         <h2 class="text-lg flex-wrap flex items-center font-bold text-accent-12">
           <Switch>
             <Match when={mutationSignIn.isIdle || (mutationSignIn.isSuccess && isAuthenticated() === false)}>
@@ -72,7 +72,7 @@ export const SignIn = () => {
                             fallback={
                               <>
                                 <Show when={!mutationSwitchNetwork?.isLoading}>
-                                  <IconCheck class="mie-1ex w-4 h-4" />
+                                  <IconCheck class="shrink-0 mie-1ex w-4 h-4" />
                                 </Show>
                                 Connected to {chain?.name}
                               </>
@@ -121,7 +121,7 @@ export const SignIn = () => {
           </div>
         </Show>
 
-        <p class="mt-6 px-6 border-t border-neutral-4 text-center py-3 -mx-6 rounded-b-md bg-neutral-2 text-neutral-9 text-[0.7rem]">
+        <p class="mt-6 px-6 border-t border-neutral-6 text-center py-3 -mx-6 rounded-b-md bg-neutral-4 text-neutral-9 text-[0.7rem]">
           Learn more about web3 wallets
         </p>
       </div>

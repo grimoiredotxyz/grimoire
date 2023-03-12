@@ -1,10 +1,12 @@
 import { useLocation } from 'solid-start'
 import { A } from '@solidjs/router'
 import { Match, Show, Switch } from 'solid-js'
-import { ROUTE_REQUEST_ACTIVE, ROUTE_SIGN_IN, ROUTE_TRANSCRIPT_SEARCH } from '~/config'
-import { callToAction } from '~/design-system'
+import { ROUTE_LEADERBOARD, ROUTE_REQUEST_ACTIVE, ROUTE_SIGN_IN, ROUTE_TRANSCRIPT_SEARCH } from '~/config'
 import { useAuthentication, ToastProvider } from '~/hooks'
 import { MenuCurrentUser } from './MenuCurrentUser'
+import MenuActions from './MenuActions'
+import { callToAction } from '~/design-system'
+import { IconCaptions, IconClipboardDocument, IconTrophy } from '~/ui'
 
 export const Base = (props: any) => {
   //@ts-ignore
@@ -12,33 +14,57 @@ export const Base = (props: any) => {
   const location = useLocation()
   return (
     <ToastProvider>
-      <div class="gap-4 w-full max-w-screen-xl px-3 mx-auto pt-2 flex justify-end">
-        <nav class="transition-all text-2xs group  rounded-full divide-i divide-neutral-5 flex items-center bg-white border-neutral-5 overflow-hidden border hover:shadow">
+      <div class="pointer-events-auto fixed w-fit-content inline-start-3 top-2">
+        <Show when={isAuthenticated() === true}>
+          <MenuActions />
+        </Show>
+      </div>
+      <div class="fixed bottom-0 inline-start-0 md:pointer-events-none gap-4 w-full md:mx-auto max-w-screen-3xl xs:px-3 justify-center md:static md:pt-4 pb-3 flex">
+        <nav class="pointer-events-auto transition-all w-full xs:w-auto text-2xs group xs:rounded-full xs:divide-i xs:divide-neutral-5 grid grid-cols-3 xs:flex xs:items-center bg-neutral-2 border-neutral-8 overflow-hidden border-t xs:border xs:hover:shadow">
           <A
-            class="border-b border-transparent text-neutral-11  hover:bg-accent-2 hover:text-accent-11 focus:bg-interactive-2 focus:text-interactive-11  font-medium py-1 px-[3ex]"
+            class="flex items-center justify-center text-accent-11 bg-accent-1 hover:bg-white hover:text-neutral-12 focus:bg-interactive-2 focus:text-interactive-11 font-medium pt-3 xs:py-1 px-[3ex]"
             href={ROUTE_REQUEST_ACTIVE}
           >
-            Requests board
+            <IconClipboardDocument class="w-6 h-6 xs:hidden" />
+            <span class="sr-only xs:not-sr-only">Requests board</span>
           </A>
           <A
-            class="border-b border-transparent text-neutral-11  hover:bg-accent-2 hover:text-accent-11 focus:bg-interactive-2 focus:text-interactive-11  font-medium py-1 px-[3ex]"
+            class="flex items-center justify-center text-accent-11 bg-accent-1 hover:bg-white hover:text-neutral-12 focus:bg-interactive-2 focus:text-interactive-11 font-medium pt-3 xs:py-1 px-[3ex]"
             href={ROUTE_TRANSCRIPT_SEARCH}
           >
-            Transcripts
+            <IconCaptions class="w-6 h-6 xs:hidden" />
+            <span class="sr-only xs:not-sr-only">Transcripts</span>
           </A>
-          <Show when={!isAuthenticated() && location.pathname !== ROUTE_SIGN_IN}>
+          <A
+            class="flex items-center justify-center text-accent-11 bg-accent-1 hover:bg-white hover:text-neutral-12 focus:bg-interactive-2 focus:text-interactive-11 font-medium pt-3 xs:py-1 px-[3ex]"
+            href={ROUTE_LEADERBOARD}
+          >
+            <IconTrophy class="w-6 h-6 xs:hidden" />
+            <span class="sr-only xs:not-sr-only">Leaderboard</span>
+          </A>
+        </nav>
+      </div>
+
+      <div class="pointer-events-none top-0 fixed inline-end-3 w-full mx-auto max-w-screen-3xl px-3 justify-end pt-4 pb-3 flex">
+        <Switch>
+          <Match when={isAuthenticated()}>
+            <MenuCurrentUser />
+          </Match>
+          <Match when={!isAuthenticated() && location.pathname !== ROUTE_SIGN_IN}>
             <A
-              class="border-b border-transparent text-neutral-11 focus:bg-interactive-2 focus:text-interactive-11  hover:bg-accent-2 hover:text-accent-11  font-medium py-1 px-[3ex]"
+              class={callToAction({
+                class: 'hover:shadow pointer-events-auto max-w-42 overflow-hidden text-ellipsis',
+                intent: 'neutral-outline',
+                scale: 'xs',
+              })}
               href={ROUTE_SIGN_IN}
             >
               Sign-in
             </A>
-          </Show>
-        </nav>
-        <Show when={isAuthenticated()}>
-          <MenuCurrentUser />
-        </Show>
+          </Match>
+        </Switch>
       </div>
+
       <div class="flex-grow flex flex-col px-4 pt-20 pb-40">{props.children}</div>
     </ToastProvider>
   )
