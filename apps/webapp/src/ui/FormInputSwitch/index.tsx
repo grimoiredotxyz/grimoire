@@ -34,7 +34,7 @@ export const FormInputSwitch = (props: FormInputSwitchProps) => {
             class="focus:outline-none peer appearance-none absolute z-10 w-full h-full"
           />
           <div
-            class={`absolute inline-start-0 top-1/2 -translate-y-1/2 peer-focus:ring-offset-2 peer-focus:ring-4 bg-accent-6 peer-checked:bg-interactive-10  h-5  w-10 order-1 ${
+            class={`absolute inline-start-0 top-1/2 -translate-y-1/2 peer-focus:ring-offset-2 peer-focus:ring-4 bg-neutral-6 peer-checked:bg-interactive-10 h-5 w-10 order-1 ${
               local?.scale !== 'sm' ? 'lg:h-6 lg:w-12' : ''
             } rounded-full`}
             aria-hidden="true"

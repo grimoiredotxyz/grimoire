@@ -1,5 +1,5 @@
-const BASE_ROUTE_TRANSCRIPT = '/transcript'
-const BASE_ROUTE_TRANSCRIPT_REVISION = `${BASE_ROUTE_TRANSCRIPT}/[idTranscript]/revision`
+const BASE_ROUTE_TRANSCRIPTION = '/transcription'
+const BASE_ROUTE_TRANSCRIPTION_REVISION = `${BASE_ROUTE_TRANSCRIPTION}/[idTranscription]/revision`
 const BASE_ROUTE_USER = '/user'
 const BASE_ROUTE_REQUEST = '/request'
 
@@ -12,24 +12,24 @@ export const ROUTE_SIGN_IN = '/sign-in'
 // Dashboard
 export const ROUTE_DASHBOARD = '/dashboard'
 
-// Transcripts
+// Transcriptions
 
 // Search transcripts page
-export const ROUTE_TRANSCRIPT_SEARCH = `${BASE_ROUTE_TRANSCRIPT}/search`
+export const ROUTE_TRANSCRIPTION_SEARCH = `${BASE_ROUTE_TRANSCRIPTION}/search`
 
 // Transcription details page
-export const ROUTE_TRANSCRIPT_DETAILS = `${BASE_ROUTE_TRANSCRIPT}/[idTranscript]`
+export const ROUTE_TRANSCRIPTION_DETAILS = `${BASE_ROUTE_TRANSCRIPTION}/[idTranscription]`
 
 // Create new transcription page
-export const ROUTE_TRANSCRIPT_NEW = `${BASE_ROUTE_TRANSCRIPT}/new`
+export const ROUTE_TRANSCRIPTION_NEW = `${BASE_ROUTE_TRANSCRIPTION}/new`
 
 // Transcript revisions
 
 // Transcription revision details page
-export const ROUTE_TRANSCRIPT_REVISION_DETAILS = `${BASE_ROUTE_TRANSCRIPT_REVISION}/[idRevision]`
+export const ROUTE_TRANSCRIPTION_REVISION_DETAILS = `${BASE_ROUTE_TRANSCRIPTION_REVISION}/[idRevision]`
 
 // Create new revision of a transcription page
-export const ROUTE_TRANSCRIPT_REVISION_NEW = `${BASE_ROUTE_TRANSCRIPT_REVISION}/new`
+export const ROUTE_TRANSCRIPTION_REVISION_NEW = `${BASE_ROUTE_TRANSCRIPTION_REVISION}/new`
 
 // Request
 

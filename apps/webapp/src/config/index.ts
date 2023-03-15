@@ -1,4 +1,6 @@
 export * from './chains'
+export * from './contracts'
+export * from './fleek'
 export * from './routes'
 export * from './tanstack-query'
 export * from './wagmi'

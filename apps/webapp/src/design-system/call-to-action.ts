@@ -6,7 +6,7 @@ export const callToAction = cva(
   [
     'tracking-wide font-semibold',
     'rounded-full border',
-    'px-[1em]',
+    'px-[1.5em]',
     'transition-colors transition-500',
     'disabled:!opacity-50 disabled:pointer-events-none',
     'focus:outline-none focus:ring-4 focus:ring-offset-2',

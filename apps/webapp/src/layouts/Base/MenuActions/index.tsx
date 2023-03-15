@@ -1,5 +1,5 @@
 import { IconChevronDown, IconMenu, IconPlus } from '~/ui'
-import { ROUTE_REQUEST_NEW, ROUTE_TRANSCRIPT_NEW } from '~/config'
+import { ROUTE_REQUEST_NEW, ROUTE_TRANSCRIPTION_NEW } from '~/config'
 import { A } from 'solid-start'
 import useMenuActions from './useMenuActions'
 
@@ -17,7 +17,7 @@ export const MenuActions = () => {
       >
         <IconMenu class="w-7 h-7" />
       </button>
-      <div class="fixed text-[0.825rem]" {...apiPopoverMenuActions().positionerProps}>
+      <div class="fixed max-h-[90vh] overflow-y-auto text-[0.825rem]" {...apiPopoverMenuActions().positionerProps}>
         <div
           class="w-[240px] rounded-lg  inline-start-0.5 bg-white shadow-lg border border-neutral-7 divide-y divide-neutral-5"
           {...apiPopoverMenuActions().contentProps}
@@ -45,7 +45,7 @@ export const MenuActions = () => {
                     My transcriptions
                   </button>
                   <A
-                    href={ROUTE_TRANSCRIPT_NEW}
+                    href={ROUTE_TRANSCRIPTION_NEW}
                     title="Create new transcription"
                     class="shrink-0 flex items-center justify-center aspect-square focus:bg-neutral-3 hover:bg-neutral-2 hover:text-neutral-12 hover:text-opacity-75 focus:text-neutral-12 focus:outline-none w-9 lg:w-7 h-9 lg:h-7 rounded-md"
                   >

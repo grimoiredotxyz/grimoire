@@ -7,7 +7,7 @@ export const formFieldLabel = cva(['flex text-[1.015em] font-bold items-center']
       default: ['text-neutral-12'],
     },
     scale: {
-      default: ['leading-loose'],
+      default: ['leading-loose text-xs'],
     },
   },
   defaultVariants: {
