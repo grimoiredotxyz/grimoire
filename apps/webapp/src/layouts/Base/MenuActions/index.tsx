@@ -1,11 +1,8 @@
-import { createQuery } from '@tanstack/solid-query'
 import { IconChevronDown, IconMenu, IconPlus } from '~/ui'
-import { chains, CONTRACT_TRANSCRIPTIONS, ROUTE_REQUEST_NEW, ROUTE_TRANSCRIPTION_NEW } from '~/config'
+import { ROUTE_REQUEST_NEW, ROUTE_TRANSCRIPTION_NEW } from '~/config'
 import { useAuthentication } from '~/hooks'
 import { A } from 'solid-start'
 import useMenuActions from './useMenuActions'
-import { ethers } from 'ethers'
-import { readContracts } from '@wagmi/core'
 
 export const MenuActions = () => {
   const { apiPopoverMenuActions, apiAccordionMenuActions } = useMenuActions()

@@ -1,5 +1,5 @@
-import { ethers } from 'ethers'
-import { createEffect, Match, Show, splitProps, Switch } from 'solid-js'
+import { isAddress } from 'viem'
+import { Match, Show, splitProps, Switch } from 'solid-js'
 import {
   Button,
   FormTextarea,
@@ -38,7 +38,7 @@ export const FormNewTranscription = (props: FormNewTranscriptionProps) => {
   return (
     <>
       {/* @ts-ignore */}
-      <Show when={!ethers.utils.isAddress(currentUser()?.address)}>
+      <Show when={!isAddress(currentUser()?.address)}>
         <p class="animate-appear text-start xs:text-center mt-6 mb-4 font-medium text-2xs bg-secondary-3 py-2 rounded-md mx-auto w-fit-content px-4 text-secondary-11">
           Sign-in to start creating transcriptions.
         </p>
@@ -47,9 +47,7 @@ export const FormNewTranscription = (props: FormNewTranscriptionProps) => {
       <form use:form>
         <div class="border bg-accent-1 divide-y divide-neutral-4 rounded-md border-neutral-4 mb-8">
           <fieldset
-            {...local
-              .apiAccordion()
-              .getItemProps({ value: 'source', disabled: !ethers.utils.isAddress(currentUser()?.address) })}
+            {...local.apiAccordion().getItemProps({ value: 'source', disabled: !isAddress(currentUser()?.address) })}
           >
             <div class="flex relative p-3 font-bold focus-within:ring focus-within:bg-neutral-2">
               <span
@@ -66,7 +64,7 @@ export const FormNewTranscription = (props: FormNewTranscriptionProps) => {
                 class="disabled:cursor-not-allowed absolute inset-0 w-full h-full opacity-0"
                 {...local
                   .apiAccordion()
-                  .getTriggerProps({ value: 'source', disabled: !ethers.utils.isAddress(currentUser()?.address) })}
+                  .getTriggerProps({ value: 'source', disabled: !isAddress(currentUser()?.address) })}
               >
                 Toggle "Source" section
               </button>
@@ -76,7 +74,7 @@ export const FormNewTranscription = (props: FormNewTranscriptionProps) => {
               class="pb-6 px-3 sm:px-6 space-y-4"
               {...local
                 .apiAccordion()
-                .getContentProps({ value: 'source', disabled: !ethers.utils.isAddress(currentUser()?.address) })}
+                .getContentProps({ value: 'source', disabled: !isAddress(currentUser()?.address) })}
             >
               <FormField>
                 <FormField.InputField>
@@ -124,7 +122,7 @@ export const FormNewTranscription = (props: FormNewTranscriptionProps) => {
             class="disabled:opacity-50 disabled:cursor-not-allowed"
             {...local.apiAccordion().getItemProps({
               value: 'info',
-              disabled: !ethers.utils.isAddress(currentUser()?.address) ? true : false,
+              disabled: !isAddress(currentUser()?.address) ? true : false,
             })}
           >
             <div class="flex relative p-3 font-bold focus-within:ring focus-within:bg-neutral-2">
@@ -143,7 +141,7 @@ export const FormNewTranscription = (props: FormNewTranscriptionProps) => {
                 class="absolute disabled:cursor-not-allowed z-10 inset-0 w-full h-full opacity-0"
                 {...local.apiAccordion().getTriggerProps({
                   value: 'info',
-                  disabled: !ethers.utils.isAddress(currentUser()?.address) ? true : false,
+                  disabled: !isAddress(currentUser()?.address) ? true : false,
                 })}
               >
                 Toggle "Info" section
@@ -153,7 +151,7 @@ export const FormNewTranscription = (props: FormNewTranscriptionProps) => {
               class="pt-1.5 space-y-4 pb-6 px-3 sm:px-6"
               {...local.apiAccordion().getContentProps({
                 value: 'info',
-                disabled: !ethers.utils.isAddress(currentUser()?.address) ? true : false,
+                disabled: !isAddress(currentUser()?.address) ? true : false,
               })}
             >
               <FormField>
@@ -237,7 +235,7 @@ export const FormNewTranscription = (props: FormNewTranscriptionProps) => {
             class="disabled:opacity-50 disabled:cursor-not-allowed"
             {...local.apiAccordion().getItemProps({
               value: 'files',
-              disabled: !ethers.utils.isAddress(currentUser()?.address) ? true : false,
+              disabled: !isAddress(currentUser()?.address) ? true : false,
             })}
           >
             <div class="flex relative p-3 font-bold focus-within:ring focus-within:bg-neutral-2">
@@ -255,7 +253,7 @@ export const FormNewTranscription = (props: FormNewTranscriptionProps) => {
                 class="disabled:cursor-not-allowed absolute inset-0 w-full h-full opacity-0"
                 {...local.apiAccordion().getTriggerProps({
                   value: 'transcription',
-                  disabled: !ethers.utils.isAddress(currentUser()?.address) ? true : false,
+                  disabled: !isAddress(currentUser()?.address) ? true : false,
                 })}
               >
                 Toggle "Transcription" section
@@ -265,7 +263,7 @@ export const FormNewTranscription = (props: FormNewTranscriptionProps) => {
               class="pt-1.5 pb-6 px-3 sm:px-6"
               {...local.apiAccordion().getContentProps({
                 value: 'transcription',
-                disabled: !ethers.utils.isAddress(currentUser()?.address) ? true : false,
+                disabled: !isAddress(currentUser()?.address) ? true : false,
               })}
             >
               <p class="text-2xs text-neutral-11">
@@ -285,7 +283,7 @@ export const FormNewTranscription = (props: FormNewTranscriptionProps) => {
                     class="flex items-center bg-accent-1 not:data-[selected]:bg-transparent data-[selected]:bg-white py-2 px-4 font-semibold text-2xs disabled:opacity-50 p-8"
                     {...local.apiTabs().getTriggerProps({
                       value: 'text-version',
-                      disabled: !ethers.utils.isAddress(currentUser()?.address) ? true : false,
+                      disabled: !isAddress(currentUser()?.address) ? true : false,
                     })}
                   >
                     <IconPencilSquare stroke-width="2" class="w-[1.2rem] h-[1.2rem] mie-1ex" />
@@ -295,7 +293,7 @@ export const FormNewTranscription = (props: FormNewTranscriptionProps) => {
                     class="grow-[1] flex items-center bg-accent-1 not:data-[selected]:bg-transparent data-[selected]:bg-white py-2 px-4 font-semibold text-2xs disabled:opacity-50"
                     {...local.apiTabs().getTriggerProps({
                       value: 'files',
-                      disabled: !ethers.utils.isAddress(currentUser()?.address) ? true : false,
+                      disabled: !isAddress(currentUser()?.address) ? true : false,
                     })}
                   >
                     <IconArrowDownSquare stroke-width="2" class="w-[1.2rem] h-[1.2rem] mie-1ex" />
@@ -306,7 +304,7 @@ export const FormNewTranscription = (props: FormNewTranscriptionProps) => {
                   class="p-0.5 xs:p-4 bg-white"
                   {...local.apiTabs().getContentProps({
                     value: 'text-version',
-                    disabled: !ethers.utils.isAddress(currentUser()?.address) ? true : false,
+                    disabled: !isAddress(currentUser()?.address) ? true : false,
                   })}
                 >
                   <div class="space-y-4 p-3">
@@ -350,7 +348,7 @@ export const FormNewTranscription = (props: FormNewTranscriptionProps) => {
                   class="p-0.5 xs:p-4 bg-white"
                   {...local.apiTabs().getContentProps({
                     value: 'files',
-                    disabled: !ethers.utils.isAddress(currentUser()?.address) ? true : false,
+                    disabled: !isAddress(currentUser()?.address) ? true : false,
                   })}
                 >
                   <div class="space-y-4 p-3">
@@ -573,7 +571,7 @@ export const FormNewTranscription = (props: FormNewTranscriptionProps) => {
             class="disabled:opacity-50 disabled:cursor-not-allowed"
             {...local.apiAccordion().getItemProps({
               value: 'contribute',
-              disabled: !ethers.utils.isAddress(currentUser()?.address) ? true : false,
+              disabled: !isAddress(currentUser()?.address) ? true : false,
             })}
           >
             <div class="flex relative p-3 font-bold focus-within:ring focus-within:bg-neutral-2">
@@ -591,7 +589,7 @@ export const FormNewTranscription = (props: FormNewTranscriptionProps) => {
                 class="disabled:cursor-not-allowed absolute inset-0 w-full h-full opacity-0"
                 {...local.apiAccordion().getTriggerProps({
                   value: 'contributions',
-                  disabled: !ethers.utils.isAddress(currentUser()?.address) ? true : false,
+                  disabled: !isAddress(currentUser()?.address) ? true : false,
                 })}
               >
                 Toggle "Worflow & Contributions" section
@@ -601,7 +599,7 @@ export const FormNewTranscription = (props: FormNewTranscriptionProps) => {
               class="pt-1.5 space-y-4 pb-6 px-3 sm:px-6"
               {...local.apiAccordion().getContentProps({
                 value: 'contributions',
-                disabled: !ethers.utils.isAddress(currentUser()?.address) ? true : false,
+                disabled: !isAddress(currentUser()?.address) ? true : false,
               })}
             >
               <FormField>
@@ -628,8 +626,8 @@ export const FormNewTranscription = (props: FormNewTranscriptionProps) => {
                   <FormInputSwitch
                     id="revision_must_be_approved_first"
                     name="revision_must_be_approved_first"
-                    label="Revisions must be me or my collaborators first"
-                    helpText="Enabling this options means that for a revision to be accepted, it must be reviewed by you or another address you designated as a collaborator."
+                    label="Revisions must be reviewed by me or my collaborators first"
+                    helpText="Enabling this option means that for a revision to be accepted, it must be reviewed by you or another address you designated as a collaborator."
                     hasError={local.storeForm.errors()?.revision_must_be_approved_first?.length > 0 ? true : false}
                     checked={local.storeForm.data()?.revision_must_be_approved_first}
                   />

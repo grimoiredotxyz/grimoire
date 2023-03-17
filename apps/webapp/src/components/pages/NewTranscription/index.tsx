@@ -446,6 +446,7 @@ export const NewTranscription = () => {
                                   mutationTxWaitCreateNewTranscription?.status,
                                   mutationWriteContractCreateNewTranscription.status,
                                   mutationUploadLRCFile.status,
+                                  mutationUploadSRTFile.status,
                                   mutationUploadMetadata.status,
                                   mutationUploadVTTFile.status,
                                 ].includes('error')}

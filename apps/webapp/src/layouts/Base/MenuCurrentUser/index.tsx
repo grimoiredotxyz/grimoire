@@ -6,7 +6,7 @@ import useCurrentUser from './useCurrentUser'
 import { queryClient, ROUTE_SIGN_IN } from '~/config'
 import { A } from 'solid-start'
 import { getEnsForAddress } from '~/services'
-import { isAddress } from 'ethers/lib/utils.js'
+import { isAddress } from 'viem'
 import { createQuery } from '@tanstack/solid-query'
 
 export const MenuCurrentUser = () => {

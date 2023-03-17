@@ -1,6 +1,6 @@
 import { useSearchParams } from 'solid-start'
 import { getUnixTime } from 'date-fns'
-import { createEffect, createMemo, createUniqueId, onError } from 'solid-js'
+import { createEffect, createMemo, createUniqueId } from 'solid-js'
 import { createMutation, useQueryClient } from '@tanstack/solid-query'
 import { z } from 'zod'
 import * as popover from '@zag-js/popover'
@@ -11,9 +11,8 @@ import { uploadFileToIPFS } from '~/helpers'
 import { schema } from './schema'
 import { getNetwork, prepareWriteContract, waitForTransaction, writeContract } from '@wagmi/core'
 import { uuid } from 'uuidv4'
-import { ABI_TRANSCRIPTIONS, CONTRACT_TRANSCRIPTIONS } from '~/config'
-import { ethers } from 'ethers'
-import { api } from '@zag-js/toast'
+import { CONTRACT_TRANSCRIPTIONS } from '~/config'
+import { toBytes } from 'viem'
 
 interface FormValues extends z.infer<typeof schema> {}
 
@@ -215,7 +214,7 @@ export function useSmartContract() {
       updatedAt: getUnixTime(new Date()),
       listCollaborators: formValues?.collaborators ?? [],
       listCommunities: formValues?.communities ?? [],
-      idRequest: searchParams?.idRequest ?? ethers.utils.formatBytes32String(''),
+      idRequest: searchParams?.idRequest ?? toBytes(''),
     }
   }
 
