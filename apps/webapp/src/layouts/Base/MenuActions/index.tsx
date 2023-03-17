@@ -1,10 +1,37 @@
+import { createQuery } from '@tanstack/solid-query'
 import { IconChevronDown, IconMenu, IconPlus } from '~/ui'
-import { ROUTE_REQUEST_NEW, ROUTE_TRANSCRIPTION_NEW } from '~/config'
+import { chains, CONTRACT_TRANSCRIPTIONS, ROUTE_REQUEST_NEW, ROUTE_TRANSCRIPTION_NEW } from '~/config'
+import { useAuthentication } from '~/hooks'
 import { A } from 'solid-start'
 import useMenuActions from './useMenuActions'
+import { ethers } from 'ethers'
+import { readContracts } from '@wagmi/core'
 
 export const MenuActions = () => {
   const { apiPopoverMenuActions, apiAccordionMenuActions } = useMenuActions()
+  const { currentUser } = useAuthentication()
+
+  /*
+  const queryMenuContent = createQuery(
+    () => ['transcriptions', currentUser()?.address ],
+    async () => {
+      // Fetch transcriptions created by the current user on multiple chains
+      const contracts = Object.keys(CONTRACT_TRANSCRIPTIONS).map(contract => {
+        return {
+          ...CONTRACT_TRANSCRIPTIONS[contract],
+
+        }
+      })
+    },
+    {
+      refetchOnWindowFocus: false,
+      get enabled() {
+        //@ts-ignore
+        return useCurrentUser()?.address ? true : false
+      },
+    },
+  )
+  */
   return (
     <>
       <button

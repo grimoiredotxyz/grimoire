@@ -47,26 +47,24 @@ export const Base = (props: any) => {
 
       <div class="bg-neutral-2 md:bg-transparent z-10 top-0 fixed inline-end-3 w-full pt-4 pb-3">
         <div class="pointer-events-none w-full mx-auto max-w-screen-3xl px-3 justify-end flex">
-
-        <Switch>
-          <Match when={isAuthenticated()}>
-            <MenuCurrentUser />
-          </Match>
-          <Match when={!isAuthenticated() && location.pathname !== ROUTE_SIGN_IN}>
-            <A
-              class={callToAction({
-                class: 'hover:shadow pointer-events-auto max-w-42 overflow-hidden text-ellipsis',
-                intent: 'neutral-outline',
-                scale: 'xs',
-              })}
-              href={ROUTE_SIGN_IN}
-            >
-              Sign-in
-            </A>
-          </Match>
-        </Switch>
+          <Switch>
+            <Match when={isAuthenticated()}>
+              <MenuCurrentUser />
+            </Match>
+            <Match when={!isAuthenticated() && location.pathname !== ROUTE_SIGN_IN}>
+              <A
+                class={callToAction({
+                  class: 'hover:shadow pointer-events-auto max-w-42 overflow-hidden text-ellipsis',
+                  intent: 'neutral-outline',
+                  scale: 'xs',
+                })}
+                href={ROUTE_SIGN_IN}
+              >
+                Sign-in
+              </A>
+            </Match>
+          </Switch>
         </div>
-
       </div>
 
       <div class="flex-grow flex flex-col px-4 pt-20 pb-40">{props.children}</div>

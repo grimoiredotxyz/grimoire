@@ -24,7 +24,7 @@ export function useMenuActions() {
     accordion.connect(stateAccordionContributions, sendAccordionContributions, normalizeProps),
   )
 
-  onMount(() => { 
+  onMount(() => {
     apiPopoverMenuActions().open()
   })
 

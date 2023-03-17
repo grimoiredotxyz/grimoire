@@ -1,5 +1,6 @@
 import { polygonMumbai, optimismGoerli, gnosisChiado, filecoinHyperspace } from '@wagmi/core/chains'
 import { Chain } from '@wagmi/core'
+import { ethers } from 'ethers'
 
 // Config from https://scroll.io/alpha
 export const scroll_L2 = {

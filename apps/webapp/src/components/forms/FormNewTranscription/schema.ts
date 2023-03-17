@@ -1,16 +1,16 @@
-import { any, boolean, object, number, string } from 'zod'
+import { any, boolean, object, array, string } from 'zod'
 
 // Validation schema for the "create a new transcription" form
 export const schema = object({
-  title: string().trim().min(1).optional(),
-  //  tags: string().optional(),
-  //  reference_source_media: string().optional(), // eg: gnosis/<erc-721-contract-address>/<id> ; twitter/<tweet-id>
-  source_media_url: string().optional(),
-  media_source_type: string().optional(),
-  source_media_contract: string().optional(),
-  source_media_nft_id: number().optional(),
-
-  // language: string().optional(), // code ; eg: en-GB
+  // Source
+  source_media_uris: array(string().trim()).optional(),
+  source_media_title: string().trim().min(1),
+  // About
+  title: string().trim().min(1),
+  language: string().min(1), // code ; eg: en-GB
+  keywords: array(string().trim()).optional(),
+  notes: string().trim().optional(),
+  // Transcription
   transcription_plain_text: string().trim().min(1).optional(),
   srt_file: any().optional(),
   srt_uri: string().optional(),
@@ -18,7 +18,9 @@ export const schema = object({
   vtt_uri: string().optional(),
   lrc_file: any().optional(),
   lrc_uri: string().optional(),
-  revision_must_be_approved_first: boolean()
+  // Workflow & contributors
+  revision_must_be_approved_first: boolean(),
+  collaborators: array(string().regex(/^0x[a-fA-F0-9]{40}$/)).optional(),
 })
 
 export default schema

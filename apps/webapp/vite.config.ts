@@ -17,5 +17,6 @@ export default defineConfig({
       protocolImports: true,
     }),
 
-    solid({ ssr: false })],
+    solid({ ssr: false }),
+  ],
 })

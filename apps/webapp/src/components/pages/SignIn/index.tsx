@@ -66,11 +66,12 @@ export const SignIn = () => {
                         intent={`${chain?.network}-outline`}
                         disabled={mutationSwitchNetwork.isLoading || chain?.id === currentNetwork()?.id}
                       >
-                        <span 
-                        classList={{
-                          'pis-1ex': mutationSwitchNetwork.isLoading
-                        }}
-                        class="flex items-center">
+                        <span
+                          classList={{
+                            'pis-1ex': mutationSwitchNetwork.isLoading,
+                          }}
+                          class="flex items-center"
+                        >
                           <Show
                             when={chain?.id !== currentNetwork()?.id}
                             fallback={
