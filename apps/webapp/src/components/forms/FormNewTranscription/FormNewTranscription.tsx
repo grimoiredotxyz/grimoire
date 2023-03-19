@@ -82,10 +82,10 @@ export const FormNewTranscription = (props: FormNewTranscriptionProps) => {
                     hasError={local.storeForm.errors()?.source_media_uris?.length > 0 ? true : false}
                     for="source_media_uris"
                   >
-                    Source material link
+                    Source material links
                   </FormField.Label>
                   <FormField.Description id="source_media_uris-description">
-                    A link to the source material of your media (video/audio). Your link can be valid URI starting with{' '}
+                  Link(s) to the source material of your media (video/audio). Your link can be valid URI starting with{' '}
                     <code>ipfs://</code> (IPFS), <code>ar://</code> (Arweave), or a valid URL starting with{' '}
                     <code>https://</code>.{' '}
                   </FormField.Description>

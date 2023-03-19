@@ -73,7 +73,7 @@ export async function getOnChainTranscription(args: {
     language: null,
     lrc_file_uri: null,
     notes: null,
-    revision_must_be_approved_first: null,
+    revision_must_be_approved_first: true,
     source_media_title: null,
     source_media_uri: null,
     srt_file_uri: null,

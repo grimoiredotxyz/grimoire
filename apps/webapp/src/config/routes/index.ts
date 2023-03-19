@@ -1,5 +1,5 @@
 const BASE_ROUTE_TRANSCRIPTION = '/transcription'
-const BASE_ROUTE_TRANSCRIPTION_REVISION = `${BASE_ROUTE_TRANSCRIPTION}/[idTranscription]/revision`
+const BASE_ROUTE_TRANSCRIPTION_REVISION = `/[chain]${BASE_ROUTE_TRANSCRIPTION}/[idTranscription]/revision`
 const BASE_ROUTE_USER = '/user'
 const BASE_ROUTE_REQUEST = '/request'
 
@@ -18,7 +18,7 @@ export const ROUTE_DASHBOARD = '/dashboard'
 export const ROUTE_TRANSCRIPTION_SEARCH = `${BASE_ROUTE_TRANSCRIPTION}/search`
 
 // Transcription details page
-export const ROUTE_TRANSCRIPTION_DETAILS = `${BASE_ROUTE_TRANSCRIPTION}/[idTranscription]`
+export const ROUTE_TRANSCRIPTION_DETAILS = `/[chain]${BASE_ROUTE_TRANSCRIPTION}/[idTranscription]`
 
 // Create new transcription page
 export const ROUTE_TRANSCRIPTION_NEW = `${BASE_ROUTE_TRANSCRIPTION}/new`
@@ -40,7 +40,7 @@ export const ROUTE_REQUEST_ACTIVE = `${BASE_ROUTE_REQUEST}/active`
 export const ROUTE_REQUEST_NEW = `${BASE_ROUTE_REQUEST}/new`
 
 // Request details page
-export const ROUTE_REQUEST_DETAILS = `${BASE_ROUTE_REQUEST}/[idRequest]`
+export const ROUTE_REQUEST_DETAILS = `/[chain]${BASE_ROUTE_REQUEST}/[idRequest]`
 
 // Leaderboard
 export const ROUTE_LEADERBOARD = '/leaderboard'

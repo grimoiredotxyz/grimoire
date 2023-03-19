@@ -1,5 +1,5 @@
 import { useSearchParams } from 'solid-start'
-import { getUnixTime } from 'date-fns'
+import { fromUnixTime, getUnixTime } from 'date-fns'
 import { createEffect, createMemo, createUniqueId } from 'solid-js'
 import { createMutation, useQueryClient } from '@tanstack/solid-query'
 import { z } from 'zod'
@@ -10,9 +10,9 @@ import { useToast } from '~/hooks/useToast'
 import { uploadFileToIPFS } from '~/helpers'
 import { schema } from './schema'
 import { getNetwork, prepareWriteContract, waitForTransaction, writeContract } from '@wagmi/core'
-import { uuid } from 'uuidv4'
-import { CONTRACT_TRANSCRIPTIONS } from '~/config'
-import { toBytes } from 'viem'
+import { v4 as uuid } from 'uuid'
+import { ABI_TRANSCRIPTIONS, CHAINS_ALIAS, CONTRACT_TRANSCRIPTIONS } from '~/config'
+import { utils } from 'ethers'
 
 interface FormValues extends z.infer<typeof schema> {}
 
@@ -61,13 +61,19 @@ export function useSmartContract() {
         functionName: 'createTranscription',
         /*
             Arguments order: 
-          created_at (uint256)
-          contributors (address[])
-          metadata_uri (string)
-          id_request (bytes32)
-          communities (string[])
+            created_at (uint256)
+            contributors (address[])
+            metadata_uri (string)
+            id_request (bytes32)
+            communities (string[]) 
           */
-        args: [args?.updatedAt, args?.listCollaborators, args?.uriMetadata, args?.idRequest, args?.listCommunities],
+        args: [
+          args?.updatedAt,
+          args?.listCollaborators,
+          args?.uriMetadata,
+          args?.idRequest,
+          args?.listCommunities
+        ],
       })
       if (apiAccordionCreateNewTranscriptionStatus().value !== 'transaction-1')
         apiAccordionCreateNewTranscriptionStatus().setValue('transaction-1')
@@ -82,15 +88,39 @@ export function useSmartContract() {
           placement: 'bottom-right',
         })
       },
-      async onSuccess(data: { hash: `0x${string}` }) {
-        if (data?.hash) await mutationTxWaitCreateNewTranscription.mutateAsync(data.hash)
-      },
+
     },
   )
 
   const mutationTxWaitCreateNewTranscription = createMutation(
-    async (hash: `0x${string}`) => {
-      return await waitForTransaction({ hash })
+    async (args: {hash: `0x${string}`, chainAlias: string}) => {
+      const data = await waitForTransaction({ hash: args.hash })
+      const iface = new utils.Interface(ABI_TRANSCRIPTIONS)
+      const log = data.logs      
+      const { 
+        transcript_id,
+        created_at,
+        last_updated_at, 
+        creator,
+        contributors, 
+        revision_metadata_uris, 
+        metadata_uri, 
+        id_request, 
+        communities,
+      } = iface.parseLog(log[0]).args
+      return {
+        txData: data,
+        transcript_id,
+        created_at,
+        last_updated_at, 
+        creator,
+        contributors, 
+        revision_metadata_uris, 
+        metadata_uri, 
+        id_request, 
+        communities,
+        chainAlias: args?.chainAlias,
+      }
     },
     {
       onSuccess() {
@@ -182,7 +212,7 @@ export function useSmartContract() {
       // About
       title: formValues?.title,
       language: formValues?.language, // code ; eg: en-GB
-      keywords: formValues?.keywords,
+      keywords: formValues?.keywords?.toString(),
       notes: formValues?.notes,
       // Transcription
       transcription_plain_text: formValues?.transcription_plain_text ?? '',
@@ -214,30 +244,81 @@ export function useSmartContract() {
       updatedAt: getUnixTime(new Date()),
       listCollaborators: formValues?.collaborators ?? [],
       listCommunities: formValues?.communities ?? [],
-      idRequest: searchParams?.idRequest ?? toBytes(''),
+      idRequest: searchParams?.idRequest?.length > 0 ? searchParams?.idRequest : utils.formatBytes32String(''),
+      metadata,
     }
   }
 
   async function onSubmitCreateTranscriptionForm(args: { formValues: FormValues }) {
     try {
+      const network = await getNetwork()
+      const chainId = network.chain?.id
+      //@ts-ignore
+      const chainAlias = CHAINS_ALIAS[chainId]
       /**
        * Prepare data
        */
 
-      const { uriMetadata, updatedAt, listCollaborators, listCommunities, idRequest } = await prepareData(
-        args?.formValues,
-      )
+     const { metadata, uriMetadata, updatedAt, listCollaborators, listCommunities, idRequest } = await prepareData(
+       args?.formValues,
+     )
 
       /**
        * Smart contract interaction
        */
-      await mutationWriteContractCreateNewTranscription.mutateAsync({
+      const dataWriteContract = await mutationWriteContractCreateNewTranscription.mutateAsync({
         uriMetadata: uriMetadata as string,
         updatedAt,
         listCollaborators,
         listCommunities,
         idRequest,
       })
+
+      if (dataWriteContract?.hash) {
+        const {
+            transcript_id,
+            created_at,
+            last_updated_at, 
+            creator,
+            contributors, 
+            revision_metadata_uris, 
+            metadata_uri, 
+            id_request, 
+            communities,
+        } = await mutationTxWaitCreateNewTranscription.mutateAsync({hash: dataWriteContract?.hash, chainAlias})
+
+        const slug = `${chainAlias}/${transcript_id}`
+        queryClient.setQueryData(['transcription', slug], {
+          chainId,
+          id: transcript_id,
+          transcript_id,
+          communities,
+          contributors,
+          created_at,
+          creator,
+          id_request,
+          last_updated_at,
+          metadata_uri,
+          revision_metadata_uris,
+          slug,
+          created_at_epoch_timestamp: created_at,
+          created_at_datetime: fromUnixTime(created_at),
+          last_updated_at_epoch_timestamp: last_updated_at,
+          last_updated_at_datetime: fromUnixTime(last_updated_at),
+          keywords: metadata.keywords.split(",") ,
+          language: metadata.language,
+          lrc_file_uri: metadata.lrc_file_uri,
+          notes: metadata.notes,
+          revision_must_be_approved_first: metadata.revision_must_be_approved_first,
+          source_media_title: metadata.source_media_title,
+          source_media_uri: metadata.source_media_uri,
+          srt_file_uri: metadata.srt_file_uri,
+          title: metadata.title,
+          transcription_plain_text: metadata.transcription_plain_text,
+          vtt_file_uri: metadata.vtt_file_uri,
+        })
+      }
+      
     } catch (e) {
       console.error(e)
     }

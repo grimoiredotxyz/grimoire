@@ -3,6 +3,8 @@ import { Match, Show, Switch } from 'solid-js'
 import web3UriToUrl from '~/helpers/web3UriToUrl'
 import { IconCheck, IconDoubleChevronDown, IconError, IconExternal, IconSpinner } from '~/ui/Icons'
 import { FormNewTranscription, useSmartContract, schema, useForm } from '~/components/forms/FormNewTranscription'
+import { ROUTE_TRANSCRIPTION_DETAILS } from '~/config'
+import { A } from 'solid-start'
 
 export const NewTranscription = () => {
   const {
@@ -99,7 +101,7 @@ export const NewTranscription = () => {
             ['success', 'loading', 'error'].includes(mutationUploadMetadata.status)
           }
         >
-          <div class="fixed w-full pointer-events-none z-50 pb-16 md:pb-0 bottom-0 md:top-0 inline-start-0 flex ">
+          <div class="fixed w-full pointer-events-none z-50 pb-16 bottom-0 inline-start-0 flex">
             <div class="w-full mx-auto flex justify-center">
               <div class="relative h-fit-content">
                 <button
@@ -187,6 +189,7 @@ export const NewTranscription = () => {
                         </h3>
                         <div {...apiAccordionCreateNewTranscriptionStatus().getContentProps({ value: 'file-uploads' })}>
                           <ul class="pb-2 text-2xs space-y-1 px-2">
+                            <Show when={formNewTranscription.data().srt_file?.name}>
                             <li
                               classList={{
                                 'text-accent-8': mutationUploadSRTFile?.isIdle,
@@ -222,6 +225,8 @@ export const NewTranscription = () => {
                                 </a>
                               </Show>
                             </li>
+                            </Show>
+                            <Show when={formNewTranscription.data().vtt_file?.name}>
                             <li
                               classList={{
                                 'text-accent-8': mutationUploadVTTFile?.isIdle,
@@ -257,6 +262,8 @@ export const NewTranscription = () => {
                                 </a>
                               </Show>
                             </li>
+                            </Show>
+                            <Show when={formNewTranscription.data().lrc_file?.name}>
                             <li
                               classList={{
                                 'text-accent-8': mutationUploadLRCFile?.isIdle,
@@ -292,6 +299,8 @@ export const NewTranscription = () => {
                                 </a>
                               </Show>
                             </li>
+                            </Show>
+
 
                             <li
                               classList={{
@@ -458,11 +467,14 @@ export const NewTranscription = () => {
                               <Match when={mutationTxWaitCreateNewTranscription?.isSuccess}>
                                 <div class="my-4 text-2xs rounded-md p-3 text-positive-11 border border-positive-5 bg-positive-3">
                                   <p class="font-semibold">Transcription created successfully !</p>
+                                  <p>Check and share <A class="font-bold underline hover:no-underline focus:no-underline" href={ROUTE_TRANSCRIPTION_DETAILS
+                                    .replace('[chain]', mutationTxWaitCreateNewTranscription.data?.chainAlias as string)
+                                    .replace("[idTranscription]", mutationTxWaitCreateNewTranscription.data?.transcript_id)}>the details page here.</A></p>
                                 </div>
                               </Match>
                             </Switch>
                           </div>
-                          <button class="text-center p-2 text-accent-10 w-full text-[0.75rem]">Close</button>
+                          <button {...apiPopoverCreateNewTranscriptionStatus().closeTriggerProps} class="text-center p-2 text-accent-10 w-full text-[0.75rem]">Close</button>
                         </div>
                       </div>
                     </div>

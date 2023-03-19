@@ -3,6 +3,8 @@ import { Match, Show, Switch } from 'solid-js'
 import web3UriToUrl from '~/helpers/web3UriToUrl'
 import { IconCheck, IconDoubleChevronDown, IconError, IconExternal, IconSpinner } from '~/ui/Icons'
 import { FormNewRequest, useSmartContract, schema, useForm } from '~/components/forms/FormNewRequest'
+import { ROUTE_REQUEST_DETAILS } from '~/config'
+import { A } from 'solid-start'
 
 export const Request = () => {
   const {
@@ -66,7 +68,7 @@ export const Request = () => {
             ['success', 'loading', 'error'].includes(mutationUploadMetadata.status)
           }
         >
-          <div class="fixed w-full pointer-events-none z-50 pb-16 md:pb-0 bottom-0 md:top-0 inline-start-0 flex ">
+          <div class="fixed w-full pointer-events-none z-50 pb-16 bottom-0 inline-start-0 flex ">
             <div class="w-full mx-auto flex justify-center">
               <div class="relative h-fit-content">
                 <button
@@ -302,6 +304,10 @@ export const Request = () => {
                               <Match when={mutationTxWaitCreateNewRequest?.isSuccess}>
                                 <div class="my-4 text-2xs rounded-md p-3 text-positive-11 border border-positive-5 bg-positive-3">
                                   <p class="font-semibold">Request created successfully !</p>
+                                  <p>Check and share <A class="font-bold underline hover:no-underline focus:no-underline" href={ROUTE_REQUEST_DETAILS
+                                    .replace('[chain]', mutationTxWaitCreateNewRequest.data?.chainAlias as string)
+                                    .replace("[idRequest]", mutationTxWaitCreateNewRequest.data?.request_id)}>the details page here.</A></p>
+
                                 </div>
                               </Match>
                             </Switch>

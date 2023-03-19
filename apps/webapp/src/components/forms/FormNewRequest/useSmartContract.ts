@@ -1,4 +1,4 @@
-import { getUnixTime } from 'date-fns'
+import { fromUnixTime, getUnixTime } from 'date-fns'
 import { createEffect, createMemo, createUniqueId } from 'solid-js'
 import { createMutation, useQueryClient } from '@tanstack/solid-query'
 import { z } from 'zod'
@@ -9,9 +9,9 @@ import { useToast } from '~/hooks/useToast'
 import { uploadFileToIPFS } from '~/helpers'
 import { schema } from './schema'
 import { getNetwork, prepareWriteContract, waitForTransaction, writeContract } from '@wagmi/core'
-import { uuid } from 'uuidv4'
-import { CONTRACT_TRANSCRIPTIONS } from '~/config'
-import { ethers } from 'ethers'
+import { v4 as uuid } from 'uuid'
+import { ABI_TRANSCRIPTIONS, CHAINS_ALIAS, CONTRACT_TRANSCRIPTIONS } from '~/config'
+import { utils } from 'ethers'
 
 interface FormValues extends z.infer<typeof schema> {}
 
@@ -39,50 +39,68 @@ export function useSmartContract() {
     async (args: {
       updatedAt: number
       listCollaborators: Array<string>
-      listCommunities: Array<string>
       uriMetadata: string
     }) => {
       const network = await getNetwork()
       const chainId = network?.chain?.id
-      /**
-       * @TODO - change this once smart contract is updated
-       */
       const config = await prepareWriteContract({
         //@ts-ignore
         ...CONTRACT_TRANSCRIPTIONS[chainId],
         functionName: 'createRequest',
         /*
-            Arguments order: 
-              created_at (uint256)
-              metadata_uri (string)
+          Arguments order: 
+          created_at (uint256)
+          metadata_uri (string)
+          collaborators (address[]) 
         */
-        args: [args?.updatedAt, args?.listCollaborators, args?.uriMetadata],
+        args: [args?.updatedAt, args?.uriMetadata, args?.listCollaborators],
       })
-      /**
-       * endof todo
-       */
+
       if (apiAccordionCreateNewRequestStatus().value !== 'transaction-1')
         apiAccordionCreateNewRequestStatus().setValue('transaction-1')
+              //@ts-ignore
       return await writeContract(config)
     },
     {
       onError() {
+        //@ts-ignore
         toast().create({
           title: "Couldn't create the request !",
           description: 'Make sure to sign the transaction in your wallet.',
           type: 'error',
           placement: 'bottom-right',
         })
-      },
-      async onSuccess(data: { hash: `0x${string}` }) {
-        if (data?.hash) await mutationTxWaitCreateNewRequest.mutateAsync(data.hash)
-      },
+      }
     },
   )
 
   const mutationTxWaitCreateNewRequest = createMutation(
-    async (hash: `0x${string}`) => {
-      return await waitForTransaction({ hash })
+    async (args: {hash: `0x${string}` , chainAlias: string}) => {
+      const data = await waitForTransaction({ hash: args?.hash })
+      const iface = new utils.Interface(ABI_TRANSCRIPTIONS)
+      const log = data.logs      
+      const { 
+        request_id,
+        created_at,
+        creator, 
+        metadata_uri,
+        fulfilled,
+        last_updated_at,
+        receiving_transcripts,
+    } = iface.parseLog(log[0]).args
+
+      return {
+        txData: data,
+        request_id,
+        created_at,
+        creator, 
+        metadata_uri,
+        fulfilled,
+        last_updated_at,
+        receiving_transcripts,
+        chainAlias: args?.chainAlias,
+      }
+
     },
     {
       onSuccess() {
@@ -95,6 +113,7 @@ export function useSmartContract() {
         })
       },
       onError() {
+        //@ts-ignore
         toast().create({
           title: "Couldn't create the request !",
           description: 'Your transaction might have failed.',
@@ -144,6 +163,7 @@ export function useSmartContract() {
     }
 
     return {
+      metadata,
       uriMetadata,
       updatedAt: getUnixTime(new Date()),
       listCollaborators: formValues?.collaborators ?? [],
@@ -153,20 +173,58 @@ export function useSmartContract() {
 
   async function onSubmitCreateRequestForm(args: { formValues: FormValues }) {
     try {
+      const network = await getNetwork()
+      const chainId = network.chain?.id
+      const chainAlias = CHAINS_ALIAS[chainId]
+
       /**
        * Prepare data
        */
 
-      const { uriMetadata, updatedAt, listCollaborators } = await prepareData(args?.formValues)
+      const { metadata, uriMetadata, updatedAt, listCollaborators } = await prepareData(args?.formValues)
 
       /**
        * Smart contract interaction
        */
-      await mutationWriteContractCreateNewRequest.mutateAsync({
+      const dataWriteContract = await mutationWriteContractCreateNewRequest.mutateAsync({
         uriMetadata: uriMetadata as string,
         updatedAt,
         listCollaborators,
       })
+
+
+      if(dataWriteContract?.hash) {
+        const {
+          request_id,
+          created_at,
+          creator, 
+          metadata_uri,
+          fulfilled,
+          last_updated_at,
+          receiving_transcripts,  
+        } = await mutationTxWaitCreateNewRequest.mutateAsync({hash: dataWriteContract.hash, chainAlias})
+        const slug = `${chainAlias}/${request_id}`
+        queryClient.setQueryData(['transcription', slug], {
+          chainId,
+          id: request_id,
+          request_id,
+          created_at,
+          creator,
+          metadata_uri,
+          slug,
+          fulfilled,
+          last_updated_at,
+          receiving_transcripts,  
+          created_at_epoch_timestamp: created_at,
+          created_at_datetime: fromUnixTime(created_at),
+          last_updated_at_epoch_timestamp: last_updated_at,
+          last_updated_at_datetime: fromUnixTime(last_updated_at),
+          collaborators: metadata.collaborators,
+          source_media_title: metadata.source_media_title,
+          source_media_uri: metadata.source_media_uri,
+          notes: metadata.notes          
+        })
+      }
     } catch (e) {
       console.error(e)
     }

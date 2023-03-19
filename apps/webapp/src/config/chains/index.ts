@@ -23,10 +23,24 @@ export const scroll_L2 = {
 
 export type ChainAlias = 'gnosis-chiado' | 'polygon-mumbai' | 'optimism-goerli' | 'scroll-alpha' | 'filecoin-hyperspace'
 export const CHAINS_ALIAS = {
+  // Gnosis
+  [gnosisChiado.id]: 'gnosis-chiado',
   'gnosis-chiado': gnosisChiado.id,
+  
+  // Polygon
+  [polygonMumbai.id]: 'polygon-mumbai',
   'polygon-mumbai': polygonMumbai.id,
-  'optimism-goerli': optimismGoerli.contracts,
+  
+  // Optimism
+  [optimismGoerli.id] : 'optimism-goerli',
+  'optimism-goerli': optimismGoerli.id,
+
+  // Scroll
+  [scroll_L2.id] : 'scroll-alpha',
   'scroll-alpha': scroll_L2.id,
+
+  // Filecoin
+  [filecoinHyperspace.id]: 'filecoin-hyperspace',
   'filecoin-hyperspace': filecoinHyperspace.id,
 }
 

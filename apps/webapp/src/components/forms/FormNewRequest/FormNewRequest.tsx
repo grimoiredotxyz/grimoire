@@ -68,12 +68,13 @@ export const FormNewRequest = (props: FormNewRequestProps) => {
                     hasError={local.storeForm.errors()?.source_media_uris?.length > 0 ? true : false}
                     for="source_media_uris"
                   >
-                    Source material link
+                    Source material links
                   </FormField.Label>
                   <FormField.Description id="source_media_uris-description">
-                    A link to the source material of your media (video/audio). Your link can be valid URI starting with{' '}
+                    Link(s) to the source material of your media (video/audio). Your link can be valid URI starting with{' '}
                     <code>ipfs://</code> (IPFS), <code>ar://</code> (Arweave), or a valid URL starting with{' '}
                     <code>https://</code>.{' '}
+                    <span class="font-bold">Other users will use this link to create transcriptions, make sure the content (audio/video) can be reached from the link(s) you provided.</span>
                   </FormField.Description>
                   <FormTagsInput
                     placeholder="Type or paste the source and press 'Enter'..."
