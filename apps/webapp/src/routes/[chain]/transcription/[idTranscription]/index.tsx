@@ -1,0 +1,48 @@
+import { Title, useParams } from 'solid-start'
+import { createResource, Switch, Match } from 'solid-js'
+import { useRouteData } from 'solid-start'
+import { getOnChainTranscription } from '~/services'
+import TranscriptionDetails from '~/components/pages/TranscriptionDetails'
+
+export function routeData() {
+  const params = useParams<{ chain: string; idTranscription: string }>()
+
+  const [transcription] = createResource(async () => {
+    return await getOnChainTranscription({
+      chainAlias: params?.chain,
+      idTranscription: params?.idTranscription,
+    })
+  })
+  return { transcription }
+}
+
+export default function Page() {
+  const { transcription } = useRouteData<typeof routeData>()
+
+  return (
+    <>
+      <Switch
+        fallback={
+          <div class="m-auto">
+            <Title> Loading transcription... | Grimoire</Title>
+
+            <p class="font-bold text-lg animate-pulse">Loading...</p>
+          </div>
+        }
+      >
+        <Match
+          when={transcription()?.transcript_id === '0x0000000000000000000000000000000000000000000000000000000000000000'}
+        >
+          <Title> Transcription not found | Grimoire</Title>
+        </Match>
+        <Match
+          when={transcription()?.transcript_id !== '0x0000000000000000000000000000000000000000000000000000000000000000'}
+        >
+          <Title> {transcription()?.source_media_title} | Transcribed on Grimoire</Title>
+
+          <TranscriptionDetails transcription={transcription} />
+        </Match>
+      </Switch>
+    </>
+  )
+}

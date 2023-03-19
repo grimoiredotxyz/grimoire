@@ -43,7 +43,7 @@
 
 @layer components {
   .container {
-    @apply px-3 w-full max-w-prose;
+    @apply px-3 w-full max-w-screen-lg;
   }
   .form-field--disabled {
     @apply opacity-50 cursor-not-allowed;

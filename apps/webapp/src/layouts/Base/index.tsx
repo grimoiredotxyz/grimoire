@@ -19,24 +19,24 @@ export const Base = (props: any) => {
           <MenuActions />
         </Show>
       </div>
-      <div class="z-30 fixed bottom-0 inline-start-0 md:pointer-events-none gap-4 w-full md:mx-auto max-w-screen-3xl xs:px-3 justify-center md:static md:pt-4 pb-3 flex">
+      <div class="z-30 fixed bottom-0 inline-start-0 md:pointer-events-none gap-4 w-full md:mx-auto max-w-screen-3xl xs:px-3 justify-center md:static md:pt-4 xs:pb-3 flex">
         <nav class="pointer-events-auto transition-all w-full xs:w-auto text-2xs group xs:rounded-full xs:divide-i xs:divide-neutral-5 grid grid-cols-3 xs:flex xs:items-center bg-neutral-2 border-neutral-8 overflow-hidden border-t xs:border xs:hover:shadow">
           <A
-            class="flex items-center justify-center text-accent-11 bg-accent-1 hover:bg-white hover:text-neutral-12 focus:bg-interactive-2 focus:text-interactive-11 font-medium pt-3 xs:py-1 px-[3ex]"
+            class="pb-3 xs:pb-0 flex items-center justify-center text-accent-11 bg-accent-1 hover:bg-white hover:text-neutral-12 focus:bg-interactive-2 focus:text-interactive-11 font-medium pt-3 xs:py-1 px-[3ex]"
             href={ROUTE_REQUEST_ACTIVE}
           >
             <IconFeed class="w-6 h-6 xs:hidden" />
             <span class="sr-only xs:not-sr-only">Requests board</span>
           </A>
           <A
-            class="flex items-center justify-center text-accent-11 bg-accent-1 hover:bg-white hover:text-neutral-12 focus:bg-interactive-2 focus:text-interactive-11 font-medium pt-3 xs:py-1 px-[3ex]"
+            class="pb-3 xs:pb-0 flex items-center justify-center text-accent-11 bg-accent-1 hover:bg-white hover:text-neutral-12 focus:bg-interactive-2 focus:text-interactive-11 font-medium pt-3 xs:py-1 px-[3ex]"
             href={ROUTE_TRANSCRIPTION_SEARCH}
           >
             <IconCaptions class="w-6 h-6 xs:hidden" />
             <span class="sr-only xs:not-sr-only">Transcriptions</span>
           </A>
           <A
-            class="flex items-center justify-center text-accent-11 bg-accent-1 hover:bg-white hover:text-neutral-12 focus:bg-interactive-2 focus:text-interactive-11 font-medium pt-3 xs:py-1 px-[3ex]"
+            class="pb-3 xs:pb-0 flex items-center justify-center text-accent-11 bg-accent-1 hover:bg-white hover:text-neutral-12 focus:bg-interactive-2 focus:text-interactive-11 font-medium pt-3 xs:py-1 px-[3ex]"
             href={ROUTE_LEADERBOARD}
           >
             <IconTrophy class="w-6 h-6 xs:hidden" />

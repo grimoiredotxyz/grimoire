@@ -21,4 +21,13 @@ export const scroll_L2 = {
   },
 } as const satisfies Chain
 
+export type ChainAlias = 'gnosis-chiado' | 'polygon-mumbai' | 'optimism-goerli' | 'scroll-alpha' | 'filecoin-hyperspace'
+export const CHAINS_ALIAS = {
+  'gnosis-chiado': gnosisChiado.id,
+  'polygon-mumbai': polygonMumbai.id,
+  'optimism-goerli': optimismGoerli.contracts,
+  'scroll-alpha': scroll_L2.id,
+  'filecoin-hyperspace': filecoinHyperspace.id,
+}
+
 export const supportedChains = [gnosisChiado, polygonMumbai, optimismGoerli, filecoinHyperspace, scroll_L2]

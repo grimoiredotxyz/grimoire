@@ -36,7 +36,6 @@ export const ProviderAuthentication = (props: any) => {
             address: connection?.account,
           }
         }
-
         return {
           currentUser: user,
         }
@@ -102,7 +101,7 @@ export const ProviderAuthentication = (props: any) => {
     {
       refetchOnWindowFocus: true,
       get enabled() {
-        return !currentUser()?.address || !currentNetwork()?.id ? true : false
+        return !currentUser()?.address || !currentNetwork()?.id ? false : true
       },
     },
   )

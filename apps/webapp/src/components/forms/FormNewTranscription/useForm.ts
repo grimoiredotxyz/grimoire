@@ -8,7 +8,7 @@ import * as tagsInput from '@zag-js/tags-input'
 import { normalizeProps, useMachine } from '@zag-js/solid'
 import { createMemo, createSignal, createUniqueId } from 'solid-js'
 import { schema } from './schema'
-import { LOCALES } from '~/config/languages'
+import { LOCALES } from '~/config'
 import { isAddress } from 'viem'
 
 const comboboxLanguageData = Object.keys(LOCALES).map((locale: string) => ({
