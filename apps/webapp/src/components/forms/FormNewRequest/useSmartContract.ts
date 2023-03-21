@@ -125,13 +125,28 @@ export function useSmartContract() {
 
     const metadata = {
       // Source
-      source_media_uris: formValues?.source_media_uris ?? null,
+      source_media_uris:
+        formValues?.source_media_uris.constructor === Array
+          ? formValues?.source_media_uris?.toString()
+          : formValues?.source_media_uris?.length > 0
+          ? formValues?.source_media_uris
+          : '',
       source_media_title: formValues?.source_media_title ?? null,
       notes: formValues?.notes,
       language: formValues?.language, // code ; eg: en-GB
-      keywords: formValues?.keywords?.toString(),
+      keywords:
+        formValues?.keywords.constructor === Array
+          ? formValues?.keywords?.toString()
+          : formValues?.keywords?.length > 0
+          ? formValues?.keywords
+          : '',
       // Workflow & contributors
-      collaborators: formValues?.collaborators?.toString(),
+      collaborators:
+        formValues?.collaborators.constructor === Array
+          ? formValues?.collaborators?.toString()
+          : formValues?.collaborators?.length > 0
+          ? formValues?.collaborators
+          : '',
     }
 
     let uriMetadata

@@ -1,14 +1,13 @@
 import { isAddress } from 'viem'
-import { Match, Show, splitProps, Switch } from 'solid-js'
+import { createEffect, Match, Show, splitProps, Switch } from 'solid-js'
 import {
   Button,
   FormTextarea,
   FormInput,
   IconFolderOpen,
-  FormInputSwitch,
-  FormTagsInput,
   IconPencilSquare,
   IconArrowDownSquare,
+  IconExclamationCircle,
 } from '~/ui'
 import FormField from '~/ui/FormField'
 import { useAuthentication } from '~/hooks/useAuthentication'
@@ -17,12 +16,7 @@ import { useParams } from 'solid-start'
 
 interface FormProposeNewTranscriptionProps {
   apiAccordion: any
-  apiCollaborators: any
-  apiComboboxLanguage: any
   apiTabs: any
-  apiKeywords: any
-  apiSourcesMediaUris: any
-  comboboxLanguageOptions: any
   isError: boolean
   isLoading: boolean
   isSuccess: boolean
@@ -37,6 +31,9 @@ export const FormProposeNewTranscription = (props: FormProposeNewTranscriptionPr
   const { form } = local.storeForm
   const params = useParams<{ chain: string }>()
 
+  createEffect(() => {
+    console.log(local.storeForm.data())
+  })
   return (
     <>
       {/* @ts-ignore */}
@@ -45,13 +42,17 @@ export const FormProposeNewTranscription = (props: FormProposeNewTranscriptionPr
           Sign-in to propose a new transcription.
         </p>
       </Show>
-      <Show when={isAddress(currentUser()?.address) && currentNetwork()?.id !== CHAINS_ALIAS[params.chain]}>
+      <Show
+        //@ts-ignore
+        when={isAddress(currentUser()?.address) && currentNetwork()?.id !== CHAINS_ALIAS[params.chain]}
+      >
         <div class="animate-appear text-start xs:text-center mt-6 mb-4 font-medium text-2xs bg-secondary-3 py-2 rounded-md mx-auto w-fit-content px-4 text-secondary-11">
           <p>You're on a different network than the original request - switch to the right network below.</p>
           <Button
             disabled={mutationSwitchNetwork.isLoading}
             isLoading={mutationSwitchNetwork.isLoading}
             onClick={async () => {
+              //@ts-ignore
               await mutationSwitchNetwork.mutateAsync(CHAINS_ALIAS[params.chain])
             }}
             intent="neutral-on-light-layer"
@@ -478,74 +479,6 @@ export const FormProposeNewTranscription = (props: FormProposeNewTranscriptionPr
               </div>
             </div>
           </fieldset>
-          <fieldset
-            class="disabled:opacity-50 disabled:cursor-not-allowed"
-            {...local.apiAccordion().getItemProps({
-              value: 'contribute',
-              disabled: !isAddress(currentUser()?.address) ? true : false,
-            })}
-          >
-            <div class="flex relative p-3 font-bold focus-within:ring focus-within:bg-neutral-2">
-              <span
-                classList={{
-                  'text-accent-11': local.apiAccordion().value.includes('contribute'),
-                  'text-accent-6': !local.apiAccordion().value.includes('contribute'),
-                }}
-                class="pie-1ex"
-              >
-                #4.
-              </span>
-              <legend>Workflow & contributions</legend>
-              <button
-                class="disabled:cursor-not-allowed absolute inset-0 w-full h-full opacity-0"
-                {...local.apiAccordion().getTriggerProps({
-                  value: 'contributions',
-                  disabled: !isAddress(currentUser()?.address) ? true : false,
-                })}
-              >
-                Toggle "Worflow & Contributions" section
-              </button>
-            </div>
-            <div
-              class="pt-1.5 space-y-4 pb-6 px-3 sm:px-6"
-              {...local.apiAccordion().getContentProps({
-                value: 'contributions',
-                disabled: !isAddress(currentUser()?.address) ? true : false,
-              })}
-            >
-              <FormField>
-                <FormField.InputField>
-                  <FormField.Label
-                    hasError={local.storeForm.errors()?.collaborators?.length > 0 ? true : false}
-                    for="collaborators"
-                  >
-                    Collaborators
-                  </FormField.Label>
-                  <FormField.Description id="tags-collaborators">
-                    Add the Ethereum address of your collaborators (whitelisted people that will be allowed to review
-                    and accept transcriptions).
-                  </FormField.Description>
-                  <FormTagsInput
-                    placeholder="Paste a valid Ethereum address and press 'Enter'..."
-                    classWrapper="w-full"
-                    api={props.apiCollaborators}
-                  />
-                </FormField.InputField>
-              </FormField>
-              <FormField>
-                <FormField.InputField>
-                  <FormInputSwitch
-                    id="revision_must_be_approved_first"
-                    name="revision_must_be_approved_first"
-                    label="Revisions must be reviewed by me or my collaborators first"
-                    helpText="Enabling this option means that for a revision to be accepted, it must be reviewed by you or another address you designated as a collaborator."
-                    hasError={local.storeForm.errors()?.revision_must_be_approved_first?.length > 0 ? true : false}
-                    checked={local.storeForm.data()?.revision_must_be_approved_first}
-                  />
-                </FormField.InputField>
-              </FormField>
-            </div>
-          </fieldset>
         </div>
         <input disabled hidden name="source_media_title" />
         <input disabled hidden name="source_media_uris" />
@@ -555,15 +488,41 @@ export const FormProposeNewTranscription = (props: FormProposeNewTranscriptionPr
         <input disabled hidden name="vtt_uri" />
         <input disabled hidden name="srt_uri" />
         <input disabled hidden name="collaborators" />
+        <input disabled hidden name="revision_must_be_approved_first" />
 
-        <Button disabled={local.isLoading} type="submit">
-          <Switch fallback="Create">
+        <Button
+          disabled={
+            //@ts-ignore
+            local.isLoading || !isAddress(currentUser()?.address) || currentNetwork()?.id !== CHAINS_ALIAS[params.chain]
+          }
+          type="submit"
+        >
+          <Switch fallback="Propose transcription">
             <Match when={local.isError}>Try again</Match>
             <Match when={local.isLoading}>Creating...</Match>
             <Match when={local.isSuccess}>Create a new one</Match>
           </Switch>
         </Button>
       </form>
+
+      <Switch>
+        <Match when={!isAddress(currentUser()?.address)}>
+          <span class="flex items-center pt-2 font-semibold text-[0.725em] text-accent-9">
+            <IconExclamationCircle class="mie-1ex w-4 h-4" />
+            Connect your wallet to continue.
+          </span>
+        </Match>
+        <Match
+          //@ts-ignore      //@ts-ignore
+
+          when={currentNetwork()?.id !== CHAINS_ALIAS[params.chain]}
+        >
+          <span class="flex items-center pt-2 font-semibold text-[0.725em] text-accent-9">
+            <IconExclamationCircle class="mie-1ex w-4 h-4" />
+            Switch network to continue.
+          </span>
+        </Match>
+      </Switch>
     </>
   )
 }

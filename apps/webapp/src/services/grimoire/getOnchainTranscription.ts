@@ -81,7 +81,6 @@ export async function getOnChainTranscription(args: {
     transcription_plain_text: null,
     vtt_file_uri: null,
   }
-  console.log(chainData)
   if (data?.metadata_uri && data?.metadata_uri !== '') {
     const uri = web3UriToUrl(data?.metadata_uri)
     const response = await fetch(uri)

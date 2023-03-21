@@ -116,7 +116,7 @@ export const Request = () => {
                 </button>
                 <div
                   {...apiPopoverCreateNewRequestStatus().positionerProps}
-                  class="absolute pointer-events-auto w-full min-w-[unset] top-0 md:-translate-y-full md:bottom-0 inline-start-0"
+                  class="absolute pointer-events-auto w-full min-w-[unset] top-0 inline-start-0"
                 >
                   <div
                     {...apiPopoverCreateNewRequestStatus().contentProps}

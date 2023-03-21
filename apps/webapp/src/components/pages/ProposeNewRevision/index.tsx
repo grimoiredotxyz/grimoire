@@ -2,49 +2,53 @@ import { z } from 'zod'
 import { Match, Show, Switch } from 'solid-js'
 import { web3UriToUrl } from '~/helpers'
 import { IconCheck, IconDoubleChevronDown, IconError, IconExternal, IconSpinner } from '~/ui'
-import { FormProposeNewTranscription, useForm, schema } from '~/components/forms/FormProposeNewTranscription'
-import { useSmartContract } from '~/components/forms/FormNewTranscription'
-
+import { FormProposeNewRevision, useForm, schema, useSmartContract } from '~/components/forms/FormProposeNewRevision'
 import { ROUTE_TRANSCRIPTION_DETAILS } from '~/config'
 import { A } from 'solid-start'
-import type { Request } from '~/services'
+import type { Transcription } from '~/services'
 import type { Accessor } from 'solid-js'
 
-interface ProposeNewTranscriptionProps {
-  request: Accessor<Request>
+interface ProposeNewRevisionProps {
+  transcription: Accessor<Transcription>
 }
 
-export const ProposeNewTranscription = (props: ProposeNewTranscriptionProps) => {
+export const ProposeNewRevision = (props: ProposeNewRevisionProps) => {
   const {
-    apiPopoverCreateNewTranscriptionStatus,
-    apiAccordionCreateNewTranscriptionStatus,
+    apiPopoverProposeNewRevisionStatus,
+    apiAccordionProposeNewRevisionStatus,
     // Uploads
     mutationUploadVTTFile,
     mutationUploadLRCFile,
     mutationUploadSRTFile,
     mutationUploadMetadata,
     // Contract interactions
-    mutationWriteContractCreateNewTranscription,
-    mutationTxWaitCreateNewTranscription,
+    mutationWriteContractProposeNewRevision,
+    mutationTxWaitProposeNewRevision,
     // Form submit event handlers
-    onSubmitCreateTranscriptionForm,
+    onSubmitProposeNewRevisionForm,
   } = useSmartContract()
 
-  const { formProposeNewTranscription, stateMachineAccordion, stateMachineTabs } = useForm({
+  const { formProposeNewRevision, stateMachineAccordion, stateMachineTabs } = useForm({
     //@ts-ignore
     initialValues: {
-      source_media_title: props?.request().source_media_title ?? '',
+      id_original_transcription: props.transcription().transcription_id,
+      source_media_title: props?.transcription().source_media_title ?? '',
       source_media_uris:
-        props?.request()?.source_media_uris?.length > 0 ? props?.request()?.source_media_uris.toString() : '',
-      language: props.request().language,
-      keywords: props.request()?.keywords?.length > 0 ? props.request()?.keywords.toString() : '',
-      title: '',
-      revision_must_be_approved_first: true,
-      transcription_plain_text: '',
-      collaborators: props.request().collaborators.toString(),
+        props?.transcription()?.source_media_uris?.length > 0
+          ? props?.transcription()?.source_media_uris.toString()
+          : '',
+      language: props.transcription().language as string,
+      keywords: props.transcription()?.keywords?.length > 0 ? props?.transcription()?.keywords.toString() : '',
+      title: props.transcription().title as string,
+      revision_must_be_approved_first: props.transcription().revision_must_be_approved_first,
+      transcription_plain_text: props.transcription().transcription_plain_text as string,
+      srt_uri: props.transcription().srt_file_uri as string,
+      vtt_uri: props.transcription().vtt_file_uri as string,
+      lrc_uri: props.transcription().lrc_file_uri as string,
+      collaborators: props.transcription().collaborators.toString(),
     },
     onSubmit: (values: z.infer<typeof schema>) => {
-      onSubmitCreateTranscriptionForm({
+      onSubmitProposeNewRevisionForm({
         formValues: values,
       })
     },
@@ -53,44 +57,43 @@ export const ProposeNewTranscription = (props: ProposeNewTranscriptionProps) => 
   return (
     <>
       <div class="w-full max-w-prose mx-auto">
-        <h1 class="text-lg text-accent-12 font-serif font-bold">Propose your transcription</h1>
+        <h1 class="text-lg text-accent-12 font-serif font-bold">Propose your revision</h1>
         <div class="space-y-1 text-xs mt-2 mb-4 text-neutral-11 font-medium">
           <p>
-            Once submitted, your transcription will be reviewed by the team behind this request and will be either
-            accepted or rejected.
+            Once submitted, your revision will be reviewed by the initial creator of this transcription or one of their
+            collaborators.
           </p>
         </div>
-        <FormProposeNewTranscription
+        <FormProposeNewRevision
           apiTabs={stateMachineTabs}
           apiAccordion={stateMachineAccordion}
-          storeForm={formProposeNewTranscription}
+          storeForm={formProposeNewRevision}
           isError={[
-            mutationTxWaitCreateNewTranscription.isError,
-            mutationWriteContractCreateNewTranscription.isError,
+            mutationTxWaitProposeNewRevision.isError,
+            mutationWriteContractProposeNewRevision.isError,
             mutationUploadLRCFile.isError,
             mutationUploadSRTFile.isError,
             mutationUploadVTTFile.isError,
             mutationUploadMetadata.isError,
           ].includes(true)}
           isLoading={[
-            mutationTxWaitCreateNewTranscription.isLoading,
-            mutationWriteContractCreateNewTranscription.isLoading,
+            mutationTxWaitProposeNewRevision.isLoading,
+            mutationWriteContractProposeNewRevision.isLoading,
             mutationUploadLRCFile.isLoading,
             mutationUploadSRTFile.isLoading,
             mutationUploadVTTFile.isLoading,
             mutationUploadMetadata.isLoading,
           ].includes(true)}
           isSuccess={
-            ![
-              mutationTxWaitCreateNewTranscription.isSuccess,
-              mutationWriteContractCreateNewTranscription.isSuccess,
-            ].includes(false)
+            ![mutationTxWaitProposeNewRevision.isSuccess, mutationWriteContractProposeNewRevision.isSuccess].includes(
+              false,
+            )
           }
         />
         <Show
           when={
-            ['success', 'loading', 'error'].includes(mutationTxWaitCreateNewTranscription.status) ||
-            ['success', 'loading', 'error'].includes(mutationWriteContractCreateNewTranscription.status) ||
+            ['success', 'loading', 'error'].includes(mutationTxWaitProposeNewRevision.status) ||
+            ['success', 'loading', 'error'].includes(mutationWriteContractProposeNewRevision.status) ||
             ['success', 'loading', 'error'].includes(mutationUploadVTTFile.status) ||
             ['success', 'loading', 'error'].includes(mutationUploadSRTFile.status) ||
             ['success', 'loading', 'error'].includes(mutationUploadLRCFile.status) ||
@@ -103,61 +106,61 @@ export const ProposeNewTranscription = (props: ProposeNewTranscriptionProps) => 
                 <button
                   classList={{
                     'shadow-md rounded-2xl md:rounded-t-none border-accent-9':
-                      !apiPopoverCreateNewTranscriptionStatus()?.isOpen,
+                      !apiPopoverProposeNewRevisionStatus()?.isOpen,
                     'shadow-xl rounded-2xl md:rounded-t-none border-accent-11 border-opacity-75':
-                      apiPopoverCreateNewTranscriptionStatus()?.isOpen,
+                      apiPopoverProposeNewRevisionStatus()?.isOpen,
                   }}
                   class="pointer-events-auto bg-accent-12 text-accent-1 hover:bg-neutral-12 hover:text-accent-1 focus:ring-2 border relative flex items-center font-semibold text-2xs px-5 py-1.5"
-                  {...apiPopoverCreateNewTranscriptionStatus().triggerProps}
+                  {...apiPopoverProposeNewRevisionStatus().triggerProps}
                 >
-                  <Switch fallback="Create new transcription">
+                  <Switch fallback="Propose new revision">
                     <Match
                       when={[
-                        mutationTxWaitCreateNewTranscription.isLoading,
-                        mutationWriteContractCreateNewTranscription.isLoading,
+                        mutationTxWaitProposeNewRevision.isLoading,
+                        mutationWriteContractProposeNewRevision.isLoading,
                         mutationUploadMetadata.isLoading,
                         mutationUploadVTTFile.isLoading,
                         mutationUploadSRTFile.isLoading,
                         mutationUploadLRCFile.isLoading,
                       ].includes(true)}
                     >
-                      <IconSpinner class="animate-spin w-5 h-5 mie-1ex" /> Creating new transcription...
+                      <IconSpinner class="animate-spin w-5 h-5 mie-1ex" /> Sending new revision...
                     </Match>
                     <Match
                       when={
                         ![
-                          mutationTxWaitCreateNewTranscription.isSuccess,
-                          mutationWriteContractCreateNewTranscription.isSuccess,
+                          mutationTxWaitProposeNewRevision.isSuccess,
+                          mutationWriteContractProposeNewRevision.isSuccess,
                         ].includes(false)
                       }
                     >
-                      <IconCheck class="w-5 h-5 mie-1ex" /> Transcription created !
+                      <IconCheck class="w-5 h-5 mie-1ex" /> Revision sent !
                     </Match>
                   </Switch>
                 </button>
                 <div
-                  {...apiPopoverCreateNewTranscriptionStatus().positionerProps}
+                  {...apiPopoverProposeNewRevisionStatus().positionerProps}
                   class="absolute pointer-events-auto w-full min-w-[unset] top-0 inline-start-0"
                 >
                   <div
-                    {...apiPopoverCreateNewTranscriptionStatus().contentProps}
+                    {...apiPopoverProposeNewRevisionStatus().contentProps}
                     class="bg-accent-12 border  border-accent-5 w-full rounded-xl md:rounded-t-0 shadow-2xl"
                   >
-                    <div class="sr-only" {...apiPopoverCreateNewTranscriptionStatus().titleProps}>
-                      Create new transcription
+                    <div class="sr-only" {...apiPopoverProposeNewRevisionStatus().titleProps}>
+                      Propose new transcription
                     </div>
-                    <div class="sr-only" {...apiPopoverCreateNewTranscriptionStatus().descriptionProps}>
+                    <div class="sr-only" {...apiPopoverProposeNewRevisionStatus().descriptionProps}>
                       You can check the status of your different file uploads and other required interactions below.
                     </div>
                     <div
                       class="border-t divide-y divide-accent-11 divide-opacity-50 border-accent-7"
-                      {...apiAccordionCreateNewTranscriptionStatus().rootProps}
+                      {...apiAccordionProposeNewRevisionStatus().rootProps}
                     >
-                      <div {...apiAccordionCreateNewTranscriptionStatus().getItemProps({ value: 'file-uploads' })}>
+                      <div {...apiAccordionProposeNewRevisionStatus().getItemProps({ value: 'file-uploads' })}>
                         <h3>
                           <button
                             class="w-full font-semibold flex justify-between text-start text-accent-6 text-[0.85rem] p-2"
-                            {...apiAccordionCreateNewTranscriptionStatus().getTriggerProps({
+                            {...apiAccordionProposeNewRevisionStatus().getTriggerProps({
                               value: 'file-uploads',
                             })}
                           >
@@ -179,19 +182,19 @@ export const ProposeNewTranscription = (props: ProposeNewTranscriptionProps) => 
                             File uploads{' '}
                             <IconDoubleChevronDown
                               classList={{
-                                'rotate-180': apiAccordionCreateNewTranscriptionStatus()?.value === 'file-uploads',
+                                'rotate-180': apiAccordionProposeNewRevisionStatus()?.value === 'file-uploads',
                               }}
                               class="text-accent-6 w-5 h-5 pis-1ex"
                             />
                           </button>
                         </h3>
                         <div
-                          {...apiAccordionCreateNewTranscriptionStatus().getContentProps({
+                          {...apiAccordionProposeNewRevisionStatus().getContentProps({
                             value: 'file-uploads',
                           })}
                         >
                           <ul class="pb-2 text-2xs space-y-1 px-2">
-                            <Show when={formProposeNewTranscription.data().srt_file?.name}>
+                            <Show when={formProposeNewRevision.data().srt_file?.name}>
                               <li
                                 classList={{
                                   'text-accent-8': mutationUploadSRTFile?.isIdle,
@@ -229,7 +232,7 @@ export const ProposeNewTranscription = (props: ProposeNewTranscriptionProps) => 
                                 </Show>
                               </li>
                             </Show>
-                            <Show when={formProposeNewTranscription.data().vtt_file?.name}>
+                            <Show when={formProposeNewRevision.data().vtt_file?.name}>
                               <li
                                 classList={{
                                   'text-accent-8': mutationUploadVTTFile?.isIdle,
@@ -267,7 +270,7 @@ export const ProposeNewTranscription = (props: ProposeNewTranscriptionProps) => 
                                 </Show>
                               </li>
                             </Show>
-                            <Show when={formProposeNewTranscription.data().lrc_file?.name}>
+                            <Show when={formProposeNewRevision.data().lrc_file?.name}>
                               <li
                                 classList={{
                                   'text-accent-8': mutationUploadLRCFile?.isIdle,
@@ -344,19 +347,19 @@ export const ProposeNewTranscription = (props: ProposeNewTranscriptionProps) => 
                           </ul>
                         </div>
                       </div>
-                      <div {...apiAccordionCreateNewTranscriptionStatus().getItemProps({ value: 'transaction-1' })}>
+                      <div {...apiAccordionProposeNewRevisionStatus().getItemProps({ value: 'transaction-1' })}>
                         <h3>
                           <button
                             class="w-full font-semibold flex justify-between text-start text-accent-6 text-[0.85rem] p-2"
-                            {...apiAccordionCreateNewTranscriptionStatus().getTriggerProps({
+                            {...apiAccordionProposeNewRevisionStatus().getTriggerProps({
                               value: 'transaction-1',
                             })}
                           >
                             <Switch>
                               <Match
                                 when={[
-                                  mutationWriteContractCreateNewTranscription.isLoading,
-                                  mutationTxWaitCreateNewTranscription.isLoading,
+                                  mutationWriteContractProposeNewRevision.isLoading,
+                                  mutationTxWaitProposeNewRevision.isLoading,
                                 ].includes(true)}
                               >
                                 <IconSpinner class="animate-spin w-5 h-5 mie-1ex" />
@@ -364,8 +367,8 @@ export const ProposeNewTranscription = (props: ProposeNewTranscriptionProps) => 
                               <Match
                                 when={
                                   ![
-                                    mutationWriteContractCreateNewTranscription.isSuccess,
-                                    mutationTxWaitCreateNewTranscription.isSuccess,
+                                    mutationWriteContractProposeNewRevision.isSuccess,
+                                    mutationTxWaitProposeNewRevision.isSuccess,
                                   ].includes(false)
                                 }
                               >
@@ -375,82 +378,82 @@ export const ProposeNewTranscription = (props: ProposeNewTranscriptionProps) => 
                             On-chain interactions{' '}
                             <IconDoubleChevronDown
                               classList={{
-                                'rotate-180': apiAccordionCreateNewTranscriptionStatus()?.value === 'transaction-1',
+                                'rotate-180': apiAccordionProposeNewRevisionStatus()?.value === 'transaction-1',
                               }}
                               class="text-accent-6 w-5 h-5 pis-1ex"
                             />
                           </button>
                         </h3>
                         <div
-                          {...apiAccordionCreateNewTranscriptionStatus().getContentProps({
+                          {...apiAccordionProposeNewRevisionStatus().getContentProps({
                             value: 'transaction-1',
                           })}
                         >
                           <ol class="pb-2 text-2xs px-2 space-y-1">
                             <li
                               classList={{
-                                'text-accent-8': mutationWriteContractCreateNewTranscription?.isIdle,
-                                'animate-pulse font-bold': mutationWriteContractCreateNewTranscription?.isLoading,
-                                'text-accent-7': !mutationWriteContractCreateNewTranscription?.isIdle,
+                                'text-accent-8': mutationWriteContractProposeNewRevision?.isIdle,
+                                'animate-pulse font-bold': mutationWriteContractProposeNewRevision?.isLoading,
+                                'text-accent-7': !mutationWriteContractProposeNewRevision?.isIdle,
                               }}
                               class="flex items-center"
                             >
                               <Switch>
-                                <Match when={mutationWriteContractCreateNewTranscription?.isError}>
+                                <Match when={mutationWriteContractProposeNewRevision?.isError}>
                                   <IconError class="w-4 h-4 shrink-0 mie-1ex text-negative-9" />
                                 </Match>
 
-                                <Match when={mutationWriteContractCreateNewTranscription?.isSuccess}>
+                                <Match when={mutationWriteContractProposeNewRevision?.isSuccess}>
                                   <IconCheck class="w-4 h-4 shrink-0 mie-1ex text-positive-9" />
                                 </Match>
-                                <Match when={mutationWriteContractCreateNewTranscription?.isLoading}>
+                                <Match when={mutationWriteContractProposeNewRevision?.isLoading}>
                                   <IconSpinner class="w-4 h-4 shrink-0 mie-1ex animate-spin" />
                                 </Match>
                               </Switch>
 
                               <Switch>
-                                <Match when={mutationWriteContractCreateNewTranscription.status !== 'loading'}>
+                                <Match when={mutationWriteContractProposeNewRevision.status !== 'loading'}>
                                   <span>
                                     <span>Sign transaction &nbsp;</span>
 
                                     <Show
                                       when={['success', 'error'].includes(
-                                        mutationWriteContractCreateNewTranscription.status,
+                                        mutationWriteContractProposeNewRevision.status,
                                       )}
                                     >
-                                      <span>{mutationWriteContractCreateNewTranscription.status}</span>
+                                      <span>{mutationWriteContractProposeNewRevision.status}</span>
                                     </Show>
                                   </span>
                                 </Match>
 
-                                <Match when={mutationWriteContractCreateNewTranscription.status === 'loading'}>
+                                <Match when={mutationWriteContractProposeNewRevision.status === 'loading'}>
                                   <span>Please, sign transaction in your wallet...</span>
                                 </Match>
                               </Switch>
                             </li>
                             <li
                               classList={{
-                                'text-accent-8': mutationTxWaitCreateNewTranscription?.isIdle,
-                                'animate-pulse font-bold': mutationTxWaitCreateNewTranscription?.isLoading,
-                                'text-accent-7': !mutationTxWaitCreateNewTranscription?.isIdle,
+                                'text-accent-8': mutationTxWaitProposeNewRevision?.isIdle,
+                                'animate-pulse font-bold': mutationTxWaitProposeNewRevision?.isLoading,
+                                'text-accent-7': !mutationTxWaitProposeNewRevision?.isIdle,
                               }}
                               class="flex items-center"
                             >
                               <Switch>
-                                <Match when={mutationTxWaitCreateNewTranscription?.isError}>
+                                <Match when={mutationTxWaitProposeNewRevision?.isError}>
                                   <IconError class="w-4 h-4 shrink-0 mie-1ex text-negative-9" />
                                 </Match>
 
-                                <Match when={mutationTxWaitCreateNewTranscription?.isSuccess}>
+                                <Match when={mutationTxWaitProposeNewRevision?.isSuccess}>
                                   <IconCheck class="w-4 h-4 shrink-0 mie-1ex text-positive-9" />
                                 </Match>
-                                <Match when={mutationTxWaitCreateNewTranscription?.isLoading}>
+                                <Match when={mutationTxWaitProposeNewRevision?.isLoading}>
                                   <IconSpinner class="w-4 h-4 shrink-0 mie-1ex animate-spin" />
                                 </Match>
                               </Switch>
                               <span>
                                 <span>Transaction status:&nbsp;</span>{' '}
-                                <span>{mutationTxWaitCreateNewTranscription.status}</span>
+                                <span>{mutationTxWaitProposeNewRevision.status}</span>
                               </span>
                             </li>
                           </ol>
@@ -460,8 +463,8 @@ export const ProposeNewTranscription = (props: ProposeNewTranscriptionProps) => 
                             <Switch>
                               <Match
                                 when={[
-                                  mutationTxWaitCreateNewTranscription?.status,
-                                  mutationWriteContractCreateNewTranscription.status,
+                                  mutationTxWaitProposeNewRevision?.status,
+                                  mutationWriteContractProposeNewRevision.status,
                                   mutationUploadLRCFile.status,
                                   mutationUploadSRTFile.status,
                                   mutationUploadMetadata.status,
@@ -472,7 +475,7 @@ export const ProposeNewTranscription = (props: ProposeNewTranscriptionProps) => 
                                   <p class="font-semibold">Something went wrong.</p>
                                 </div>
                               </Match>
-                              <Match when={mutationTxWaitCreateNewTranscription?.isSuccess}>
+                              <Match when={mutationTxWaitProposeNewRevision?.isSuccess}>
                                 <div class="my-4 text-2xs rounded-md p-3 text-positive-11 border border-positive-5 bg-positive-3">
                                   <p class="font-semibold">Transcription created successfully !</p>
                                   <p>
@@ -481,10 +484,10 @@ export const ProposeNewTranscription = (props: ProposeNewTranscriptionProps) => 
                                       class="font-bold underline hover:no-underline focus:no-underline"
                                       href={ROUTE_TRANSCRIPTION_DETAILS.replace(
                                         '[chain]',
-                                        mutationTxWaitCreateNewTranscription.data?.chainAlias as string,
+                                        mutationTxWaitProposeNewRevision.data?.chainAlias as string,
                                       ).replace(
                                         '[idTranscription]',
-                                        mutationTxWaitCreateNewTranscription.data?.transcript_id,
+                                        mutationTxWaitProposeNewRevision.data?.transcript_id,
                                       )}
                                     >
                                       the details page here.
@@ -495,7 +498,7 @@ export const ProposeNewTranscription = (props: ProposeNewTranscriptionProps) => 
                             </Switch>
                           </div>
                           <button
-                            {...apiPopoverCreateNewTranscriptionStatus().closeTriggerProps}
+                            {...apiPopoverProposeNewRevisionStatus().closeTriggerProps}
                             class="text-center p-2 text-accent-10 w-full text-[0.75rem]"
                           >
                             Close
@@ -514,4 +517,4 @@ export const ProposeNewTranscription = (props: ProposeNewTranscriptionProps) => 
   )
 }
 
-export default ProposeNewTranscription
+export default ProposeNewRevision

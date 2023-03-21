@@ -141,7 +141,7 @@ export const NewTranscription = () => {
                 </button>
                 <div
                   {...apiPopoverCreateNewTranscriptionStatus().positionerProps}
-                  class="absolute pointer-events-auto w-full min-w-[unset] top-0 md:-translate-y-full md:bottom-0 inline-start-0"
+                  class="absolute pointer-events-auto w-full min-w-[unset] top-0 inline-start-0"
                 >
                   <div
                     {...apiPopoverCreateNewTranscriptionStatus().contentProps}

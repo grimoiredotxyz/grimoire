@@ -1,26 +1,41 @@
-import { For, Show, splitProps } from 'solid-js'
-import { LOCALES, ROUTE_TRANSCRIPTION_REVISION_NEW } from '~/config'
+import { For, Match, Show, splitProps, Switch } from 'solid-js'
+import { LOCALES, ROUTE_REQUEST_DETAILS } from '~/config'
 import type { Transcription } from '~/services'
 import type { Resource } from 'solid-js'
 import useDetails from './useDetails'
-import { format, isDate } from 'date-fns'
 import { web3UriToUrl } from '~/helpers'
-import { IconDocumentArrowDown, Identity } from '~/ui'
+import { Button, IconDocumentArrowDown, IconEllipsisVertical, IconPlus, IconTrash, Identity } from '~/ui'
 import { callToAction } from '~/design-system'
-import { A } from '@solidjs/router'
+import useTranscriptionActions from './useTranscriptionActions'
+import { useAuthentication } from '~/hooks'
+import { A, useParams } from 'solid-start'
+import { formatDistanceToNow } from 'date-fns'
+import ProposeNewRevision from '../ProposeNewRevision'
 
 interface TranscriptionDetailsProps {
   transcription: Resource<Transcription>
 }
 export const TranscriptionDetails = (props: TranscriptionDetailsProps) => {
+  const params = useParams()
   const [local] = splitProps(props, ['transcription'])
-  const { apiAccordionDetails, downloadFile } = useDetails()
-
+  const { apiTabs, apiPopoverActions, apiAccordionDetails, downloadFile } = useDetails()
+  const { mutationTxWaitDeleteTranscription, mutationWriteContractDeleteTranscription } = useTranscriptionActions()
+  const { currentUser } = useAuthentication()
   return (
     <>
-      <div class="border-b border-neutral-4">
-        <div class="container mx-auto pb-6">
-          <h1 class="text-2xl text-accent-12 font-bold">{local.transcription()?.title}</h1>
+      <div class="flex justify-between container mx-auto pb-6">
+        <div class="max-w-prose">
+          <div class="flex flex-col-reverse">
+            <h1 class="font-serif text-2xl flex flex-col font-bold">{local.transcription()?.title}</h1>
+            <Show
+              when={
+                local.transcription()?.id_request !==
+                '0x0000000000000000000000000000000000000000000000000000000000000000'
+              }
+            >
+              <p class="font-sans text-2xl font-black uppercase tracking-widest text-accent-10 italic">Proposition -</p>
+            </Show>
+          </div>
           <section class="text-2xs pt-3">
             <p class="text-neutral-11">
               Original media title:{' '}
@@ -41,264 +56,333 @@ export const TranscriptionDetails = (props: TranscriptionDetailsProps) => {
                 </For>
               </ul>
             </div>
+            <p class="pt-4 italic text-neutral-9 text-2xs">
+              Proposed {formatDistanceToNow(local.transcription()?.created_at_datetime, { addSuffix: true })} by{' '}
+              <Identity address={local.transcription()?.creator as `0x${string}`} shortenOnFallback={true} />{' '}
+              <Show
+                when={
+                  local.transcription()?.id_request !==
+                  '0x0000000000000000000000000000000000000000000000000000000000000000'
+                }
+              >
+                &nbsp;|&nbsp;
+                <A
+                  class="link"
+                  href={ROUTE_REQUEST_DETAILS.replace('[idRequest]', local.transcription()?.id_request).replace(
+                    '[chain]',
+                    params.chain,
+                  )}
+                >
+                  View request details
+                </A>
+              </Show>
+            </p>
+            <p class="pt-1 italic text-neutral-9 text-2xs">
+              Last updated {formatDistanceToNow(local.transcription()?.last_updated_at_datetime, { addSuffix: true })}
+            </p>
           </section>
         </div>
-      </div>
-      <div class="flex w-full pt-8 relative container gap-x-12 mx-auto flex-col md:flex-row-reverse">
-        <div class="w-full md:w-72 md:sticky md:h-[fit-content] md:top-14">
-          <section>
-            <div class="w-full border bg-accent-1 divide-y divide-neutral-6 rounded-md border-neutral-7 mb-8">
-              <div {...apiAccordionDetails().getItemProps({ value: 'contribute' })}>
-                <div class="text-2xs flex relative p-2 font-bold focus-within:ring focus-within:bg-neutral-2">
-                  <h2>Contribute</h2>
+
+        <Show when={currentUser()?.address === local.transcription()?.creator}>
+          <div class="xs:mt-2 xs:mis-auto">
+            <button
+              type="button"
+              classList={{
+                'bg-neutral-7 shadow-inner': apiPopoverActions().isOpen,
+              }}
+              class="flex items-center xs:aspect-square border-neutral-5 border focus:border-transparent text-neutral-11 p-2 rounded-md hover:bg-neutral-4"
+              {...apiPopoverActions().triggerProps}
+            >
+              <IconEllipsisVertical class="w-5 h-5" />
+
+              <span class="pis-1ex text-2xs font-medium xs:pis-0 xs:sr-only">Actions</span>
+            </button>
+            <div
+              class="text-2xs bg-white w-[200px] rounded shadow-lg border border-neutral-7 divide-y divide-neutral-5"
+              {...apiPopoverActions().positionerProps}
+            >
+              <div class="text-[0.85em]" {...apiPopoverActions().contentProps}>
+                <div class="sr-only" {...apiPopoverActions().titleProps}>
+                  Actions
+                </div>
+                <div class="py-1">
                   <button
-                    class="disabled:cursor-not-allowed absolute inset-0 w-full h-full opacity-0"
-                    {...apiAccordionDetails().getTriggerProps({ value: 'contribute' })}
+                    disabled={[
+                      mutationWriteContractDeleteTranscription.isLoading,
+                      mutationTxWaitDeleteTranscription.isLoading,
+                      mutationTxWaitDeleteTranscription.isSuccess,
+                    ].includes(true)}
+                    class="disabled:opacity-50 w-full flex items-center justify-start cursor-pointer text-negative-12 focus:bg-negative-1 focus:text-negative-11 py-2 px-3"
+                    onClick={async () => {
+                      await mutationWriteContractDeleteTranscription.mutateAsync({
+                        idTranscription: local.transcription()?.transcription_id as string,
+                      })
+                    }}
                   >
-                    Toggle "Contribute" section
+                    <IconTrash class="text-negative-9 w-4 h-4" stroke-width="2" />
+
+                    <span class="pis-1ex">
+                      <Switch fallback="Delete">
+                        <Match when={mutationWriteContractDeleteTranscription.isLoading}>Sign transaction...</Match>
+                        <Match when={mutationTxWaitDeleteTranscription.isLoading}>Deleting...</Match>
+                        <Match
+                          when={
+                            mutationTxWaitDeleteTranscription.isSuccess &&
+                            mutationWriteContractDeleteTranscription.isSuccess
+                          }
+                        >
+                          Deleted !
+                        </Match>
+                      </Switch>
+                    </span>
                   </button>
-                </div>
-
-                <div
-                  class="text-ellispis overflow-hidden pb-6 px-3 text-2xs space-y-1"
-                  {...apiAccordionDetails().getContentProps({ value: 'contribute' })}
-                >
-                  <p class="text-neutral-11 pt-1 pb-2 text-2xs">
-                    You can contribute to making online media more accessible directly on Grimoire.
-                  </p>
-                  <A
-                    href={ROUTE_TRANSCRIPTION_REVISION_NEW.replace('[idTranscription]', local.transcription()?.id)}
-                    class={callToAction({
-                      intent: 'primary-outline',
-                      scale: 'sm',
-                      class: 'w-full block text-center',
-                    })}
-                  >
-                    Help improve this transcription
-                  </A>
-                </div>
-              </div>
-
-              <div {...apiAccordionDetails().getItemProps({ value: 'curator-notes' })}>
-                <div class="text-2xs flex relative p-2 font-bold focus-within:ring focus-within:bg-neutral-2">
-                  <h2>Curator's notes</h2>
-                  <button
-                    class="disabled:cursor-not-allowed absolute inset-0 w-full h-full opacity-0"
-                    {...apiAccordionDetails().getTriggerProps({ value: 'curator-notes' })}
-                  >
-                    Toggle "Contributors" section
-                  </button>
-                </div>
-
-                <div
-                  class="text-ellispis overflow-hidden pb-6 px-3 text-2xs space-y-1"
-                  {...apiAccordionDetails().getContentProps({ value: 'curator-notes' })}
-                >
-                  <figure class="text-xs whitespace-pre-line">
-                    <blockquote class="italic text-accent-10">"{local.transcription()?.notes}"</blockquote>
-                    <figcaption class="text-2xs font-medium pt-2 text-neutral-10">
-                      <Identity address={local.transcription()?.creator as `0x${string}`} shortenOnFallback={true} />
-                    </figcaption>
-                  </figure>
-                </div>
-              </div>
-
-              <div {...apiAccordionDetails().getItemProps({ value: 'contributors' })}>
-                <div class="text-2xs flex relative p-2 font-bold focus-within:ring focus-within:bg-neutral-2">
-                  <h2>Contributors</h2>
-                  <button
-                    class="disabled:cursor-not-allowed absolute inset-0 w-full h-full opacity-0"
-                    {...apiAccordionDetails().getTriggerProps({ value: 'contributors' })}
-                  >
-                    Toggle "Contributors" section
-                  </button>
-                </div>
-
-                <div
-                  class="text-ellispis overflow-hidden pb-6 px-3 text-2xs space-y-1"
-                  {...apiAccordionDetails().getContentProps({ value: 'contributors' })}
-                >
-                  <ul class="text-ellispis overflow-hidden flex flex-col space-y-1.5">
-                    <For each={local.transcription()?.contributors}>
-                      {(contributor) => <li class="text-ellispis overflow-hidden">{contributor}</li>}
-                    </For>
-                  </ul>
-                </div>
-              </div>
-
-              <div {...apiAccordionDetails().getItemProps({ value: 'activity' })}>
-                <div class="text-2xs flex relative p-2 font-bold focus-within:ring focus-within:bg-neutral-2">
-                  <h2>Activity</h2>
-                  <button
-                    class="disabled:cursor-not-allowed absolute inset-0 w-full h-full opacity-0"
-                    {...apiAccordionDetails().getTriggerProps({ value: 'activity' })}
-                  >
-                    Toggle "Activity" section
-                  </button>
-                </div>
-
-                <div
-                  class="pb-6 px-3 text-2xs space-y-1"
-                  {...apiAccordionDetails().getContentProps({ value: 'activity' })}
-                >
-                  <p class="text-neutral-11">
-                    Created:&nbsp;
-                    <Show fallback="--" when={isDate(local.transcription()?.created_at_datetime)}>
-                      <span class="font-medium text-accent-11">
-                        {format(local.transcription()?.created_at_datetime as Date, 'MMMM do yyyy, pppp')}
-                      </span>
-                    </Show>
-                  </p>
-                  <p class="text-neutral-11">
-                    Last update:&nbsp;
-                    <Show fallback="--" when={isDate(local.transcription()?.last_updated_at_datetime)}>
-                      <span class="font-medium text-accent-11">
-                        {format(local.transcription()?.last_updated_at_datetime as Date, 'MMMM do yyyy, pppp')}
-                      </span>
-                    </Show>
-                  </p>
                 </div>
               </div>
             </div>
-          </section>
+          </div>
+        </Show>
+      </div>
+
+      <div {...apiTabs().rootProps}>
+        <div class="border-neutral-4 border-b">
+          <div class="container flex flex-col xs:flex-row mx-auto" {...apiTabs().tablistProps}>
+            <button
+              class="data-[selected]:text-interactive-11 data-[selected]:underline xs:data-[selected]:no-underline p-2 xs:pb-2 xs:pt-0.5 font-semibold text-2xs text-neutral-11 xs:data-[selected]:border-b-2 xs:border-b-2 xs:border-transparent xs:data-[selected]:border-b-interactive-9"
+              {...apiTabs().getTriggerProps({ value: 'about' })}
+            >
+              About
+            </button>
+            <button
+              class="data-[selected]:text-interactive-11 data-[selected]:underline xs:data-[selected]:no-underline p-2 xs:pb-2 xs:pt-0.5 font-semibold text-2xs text-neutral-11 xs:data-[selected]:border-b-2 xs:border-b-2 xs:border-transparent xs:data-[selected]:border-b-interactive-9"
+              {...apiTabs().getTriggerProps({ value: 'transcriptions' })}
+            >
+              Revisions
+            </button>
+            <Button
+              intent="neutral-on-light-layer"
+              scale="xs"
+              class="mx-auto w-[fit-content] xs:w-auto xs:mie-0 mb-4 mt-2 xs:mt-0 xs:mb-1 inline-flex items-center"
+              {...apiTabs().getTriggerProps({ value: 'propose' })}
+            >
+              <IconPlus class="w-4 h-4" />
+              <span class="text-[0.85em] pis-1ex">Propose new revision</span>
+            </Button>
+          </div>
         </div>
-        <div class="grow">
-          <div class="max-w-prose w-full">
-            <section>
-              <h2 class="pb-1 text-2xs uppercase tracking-wide text-accent-9 font-bold">Plain-text transcription</h2>
-              <Show
-                fallback={
-                  <>
-                    <p class="italic text-neutral-8">No plain-text transcription was provided.</p>
-                  </>
-                }
-                when={
-                  local.transcription()?.transcription_plain_text?.length > 0 &&
-                  local.transcription()?.transcription_plain_text !== null
-                }
-              >
-                <div class="whitespace-pre-line">{local.transcription()?.transcription_plain_text}</div>
-              </Show>
-            </section>
-            <section class="pt-8">
-              <h2 class="pb-1 text-2xs uppercase tracking-wide text-accent-9 font-bold">Files</h2>
-              <p class="text-neutral-11 text-2xs pb-4">
-                You can preview the files in a new tab or download them for free.
-              </p>
-              <ul class="grid xs:grid-cols-3 gap-3">
-                <li class="flex flex-col p-3 items-center justify-center bg-neutral-1 border border-neutral-6 rounded-md">
-                  <Show
-                    when={
-                      local.transcription()?.srt_file_uri !== null &&
-                      (local.transcription()?.srt_file_uri?.length as number) > 0
-                    }
-                  >
-                    <IconDocumentArrowDown class="w-8 text-interactive-12 h-8" />
-                    <div class="text-2xs text-center">
-                      <p class="font-mono font-bold text-interactive-11">.srt</p>
-                      <p class="italic text-neutral-11 text-[0.85em] pb-2">Synchronized captions for video files</p>
-                      <a
-                        class="text-[0.75em] link"
-                        href={web3UriToUrl(local.transcription()?.srt_file_uri as string)}
-                        target="_blank"
+        <div class="container pt-12 mx-auto">
+          <div {...apiTabs().getContentProps({ value: 'about' })}>
+            <div class="flex w-full relative container gap-x-12 mx-auto flex-col md:flex-row-reverse">
+              <div class="w-full md:w-72 md:sticky md:h-[fit-content] md:top-14">
+                <section>
+                  <div class="w-full border bg-accent-1 divide-y divide-neutral-6 rounded-md border-neutral-7 mb-8">
+                    <div {...apiAccordionDetails().getItemProps({ value: 'curator-notes' })}>
+                      <div class="text-2xs flex relative p-2 font-bold focus-within:ring focus-within:bg-neutral-2">
+                        <h2>Curator's notes</h2>
+                        <button
+                          class="disabled:cursor-not-allowed absolute inset-0 w-full h-full opacity-0"
+                          {...apiAccordionDetails().getTriggerProps({ value: 'curator-notes' })}
+                        >
+                          Toggle "Contributors" section
+                        </button>
+                      </div>
+
+                      <div
+                        class="text-ellispis overflow-hidden pb-6 px-3 text-2xs space-y-1"
+                        {...apiAccordionDetails().getContentProps({ value: 'curator-notes' })}
                       >
-                        Open in a new tab
-                      </a>
-                      <p class="text-[0.65em] text-neutral-9 py-1">or</p>
-                      <button
-                        type="button"
-                        onClick={async () => {
-                          await downloadFile({
-                            filename: `${local.transcription()?.slug}.srt`,
-                            uri: web3UriToUrl(local.transcription()?.srt_file_uri as string),
-                          })
-                        }}
-                        class={callToAction({
-                          intent: 'interactive-faint',
-                          scale: 'xs',
-                        })}
-                      >
-                        Download
-                      </button>
+                        <figure class="text-xs whitespace-pre-line">
+                          <blockquote class="italic text-accent-10">"{local.transcription()?.notes}"</blockquote>
+                          <figcaption class="text-2xs font-medium pt-2 text-neutral-10">
+                            <Identity
+                              address={local.transcription()?.creator as `0x${string}`}
+                              shortenOnFallback={true}
+                            />
+                          </figcaption>
+                        </figure>
+                      </div>
                     </div>
-                  </Show>
-                </li>
-                <li class="flex flex-col p-3 items-center justify-center bg-neutral-1 border border-neutral-6 rounded-md">
-                  <Show
-                    when={
-                      local.transcription()?.vtt_file_uri !== null &&
-                      (local.transcription()?.vtt_file_uri?.length as number) > 0
-                    }
-                  >
-                    <IconDocumentArrowDown class="w-8 text-interactive-12 h-8" />
-                    <div class="text-2xs text-center">
-                      <p class="font-mono font-bold text-interactive-11">.vtt</p>
-                      <p class="italic text-neutral-11 text-[0.85em] pb-2">Synchronized captions for web video files</p>
-                      <a
-                        class="text-[0.75em] link"
-                        href={web3UriToUrl(local.transcription()?.vtt_file_uri as string)}
-                        target="_blank"
+
+                    <div {...apiAccordionDetails().getItemProps({ value: 'contributors' })}>
+                      <div class="text-2xs flex relative p-2 font-bold focus-within:ring focus-within:bg-neutral-2">
+                        <h2>Contributors</h2>
+                        <button
+                          class="disabled:cursor-not-allowed absolute inset-0 w-full h-full opacity-0"
+                          {...apiAccordionDetails().getTriggerProps({ value: 'contributors' })}
+                        >
+                          Toggle "Contributors" section
+                        </button>
+                      </div>
+
+                      <div
+                        class="text-ellispis overflow-hidden pb-6 px-3 text-2xs space-y-1"
+                        {...apiAccordionDetails().getContentProps({ value: 'contributors' })}
                       >
-                        Open in a new tab
-                      </a>
-                      <p class="text-[0.65em] text-neutral-9 py-1">or</p>
-                      <button
-                        type="button"
-                        onClick={async () => {
-                          await downloadFile({
-                            filename: `${local.transcription()?.slug}.vtt`,
-                            uri: web3UriToUrl(local.transcription()?.vtt_file_uri as string),
-                          })
-                        }}
-                        class={callToAction({
-                          intent: 'interactive-faint',
-                          scale: 'xs',
-                        })}
-                      >
-                        Download
-                      </button>
+                        <ul class="text-ellispis overflow-hidden flex flex-col space-y-1.5">
+                          <For each={local.transcription()?.contributors}>
+                            {(contributor) => <li class="text-ellispis overflow-hidden">{contributor}</li>}
+                          </For>
+                        </ul>
+                      </div>
                     </div>
-                  </Show>
-                </li>
-                <li class="flex flex-col p-3 items-center justify-center bg-neutral-1 border border-neutral-6 rounded-md">
-                  <Show
-                    when={
-                      local.transcription()?.lrc_file_uri !== null &&
-                      (local.transcription()?.lrc_file_uri?.length as number) > 0
-                    }
-                  >
-                    <IconDocumentArrowDown class="w-8 text-interactive-12 h-8" />
-                    <div class="text-2xs text-center">
-                      <p class="font-mono font-bold text-interactive-11">.lrc</p>
-                      <p class="italic text-neutral-11 text-[0.85em] pb-2">Synchronized captions for audio files</p>
-                      <a
-                        class="text-[0.75em] link"
-                        href={web3UriToUrl(local.transcription()?.lrc_file_uri as string)}
-                        target="_blank"
-                      >
-                        Open in a new tab
-                      </a>
-                      <p class="text-[0.65em] text-neutral-9 py-1">or</p>
-                      <button
-                        type="button"
-                        onClick={async () => {
-                          await downloadFile({
-                            filename: `${local.transcription()?.slug}.lrc`,
-                            uri: web3UriToUrl(local.transcription()?.lrc_file_uri as string),
-                          })
-                        }}
-                        class={callToAction({
-                          intent: 'interactive-faint',
-                          scale: 'xs',
-                        })}
-                      >
-                        Download
-                      </button>
-                    </div>
-                  </Show>
-                </li>
-              </ul>
-            </section>
+                  </div>
+                </section>
+              </div>
+              <div class="grow">
+                <div class="max-w-prose w-full">
+                  <section>
+                    <h2 class="pb-1 text-2xs uppercase tracking-wide text-accent-9 font-bold">
+                      Plain-text transcription
+                    </h2>
+                    <Show
+                      fallback={
+                        <>
+                          <p class="italic text-neutral-8">No plain-text transcription was provided.</p>
+                        </>
+                      }
+                      when={
+                        local.transcription()?.transcription_plain_text?.length > 0 &&
+                        local.transcription()?.transcription_plain_text !== null
+                      }
+                    >
+                      <div class="whitespace-pre-line">{local.transcription()?.transcription_plain_text}</div>
+                    </Show>
+                  </section>
+                  <section class="pt-8">
+                    <h2 class="pb-1 text-2xs uppercase tracking-wide text-accent-9 font-bold">Files</h2>
+                    <p class="text-neutral-11 text-2xs pb-4">
+                      You can preview the files in a new tab or download them for free.
+                    </p>
+                    <ul class="grid xs:grid-cols-3 gap-3">
+                      <li class="flex flex-col p-3 items-center justify-center bg-neutral-1 border border-neutral-6 rounded-md">
+                        <IconDocumentArrowDown class="w-8 text-interactive-12 h-8" />
+                        <div class="text-2xs text-center">
+                          <p class="font-mono font-bold text-interactive-11">.srt</p>
+                          <p class="italic text-neutral-11 text-[0.85em] pb-2">Synchronized captions for video files</p>
+                          <Show
+                            fallback={<p class="font-medium text-neutral-8 italic text-2xs">No file provided</p>}
+                            when={
+                              local.transcription()?.srt_file_uri !== null &&
+                              (local.transcription()?.srt_file_uri?.length as number) > 0
+                            }
+                          >
+                            <a
+                              class="text-[0.75em] link"
+                              href={web3UriToUrl(local.transcription()?.srt_file_uri as string)}
+                              target="_blank"
+                            >
+                              Open in a new tab
+                            </a>
+                            <p class="text-[0.65em] text-neutral-9 py-1">or</p>
+                            <button
+                              type="button"
+                              onClick={async () => {
+                                await downloadFile({
+                                  filename: `${local.transcription()?.slug}.srt`,
+                                  uri: web3UriToUrl(local.transcription()?.srt_file_uri as string),
+                                })
+                              }}
+                              class={callToAction({
+                                intent: 'interactive-faint',
+                                scale: 'xs',
+                              })}
+                            >
+                              Download
+                            </button>
+                          </Show>
+                        </div>
+                      </li>
+                      <li class="flex flex-col p-3 items-center justify-center bg-neutral-1 border border-neutral-6 rounded-md">
+                        <IconDocumentArrowDown class="w-8 text-interactive-12 h-8" />
+                        <div class="text-2xs text-center">
+                          <p class="font-mono font-bold text-interactive-11">.vtt</p>
+                          <p class="italic text-neutral-11 text-[0.85em] pb-2">
+                            Synchronized captions for web video files
+                          </p>
+                          <Show
+                            fallback={<p class="font-medium text-neutral-8 italic text-2xs">No file provided</p>}
+                            when={
+                              local.transcription()?.vtt_file_uri !== null &&
+                              (local.transcription()?.vtt_file_uri?.length as number) > 0
+                            }
+                          >
+                            <a
+                              class="text-[0.75em] link"
+                              href={web3UriToUrl(local.transcription()?.vtt_file_uri as string)}
+                              target="_blank"
+                            >
+                              Open in a new tab
+                            </a>
+                            <p class="text-[0.65em] text-neutral-9 py-1">or</p>
+                            <button
+                              type="button"
+                              onClick={async () => {
+                                await downloadFile({
+                                  filename: `${local.transcription()?.slug}.vtt`,
+                                  uri: web3UriToUrl(local.transcription()?.vtt_file_uri as string),
+                                })
+                              }}
+                              class={callToAction({
+                                intent: 'interactive-faint',
+                                scale: 'xs',
+                              })}
+                            >
+                              Download
+                            </button>
+                          </Show>
+                        </div>
+                      </li>
+                      <li class="flex flex-col p-3 items-center justify-center bg-neutral-1 border border-neutral-6 rounded-md">
+                        <IconDocumentArrowDown class="w-8 text-interactive-12 h-8" />
+                        <div class="text-2xs text-center">
+                          <p class="font-mono font-bold text-interactive-11">.lrc</p>
+                          <p class="italic text-neutral-11 text-[0.85em] pb-2">Synchronized captions for audio files</p>
+                          <Show
+                            fallback={<p class="font-medium text-neutral-8 italic text-2xs">No file provided</p>}
+                            when={
+                              local.transcription()?.lrc_file_uri !== null &&
+                              (local.transcription()?.lrc_file_uri?.length as number) > 0
+                            }
+                          >
+                            <a
+                              class="text-[0.75em] link"
+                              href={web3UriToUrl(local.transcription()?.lrc_file_uri as string)}
+                              target="_blank"
+                            >
+                              Open in a new tab
+                            </a>
+                            <p class="text-[0.65em] text-neutral-9 py-1">or</p>
+                            <button
+                              type="button"
+                              onClick={async () => {
+                                await downloadFile({
+                                  filename: `${local.transcription()?.slug}.lrc`,
+                                  uri: web3UriToUrl(local.transcription()?.lrc_file_uri as string),
+                                })
+                              }}
+                              class={callToAction({
+                                intent: 'interactive-faint',
+                                scale: 'xs',
+                              })}
+                            >
+                              Download
+                            </button>
+                          </Show>
+                        </div>
+                      </li>
+                    </ul>
+                  </section>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div {...apiTabs().getContentProps({ value: 'revisions' })}>
+            <h2 class="pb-1 text-2xs uppercase tracking-wide text-accent-9 font-bold">Revision history</h2>
+            <p></p>
+          </div>
+          <div {...apiTabs().getContentProps({ value: 'propose', disabled: !props.transcription() })}>
+            <Show when={props.transcription()}>
+              <ProposeNewRevision transcription={props.transcription} />
+            </Show>
           </div>
         </div>
       </div>

@@ -11,9 +11,9 @@ export function useForm(args: {
   onSubmit: (values: z.infer<typeof schema>) => void
   initialValues: z.infer<typeof schema>
 }): {
-  formProposeNewTranscription: any
-  stateMachineAccordion: any
+  formProposeNewRevision: any
   stateMachineTabs: any
+  stateMachineAccordion: any
 } {
   // Form state manager
   const storeForm = createForm<z.infer<typeof schema>>({
@@ -46,7 +46,7 @@ export function useForm(args: {
   const apiAccordion = createMemo(() => accordion.connect(stateAccordion, sendAccordion, normalizeProps))
 
   return {
-    formProposeNewTranscription: storeForm,
+    formProposeNewRevision: storeForm,
     stateMachineAccordion: apiAccordion,
     stateMachineTabs: apiTabs,
   }

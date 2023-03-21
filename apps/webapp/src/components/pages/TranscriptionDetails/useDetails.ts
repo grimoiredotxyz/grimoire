@@ -1,5 +1,7 @@
 import { createMemo, createUniqueId } from 'solid-js'
 import * as accordion from '@zag-js/accordion'
+import * as tabs from '@zag-js/tabs'
+import * as popover from '@zag-js/popover'
 import { useMachine, normalizeProps } from '@zag-js/solid'
 
 export function useDetails() {
@@ -13,6 +15,24 @@ export function useDetails() {
   const apiAccordionDetails = createMemo(() =>
     accordion.connect(stateAccordionDetails, sendAccordionDetails, normalizeProps),
   )
+
+  const [stateTabs, sendTabs] = useMachine(
+    tabs.machine({
+      id: createUniqueId(),
+      value: 'about',
+      loop: true,
+    }),
+  )
+  const apiTabs = createMemo(() => tabs.connect(stateTabs, sendTabs, normalizeProps))
+
+  const [statePopoverActions, sendPopoverActions] = useMachine(
+    popover.machine({
+      closeOnEsc: true,
+      closeOnInteractOutside: true,
+      id: createUniqueId(),
+    }),
+  )
+  const apiPopoverActions = createMemo(() => popover.connect(statePopoverActions, sendPopoverActions, normalizeProps))
 
   async function downloadFile(args: { filename: string; uri: string }) {
     const a = document.createElement('a')
@@ -35,6 +55,8 @@ export function useDetails() {
 
   return {
     apiAccordionDetails,
+    apiPopoverActions,
+    apiTabs,
     downloadFile,
   }
 }

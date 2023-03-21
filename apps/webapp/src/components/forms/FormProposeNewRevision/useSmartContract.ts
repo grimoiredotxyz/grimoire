@@ -19,16 +19,16 @@ interface FormValues extends z.infer<typeof schema> {}
 
 export function useSmartContract() {
   // Route params
-  const params = useParams<{ chain: string; idRequest: string }>()
+  const params = useParams<{ chain: string; idTranscript: string }>()
   const queryClient = useQueryClient()
   // UI
   const toast = useToast()
   const [statePopover, sendPopover] = useMachine(popover.machine({ id: createUniqueId(), portalled: true }))
-  const apiPopoverCreateNewTranscriptionStatus = createMemo(() =>
+  const apiPopoverProposeNewRevisionStatus = createMemo(() =>
     popover.connect(statePopover, sendPopover, normalizeProps),
   )
   const [stateAccordion, sendAccordion] = useMachine(accordion.machine({ id: createUniqueId(), collapsible: true }))
-  const apiAccordionCreateNewTranscriptionStatus = createMemo(() =>
+  const apiAccordionProposeNewRevisionStatus = createMemo(() =>
     accordion.connect(stateAccordion, sendAccordion, normalizeProps),
   )
 
@@ -41,43 +41,33 @@ export function useSmartContract() {
   // Metadata file upload
   const mutationUploadMetadata = createMutation(uploadFileToIPFS, {
     onSuccess() {
-      if (apiAccordionCreateNewTranscriptionStatus().value !== 'transaction-1')
-        apiAccordionCreateNewTranscriptionStatus().setValue('transaction-1') // Open the transaction accordion when the metadata are uploaded successfully
+      if (apiAccordionProposeNewRevisionStatus().value !== 'transaction-1')
+        apiAccordionProposeNewRevisionStatus().setValue('transaction-1') // Open the transaction accordion when the metadata are uploaded successfully
     },
   })
-  const mutationWriteContractCreateNewTranscription = createMutation(
+  const mutationWriteContractProposeNewRevision = createMutation(
     //@ts-ignore
-    async (args: {
-      updatedAt: number
-      listCollaborators: Array<string>
-      listCommunities: Array<string>
-      idRequest: null | string
-      uriMetadata: string
-    }) => {
+    async (args: { updatedAt: number; idTranscript: string; uriMetadata: string }) => {
       const network = await getNetwork()
       const chainId = network?.chain?.id
       const config = await prepareWriteContract({
         //@ts-ignore
         ...CONTRACT_TRANSCRIPTIONS[chainId],
-        functionName: 'createTranscription',
+        functionName: 'proposeRevision',
         /*
             Arguments order: 
-            created_at (uint256)
-            contributors (address[])
-            metadata_uri (string)
-            id_request (bytes32)
-            communities (string[]) 
-          */
-        args: [args?.updatedAt, args?.listCollaborators, args?.uriMetadata, args?.idRequest, args?.listCommunities],
+            transcript_id (bytes32)
+            updated_time (uint256)
+            content_uri (string)
+        */
+        args: [args?.idTranscript, args?.updatedAt, args?.uriMetadata],
       })
-      if (apiAccordionCreateNewTranscriptionStatus().value !== 'transaction-1')
-        apiAccordionCreateNewTranscriptionStatus().setValue('transaction-1')
-      //@ts-ignore
+      if (apiAccordionProposeNewRevisionStatus().value !== 'transaction-1')
+        apiAccordionProposeNewRevisionStatus().setValue('transaction-1')
       return await writeContract(config)
     },
     {
       onError() {
-        //@ts-ignore
         toast().create({
           title: "Couldn't create your transcription !",
           description: 'Make sure to sign the transaction in your wallet.',
@@ -88,7 +78,7 @@ export function useSmartContract() {
     },
   )
 
-  const mutationTxWaitCreateNewTranscription = createMutation(
+  const mutationTxWaitProposeNewRevision = createMutation(
     async (args: { hash: `0x${string}`; chainAlias: string }) => {
       const data = await waitForTransaction({ hash: args.hash })
       const iface = new utils.Interface(ABI_TRANSCRIPTIONS)
@@ -122,16 +112,15 @@ export function useSmartContract() {
       onSuccess() {
         //@ts-ignore
         toast().create({
-          title: 'Transcription created successfully!',
-          description: 'Your transcription is ready to be used.',
+          title: 'Revision created successfully!',
+          description: 'Your revision was sent and is ready to be reviewed.',
           type: 'success',
           placement: 'bottom-right',
         })
       },
       onError() {
-        //@ts-ignore
         toast().create({
-          title: "Couldn't create your transcription !",
+          title: "Couldn't create your revision !",
           description: 'Your transaction might have failed.',
           type: 'error',
           placement: 'bottom-right',
@@ -146,7 +135,7 @@ export function useSmartContract() {
   )
 
   async function prepareData(formValues: any) {
-    apiAccordionCreateNewTranscriptionStatus().setValue('file-uploads')
+    apiAccordionProposeNewRevisionStatus().setValue('file-uploads')
 
     /**
      * 1 - Upload assets to IPFS
@@ -221,7 +210,7 @@ export function useSmartContract() {
           ? formValues?.keywords
           : '',
       notes: formValues?.notes,
-      // Transcription
+      // Revision
       transcription_plain_text: formValues?.transcription_plain_text ?? '',
       srt_file_uri: mutationUploadSRTFile?.data ?? null,
       vtt_file_uri: mutationUploadVTTFile?.data ?? null,
@@ -235,7 +224,8 @@ export function useSmartContract() {
           ? formValues?.collaborators
           : '',
     }
-    let uriMetadata = ''
+
+    let uriMetadata
     if (!mutationUploadMetadata.isSuccess) {
       uriMetadata = await mutationUploadMetadata.mutateAsync(
         { file: JSON.stringify(metadata), key: `${uid}_metadata.json` },
@@ -249,27 +239,16 @@ export function useSmartContract() {
     } else {
       uriMetadata = mutationUploadMetadata.data
     }
+
     return {
       uriMetadata,
       updatedAt: getUnixTime(new Date()),
-      listCollaborators:
-        formValues?.collaborators.constructor !== Array
-          ? [...formValues?.collaborators?.split(',')]
-          : formValues?.collaborators?.length > 0
-          ? formValues?.collaborators
-          : [],
-      listCommunities:
-        formValues?.communities.constructor !== Array
-          ? [...formValues?.communities?.split(',')]
-          : formValues?.communities?.length > 0
-          ? formValues?.communities
-          : [],
-      idRequest: params?.idRequest?.length > 0 ? params?.idRequest : utils.formatBytes32String(''),
-      metadata: {},
+      idTranscript: params?.idTranscript?.length > 0 ? params?.idTranscript : utils.formatBytes32String(''),
+      metadata,
     }
   }
 
-  async function onSubmitCreateTranscriptionForm(args: { formValues: FormValues }) {
+  async function onSubmitProposeNewRevisionForm(args: { formValues: FormValues }) {
     try {
       const network = await getNetwork()
       const chainId = network.chain?.id
@@ -279,20 +258,15 @@ export function useSmartContract() {
        * Prepare data
        */
 
-      const { metadata, uriMetadata, updatedAt, listCollaborators, listCommunities, idRequest } = await prepareData(
-        args?.formValues,
-      )
+      const { metadata, uriMetadata, updatedAt, idTranscript } = await prepareData(args?.formValues)
 
-      console.log(uriMetadata, updatedAt, listCollaborators, listCommunities, idRequest)
       /**
        * Smart contract interaction
        */
-      const dataWriteContract = await mutationWriteContractCreateNewTranscription.mutateAsync({
+      const dataWriteContract = await mutationWriteContractProposeNewRevision.mutateAsync({
         uriMetadata: uriMetadata as string,
         updatedAt,
-        listCollaborators,
-        listCommunities,
-        idRequest,
+        idTranscript,
       })
 
       if (dataWriteContract?.hash) {
@@ -306,7 +280,7 @@ export function useSmartContract() {
           metadata_uri,
           id_request,
           communities,
-        } = await mutationTxWaitCreateNewTranscription.mutateAsync({ hash: dataWriteContract?.hash, chainAlias })
+        } = await mutationTxWaitProposeNewRevision.mutateAsync({ hash: dataWriteContract?.hash, chainAlias })
 
         const slug = `${chainAlias}/${transcription_id}`
         queryClient.setQueryData(['transcription', slug], {
@@ -352,19 +326,19 @@ export function useSmartContract() {
         mutationUploadLRCFile.status,
         mutationUploadMetadata.status,
         // Contract interactions
-        mutationWriteContractCreateNewTranscription.status,
-        mutationTxWaitCreateNewTranscription.status,
+        mutationWriteContractProposeNewRevision.status,
+        mutationTxWaitProposeNewRevision.status,
       ].includes('loading') &&
-      !apiPopoverCreateNewTranscriptionStatus().isOpen
+      !apiPopoverProposeNewRevisionStatus().isOpen
     ) {
-      apiPopoverCreateNewTranscriptionStatus().open()
+      apiPopoverProposeNewRevisionStatus().open()
     }
   })
 
   return {
     // UI
-    apiPopoverCreateNewTranscriptionStatus,
-    apiAccordionCreateNewTranscriptionStatus,
+    apiPopoverProposeNewRevisionStatus,
+    apiAccordionProposeNewRevisionStatus,
 
     // Uploads
     mutationUploadVTTFile,
@@ -373,11 +347,11 @@ export function useSmartContract() {
     mutationUploadMetadata,
 
     // Contract interactions
-    mutationWriteContractCreateNewTranscription,
-    mutationTxWaitCreateNewTranscription,
+    mutationWriteContractProposeNewRevision,
+    mutationTxWaitProposeNewRevision,
 
     // Form submit event handlers
-    onSubmitCreateTranscriptionForm,
+    onSubmitProposeNewRevisionForm,
   }
 }
 

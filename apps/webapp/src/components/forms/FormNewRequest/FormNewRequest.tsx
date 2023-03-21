@@ -1,6 +1,6 @@
 import { isAddress } from 'viem'
 import { Match, Show, splitProps, Switch } from 'solid-js'
-import { Button, FormTextarea, FormInput, FormTagsInput, Combobox } from '~/ui'
+import { Button, FormTextarea, FormInput, FormTagsInput, Combobox, IconExclamationCircle } from '~/ui'
 import FormField from '~/ui/FormField'
 import { useAuthentication } from '~/hooks/useAuthentication'
 
@@ -232,7 +232,7 @@ export const FormNewRequest = (props: FormNewRequestProps) => {
         <input disabled hidden name="language" />
         <input disabled hidden name="keywords" />
 
-        <Button disabled={local.isLoading} type="submit">
+        <Button disabled={local.isLoading || !isAddress(currentUser()?.address)}>
           <Switch fallback="Create">
             <Match when={local.isError}>Try again</Match>
             <Match when={local.isLoading}>Creating...</Match>
@@ -240,6 +240,14 @@ export const FormNewRequest = (props: FormNewRequestProps) => {
           </Switch>
         </Button>
       </form>
+      <Switch>
+        <Match when={!isAddress(currentUser()?.address)}>
+          <span class="flex items-center pt-2 font-semibold text-[0.725em] text-accent-9">
+            <IconExclamationCircle class="mie-1ex w-4 h-4" />
+            Connect your wallet to continue.
+          </span>
+        </Match>
+      </Switch>
     </>
   )
 }

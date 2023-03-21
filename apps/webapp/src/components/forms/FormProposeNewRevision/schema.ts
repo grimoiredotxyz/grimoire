@@ -1,17 +1,19 @@
-import { any, boolean, object, string } from 'zod'
+import { any, boolean, object, array, string } from 'zod'
 
 // Validation schema for the "create a new transcription" form
 export const schema = object({
   // Source
   source_media_uris: string(),
   source_media_title: string(),
-  language: string(),
-  keywords: string(),
-
   // About
-  title: string().trim().min(1),
-  notes: string().trim().optional(),
-  // Transcription
+  title: string(),
+  language: string(), // code ; eg: en-GB
+  keywords: string(),
+  notes: string().trim().min(1),
+  // Original transcription
+  id_original_transcription: string(),
+  // Revision
+  change_type: array(string()).min(1),
   transcription_plain_text: string().trim().min(1).optional(),
   srt_file: any().optional(),
   srt_uri: string().optional(),

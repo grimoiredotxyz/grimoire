@@ -4,19 +4,22 @@ import { web3UriToUrl } from '~/helpers'
 import { Button, IconEllipsisVertical, IconPlus, IconTrash, Identity } from '~/ui'
 import { A } from '@solidjs/router'
 import useDetails from './useDetails'
-import type { Request } from '~/services'
-import type { Resource } from 'solid-js'
 import ProposeNewTranscription from '../ProposeNewTranscription'
 import useRequestActions from './useRequestActions'
 import { LOCALES } from '~/config'
+import { useAuthentication } from '~/hooks'
+import type { Request } from '~/services'
+import type { Resource } from 'solid-js'
 
 interface RequestDetailsProps {
   request: Resource<Request>
 }
 export const RequestDetails = (props: RequestDetailsProps) => {
   const [local] = splitProps(props, ['request'])
+  const { currentUser } = useAuthentication()
   const { apiTabs, apiPopoverActions } = useDetails()
   const { mutationWriteContractDeleteRequest, mutationTxWaitDeleteRequest } = useRequestActions()
+
   return (
     <>
       <div class="container flex flex-col-reverse xs:flex-row flex-wrap gap-4 mx-auto pb-6">
@@ -54,59 +57,61 @@ export const RequestDetails = (props: RequestDetailsProps) => {
             <Identity address={local.request()?.creator as `0x${string}`} shortenOnFallback={true} />
           </p>
         </div>
-        <div class="xs:mt-2 xs:mis-auto">
-          <button
-            type="button"
-            classList={{
-              'bg-neutral-7 shadow-inner': apiPopoverActions().isOpen,
-            }}
-            class="flex items-center xs:aspect-square border-neutral-5 border focus:border-transparent text-neutral-11 p-2 rounded-md hover:bg-neutral-4"
-            {...apiPopoverActions().triggerProps}
-          >
-            <IconEllipsisVertical class="w-5 h-5" />
+        <Show when={currentUser()?.address === local.request()?.creator}>
+          <div class="xs:mt-2 xs:mis-auto">
+            <button
+              type="button"
+              classList={{
+                'bg-neutral-7 shadow-inner': apiPopoverActions().isOpen,
+              }}
+              class="flex items-center xs:aspect-square border-neutral-5 border focus:border-transparent text-neutral-11 p-2 rounded-md hover:bg-neutral-4"
+              {...apiPopoverActions().triggerProps}
+            >
+              <IconEllipsisVertical class="w-5 h-5" />
 
-            <span class="pis-1ex text-2xs font-medium xs:pis-0 xs:sr-only">Actions</span>
-          </button>
-          <div
-            class="text-2xs bg-white w-[200px] rounded shadow-lg border border-neutral-7 divide-y divide-neutral-5"
-            {...apiPopoverActions().positionerProps}
-          >
-            <div class="text-[0.85em]" {...apiPopoverActions().contentProps}>
-              <div class="sr-only" {...apiPopoverActions().titleProps}>
-                Actions
-              </div>
-              <div class="py-1">
-                <button
-                  disabled={[
-                    mutationWriteContractDeleteRequest.isLoading,
-                    mutationTxWaitDeleteRequest.isLoading,
-                    mutationTxWaitDeleteRequest.isSuccess,
-                  ].includes(true)}
-                  class="disabled:opacity-50 w-full flex items-center justify-start cursor-pointer text-negative-12 focus:bg-negative-1 focus:text-negative-11 py-2 px-3"
-                  onClick={async () => {
-                    await mutationWriteContractDeleteRequest.mutateAsync({
-                      idRequest: local.request()?.request_id as string,
-                    })
-                  }}
-                >
-                  <IconTrash class="text-negative-9 w-4 h-4" stroke-width="2" />
+              <span class="pis-1ex text-2xs font-medium xs:pis-0 xs:sr-only">Actions</span>
+            </button>
+            <div
+              class="text-2xs bg-white w-[200px] rounded shadow-lg border border-neutral-7 divide-y divide-neutral-5"
+              {...apiPopoverActions().positionerProps}
+            >
+              <div class="text-[0.85em]" {...apiPopoverActions().contentProps}>
+                <div class="sr-only" {...apiPopoverActions().titleProps}>
+                  Actions
+                </div>
+                <div class="py-1">
+                  <button
+                    disabled={[
+                      mutationWriteContractDeleteRequest.isLoading,
+                      mutationTxWaitDeleteRequest.isLoading,
+                      mutationTxWaitDeleteRequest.isSuccess,
+                    ].includes(true)}
+                    class="disabled:opacity-50 w-full flex items-center justify-start cursor-pointer text-negative-12 focus:bg-negative-1 focus:text-negative-11 py-2 px-3"
+                    onClick={async () => {
+                      await mutationWriteContractDeleteRequest.mutateAsync({
+                        idRequest: local.request()?.request_id as string,
+                      })
+                    }}
+                  >
+                    <IconTrash class="text-negative-9 w-4 h-4" stroke-width="2" />
 
-                  <span class="pis-1ex">
-                    <Switch fallback="Delete">
-                      <Match when={mutationWriteContractDeleteRequest.isLoading}>Sign transaction...</Match>
-                      <Match when={mutationTxWaitDeleteRequest.isLoading}>Deleting...</Match>
-                      <Match
-                        when={mutationTxWaitDeleteRequest.isSuccess && mutationWriteContractDeleteRequest.isSuccess}
-                      >
-                        Deleted !
-                      </Match>
-                    </Switch>
-                  </span>
-                </button>
+                    <span class="pis-1ex">
+                      <Switch fallback="Delete">
+                        <Match when={mutationWriteContractDeleteRequest.isLoading}>Sign transaction...</Match>
+                        <Match when={mutationTxWaitDeleteRequest.isLoading}>Deleting...</Match>
+                        <Match
+                          when={mutationTxWaitDeleteRequest.isSuccess && mutationWriteContractDeleteRequest.isSuccess}
+                        >
+                          Deleted !
+                        </Match>
+                      </Switch>
+                    </span>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        </Show>
       </div>
       <div {...apiTabs().rootProps}>
         <div class="border-neutral-4 border-b">
@@ -125,7 +130,7 @@ export const RequestDetails = (props: RequestDetailsProps) => {
             </button>
             <Show when={!local.request()?.fulfilled && local.request()?.open_for_transcripts === true}>
               <Button
-                intent="primary-outline"
+                intent="neutral-on-light-layer"
                 scale="xs"
                 class="mx-auto w-[fit-content] xs:w-auto xs:mie-0 mb-4 mt-2 xs:mt-0 xs:mb-1 inline-flex items-center"
                 {...apiTabs().getTriggerProps({ value: 'propose' })}

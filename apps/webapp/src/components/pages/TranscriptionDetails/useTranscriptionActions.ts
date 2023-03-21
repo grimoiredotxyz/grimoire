@@ -4,32 +4,32 @@ import { useNavigate } from 'solid-start'
 import { CONTRACT_TRANSCRIPTIONS } from '~/config'
 import { useToast } from '~/hooks'
 
-export function useRequestActions() {
+export function useTranscriptionActions() {
   const queryClient = useQueryClient()
   const toast = useToast()
   const navigate = useNavigate()
-  const mutationWriteContractDeleteRequest = createMutation(
+  const mutationWriteContractDeleteTranscription = createMutation(
     //@ts-ignore
-    async (args: { idRequest: string }) => {
+    async (args: { idTranscription: string }) => {
       const network = await getNetwork()
       const chainId = network?.chain?.id
       const config = await prepareWriteContract({
         //@ts-ignore
         ...CONTRACT_TRANSCRIPTIONS[chainId],
-        functionName: 'deleteRequest',
-        args: [args?.idRequest],
+        functionName: 'deleteTranscription',
+        args: [args?.idTranscription],
       })
       //@ts-ignore
       return await writeContract(config)
     },
     {
       async onSuccess(data, variables, context) {
-        await mutationTxWaitDeleteRequest.mutateAsync({ hash: data?.hash })
+        await mutationTxWaitDeleteTranscription.mutateAsync({ hash: data?.hash })
       },
       onError() {
         //@ts-ignore
         toast().create({
-          title: "Couldn't delete your request !",
+          title: "Couldn't delete your transcription !",
           description: 'Make sure to sign the transaction in your wallet.',
           type: 'error',
           placement: 'bottom-right',
@@ -38,7 +38,7 @@ export function useRequestActions() {
     },
   )
 
-  const mutationTxWaitDeleteRequest = createMutation(
+  const mutationTxWaitDeleteTranscription = createMutation(
     async (args: { hash: `0x${string}` }) => {
       await waitForTransaction({ hash: args.hash })
     },
@@ -46,8 +46,9 @@ export function useRequestActions() {
       onSuccess() {
         //@ts-ignore
         toast().create({
-          title: 'Request deleted successfully!',
-          description: "Your request was deleted successfully. You'll be redirected to the home page in 5 seconds.",
+          title: 'Transcription deleted successfully!',
+          description:
+            "Your transcription was deleted successfully. You'll be redirected to the home page in 5 seconds.",
           type: 'success',
           placement: 'bottom-right',
         })
@@ -56,7 +57,7 @@ export function useRequestActions() {
       onError() {
         //@ts-ignore
         toast().create({
-          title: "Couldn't delete your request !",
+          title: "Couldn't delete your transcription !",
           description: 'Your transaction might have failed.',
           type: 'error',
           placement: 'bottom-right',
@@ -71,9 +72,9 @@ export function useRequestActions() {
   )
 
   return {
-    mutationWriteContractDeleteRequest,
-    mutationTxWaitDeleteRequest,
+    mutationWriteContractDeleteTranscription,
+    mutationTxWaitDeleteTranscription,
   }
 }
 
-export default useRequestActions
+export default useTranscriptionActions
