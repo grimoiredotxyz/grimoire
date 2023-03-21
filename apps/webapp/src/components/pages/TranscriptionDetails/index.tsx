@@ -5,7 +5,7 @@ import type { Resource } from 'solid-js'
 import useDetails from './useDetails'
 import { format, isDate } from 'date-fns'
 import { web3UriToUrl } from '~/helpers'
-import { IconDocumentArrowDown } from '~/ui'
+import { IconDocumentArrowDown, Identity } from '~/ui'
 import { callToAction } from '~/design-system'
 import { A } from '@solidjs/router'
 
@@ -97,7 +97,7 @@ export const TranscriptionDetails = (props: TranscriptionDetailsProps) => {
                   <figure class="text-xs whitespace-pre-line">
                     <blockquote class="italic text-accent-10">"{local.transcription()?.notes}"</blockquote>
                     <figcaption class="text-2xs font-medium pt-2 text-neutral-10">
-                      {local.transcription()?.creator}
+                      <Identity address={local.transcription()?.creator as `0x${string}`} shortenOnFallback={true} />
                     </figcaption>
                   </figure>
                 </div>

@@ -1,4 +1,4 @@
-import { useSearchParams } from 'solid-start'
+import { useParams } from 'solid-start'
 import { fromUnixTime, getUnixTime } from 'date-fns'
 import { createEffect, createMemo, createUniqueId } from 'solid-js'
 import { createMutation, useQueryClient } from '@tanstack/solid-query'
@@ -18,7 +18,7 @@ interface FormValues extends z.infer<typeof schema> {}
 
 export function useSmartContract() {
   // Route params
-  const [searchParams] = useSearchParams() // Tanstack query client
+  const params = useParams<{ chain: string }>()
   const queryClient = useQueryClient()
   // UI
   const toast = useToast()
@@ -67,13 +67,7 @@ export function useSmartContract() {
             id_request (bytes32)
             communities (string[]) 
           */
-        args: [
-          args?.updatedAt,
-          args?.listCollaborators,
-          args?.uriMetadata,
-          args?.idRequest,
-          args?.listCommunities
-        ],
+        args: [args?.updatedAt, args?.listCollaborators, args?.uriMetadata, args?.idRequest, args?.listCommunities],
       })
       if (apiAccordionCreateNewTranscriptionStatus().value !== 'transaction-1')
         apiAccordionCreateNewTranscriptionStatus().setValue('transaction-1')
@@ -88,36 +82,35 @@ export function useSmartContract() {
           placement: 'bottom-right',
         })
       },
-
     },
   )
 
   const mutationTxWaitCreateNewTranscription = createMutation(
-    async (args: {hash: `0x${string}`, chainAlias: string}) => {
+    async (args: { hash: `0x${string}`; chainAlias: string }) => {
       const data = await waitForTransaction({ hash: args.hash })
       const iface = new utils.Interface(ABI_TRANSCRIPTIONS)
-      const log = data.logs      
-      const { 
-        transcript_id,
+      const log = data.logs
+      const {
+        transcription_id,
         created_at,
-        last_updated_at, 
+        last_updated_at,
         creator,
-        contributors, 
-        revision_metadata_uris, 
-        metadata_uri, 
-        id_request, 
+        contributors,
+        revision_metadata_uris,
+        metadata_uri,
+        id_request,
         communities,
       } = iface.parseLog(log[0]).args
       return {
         txData: data,
-        transcript_id,
+        transcription_id,
         created_at,
-        last_updated_at, 
+        last_updated_at,
         creator,
-        contributors, 
-        revision_metadata_uris, 
-        metadata_uri, 
-        id_request, 
+        contributors,
+        revision_metadata_uris,
+        metadata_uri,
+        id_request,
         communities,
         chainAlias: args?.chainAlias,
       }
@@ -207,7 +200,7 @@ export function useSmartContract() {
 
     const metadata = {
       // Source
-      source_media_uri: formValues?.source_media_uri ?? null,
+      source_media_uris: formValues?.source_media_uris ?? null,
       source_media_title: formValues?.source_media_title ?? null,
       // About
       title: formValues?.title,
@@ -244,7 +237,7 @@ export function useSmartContract() {
       updatedAt: getUnixTime(new Date()),
       listCollaborators: formValues?.collaborators ?? [],
       listCommunities: formValues?.communities ?? [],
-      idRequest: searchParams?.idRequest?.length > 0 ? searchParams?.idRequest : utils.formatBytes32String(''),
+      idRequest: params?.idRequest?.length > 0 ? params?.idRequest : utils.formatBytes32String(''),
       metadata,
     }
   }
@@ -259,9 +252,9 @@ export function useSmartContract() {
        * Prepare data
        */
 
-     const { metadata, uriMetadata, updatedAt, listCollaborators, listCommunities, idRequest } = await prepareData(
-       args?.formValues,
-     )
+      const { metadata, uriMetadata, updatedAt, listCollaborators, listCommunities, idRequest } = await prepareData(
+        args?.formValues,
+      )
 
       /**
        * Smart contract interaction
@@ -276,22 +269,22 @@ export function useSmartContract() {
 
       if (dataWriteContract?.hash) {
         const {
-            transcript_id,
-            created_at,
-            last_updated_at, 
-            creator,
-            contributors, 
-            revision_metadata_uris, 
-            metadata_uri, 
-            id_request, 
-            communities,
-        } = await mutationTxWaitCreateNewTranscription.mutateAsync({hash: dataWriteContract?.hash, chainAlias})
+          transcription_id,
+          created_at,
+          last_updated_at,
+          creator,
+          contributors,
+          revision_metadata_uris,
+          metadata_uri,
+          id_request,
+          communities,
+        } = await mutationTxWaitCreateNewTranscription.mutateAsync({ hash: dataWriteContract?.hash, chainAlias })
 
-        const slug = `${chainAlias}/${transcript_id}`
+        const slug = `${chainAlias}/${transcription_id}`
         queryClient.setQueryData(['transcription', slug], {
           chainId,
-          id: transcript_id,
-          transcript_id,
+          id: transcription_id,
+          transcription_id,
           communities,
           contributors,
           created_at,
@@ -305,20 +298,19 @@ export function useSmartContract() {
           created_at_datetime: fromUnixTime(created_at),
           last_updated_at_epoch_timestamp: last_updated_at,
           last_updated_at_datetime: fromUnixTime(last_updated_at),
-          keywords: metadata.keywords.split(",") ,
+          keywords: metadata.keywords.split(','),
           language: metadata.language,
           lrc_file_uri: metadata.lrc_file_uri,
           notes: metadata.notes,
           revision_must_be_approved_first: metadata.revision_must_be_approved_first,
           source_media_title: metadata.source_media_title,
-          source_media_uri: metadata.source_media_uri,
+          source_media_uris: metadata.source_media_uris,
           srt_file_uri: metadata.srt_file_uri,
           title: metadata.title,
           transcription_plain_text: metadata.transcription_plain_text,
           vtt_file_uri: metadata.vtt_file_uri,
         })
       }
-      
     } catch (e) {
       console.error(e)
     }

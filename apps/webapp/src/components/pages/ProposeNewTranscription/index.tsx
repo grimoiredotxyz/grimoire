@@ -1,12 +1,20 @@
 import { z } from 'zod'
-import { Match, Show, Switch } from 'solid-js'
-import web3UriToUrl from '~/helpers/web3UriToUrl'
-import { IconCheck, IconDoubleChevronDown, IconError, IconExternal, IconSpinner } from '~/ui/Icons'
-import { FormNewTranscription, useSmartContract, schema, useForm } from '~/components/forms/FormNewTranscription'
+import { createEffect, Match, Show, Switch } from 'solid-js'
+import { web3UriToUrl } from '~/helpers'
+import { IconCheck, IconDoubleChevronDown, IconError, IconExternal, IconSpinner } from '~/ui'
+import { FormProposeNewTranscription, useForm, schema } from '~/components/forms/FormProposeNewTranscription'
+import { useSmartContract } from '~/components/forms/FormNewTranscription'
+
 import { ROUTE_TRANSCRIPTION_DETAILS } from '~/config'
 import { A } from 'solid-start'
+import type { Request } from '~/services'
+import type { Accessor } from 'solid-js'
 
-export const NewTranscription = () => {
+interface ProposeNewTranscriptionProps {
+  request: Accessor<Request>
+}
+
+export const ProposeNewTranscription = (props: ProposeNewTranscriptionProps) => {
   const {
     apiPopoverCreateNewTranscriptionStatus,
     apiAccordionCreateNewTranscriptionStatus,
@@ -23,7 +31,7 @@ export const NewTranscription = () => {
   } = useSmartContract()
 
   const {
-    formNewTranscription,
+    formProposeNewTranscription,
     stateMachineAccordion,
     stateMachineTabs,
     stateMachineComboboxLanguage,
@@ -34,13 +42,15 @@ export const NewTranscription = () => {
   } = useForm({
     //@ts-ignore
     initialValues: {
-      source_media_title: '',
-      source_media_uris: [],
+      source_media_title: props?.request().source_media_title ?? '',
+      source_media_uris:
+        props?.request()?.source_media_uris?.length > 0 ? [...props?.request()?.source_media_uris] : [],
+      language: props.request().language,
+      keywords: props.request()?.keywords?.length > 0 ? [...props.request()?.keywords] : [],
       title: '',
       revision_must_be_approved_first: true,
       transcription_plain_text: '',
       collaborators: [],
-      keywords: [],
     },
     onSubmit: (values: z.infer<typeof schema>) => {
       onSubmitCreateTranscriptionForm({
@@ -48,18 +58,21 @@ export const NewTranscription = () => {
       })
     },
   })
+
+  createEffect(() => {
+    console.log(formProposeNewTranscription.data())
+  })
   return (
     <>
       <div class="w-full max-w-prose mx-auto">
-        <h1 class="text-2xl text-accent-12 font-serif font-bold">Create a new transcription</h1>
+        <h1 class="text-lg text-accent-12 font-serif font-bold">Propose your transcription</h1>
         <div class="space-y-1 text-xs mt-2 mb-4 text-neutral-11 font-medium">
           <p>
-            Transcription is the process of converting spoken language into written text. Transcriptions are also
-            helpful for content creators, which can use them to not only make their content more accessible, but also
-            more engaging.
+            Once submitted, your transcription will be reviewed by the team behind this request and will be either
+            accepted or rejected.
           </p>
         </div>
-        <FormNewTranscription
+        <FormProposeNewTranscription
           apiTabs={stateMachineTabs}
           apiKeywords={stateMachineKeywords}
           apiCollaborators={stateMachineCollaborators}
@@ -67,7 +80,7 @@ export const NewTranscription = () => {
           apiComboboxLanguage={stateMachineComboboxLanguage}
           apiSourcesMediaUris={stateMachineSourcesMediaUris}
           comboboxLanguageOptions={comboboxLanguageOptions}
-          storeForm={formNewTranscription}
+          storeForm={formProposeNewTranscription}
           isError={[
             mutationTxWaitCreateNewTranscription.isError,
             mutationWriteContractCreateNewTranscription.isError,
@@ -161,7 +174,9 @@ export const NewTranscription = () => {
                         <h3>
                           <button
                             class="w-full font-semibold flex justify-between text-start text-accent-6 text-[0.85rem] p-2"
-                            {...apiAccordionCreateNewTranscriptionStatus().getTriggerProps({ value: 'file-uploads' })}
+                            {...apiAccordionCreateNewTranscriptionStatus().getTriggerProps({
+                              value: 'file-uploads',
+                            })}
                           >
                             <Switch>
                               <Match
@@ -187,9 +202,13 @@ export const NewTranscription = () => {
                             />
                           </button>
                         </h3>
-                        <div {...apiAccordionCreateNewTranscriptionStatus().getContentProps({ value: 'file-uploads' })}>
+                        <div
+                          {...apiAccordionCreateNewTranscriptionStatus().getContentProps({
+                            value: 'file-uploads',
+                          })}
+                        >
                           <ul class="pb-2 text-2xs space-y-1 px-2">
-                            <Show when={formNewTranscription.data().srt_file?.name}>
+                            <Show when={formProposeNewTranscription.data().srt_file?.name}>
                               <li
                                 classList={{
                                   'text-accent-8': mutationUploadSRTFile?.isIdle,
@@ -227,7 +246,7 @@ export const NewTranscription = () => {
                                 </Show>
                               </li>
                             </Show>
-                            <Show when={formNewTranscription.data().vtt_file?.name}>
+                            <Show when={formProposeNewTranscription.data().vtt_file?.name}>
                               <li
                                 classList={{
                                   'text-accent-8': mutationUploadVTTFile?.isIdle,
@@ -265,7 +284,7 @@ export const NewTranscription = () => {
                                 </Show>
                               </li>
                             </Show>
-                            <Show when={formNewTranscription.data().lrc_file?.name}>
+                            <Show when={formProposeNewTranscription.data().lrc_file?.name}>
                               <li
                                 classList={{
                                   'text-accent-8': mutationUploadLRCFile?.isIdle,
@@ -346,7 +365,9 @@ export const NewTranscription = () => {
                         <h3>
                           <button
                             class="w-full font-semibold flex justify-between text-start text-accent-6 text-[0.85rem] p-2"
-                            {...apiAccordionCreateNewTranscriptionStatus().getTriggerProps({ value: 'transaction-1' })}
+                            {...apiAccordionCreateNewTranscriptionStatus().getTriggerProps({
+                              value: 'transaction-1',
+                            })}
                           >
                             <Switch>
                               <Match
@@ -378,7 +399,9 @@ export const NewTranscription = () => {
                           </button>
                         </h3>
                         <div
-                          {...apiAccordionCreateNewTranscriptionStatus().getContentProps({ value: 'transaction-1' })}
+                          {...apiAccordionCreateNewTranscriptionStatus().getContentProps({
+                            value: 'transaction-1',
+                          })}
                         >
                           <ol class="pb-2 text-2xs px-2 space-y-1">
                             <li
@@ -478,7 +501,7 @@ export const NewTranscription = () => {
                                         mutationTxWaitCreateNewTranscription.data?.chainAlias as string,
                                       ).replace(
                                         '[idTranscription]',
-                                        mutationTxWaitCreateNewTranscription.data?.transcription_id,
+                                        mutationTxWaitCreateNewTranscription.data?.transcript_id,
                                       )}
                                     >
                                       the details page here.
@@ -508,4 +531,4 @@ export const NewTranscription = () => {
   )
 }
 
-export default NewTranscription
+export default ProposeNewTranscription

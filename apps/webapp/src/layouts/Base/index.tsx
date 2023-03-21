@@ -67,7 +67,7 @@ export const Base = (props: any) => {
         </div>
       </div>
 
-      <div class="flex-grow flex flex-col px-4 pt-20 pb-40">{props.children}</div>
+      <div class="flex-grow flex flex-col pt-20 pb-40">{props.children}</div>
     </ToastProvider>
   )
 }

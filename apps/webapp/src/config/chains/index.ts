@@ -26,17 +26,17 @@ export const CHAINS_ALIAS = {
   // Gnosis
   [gnosisChiado.id]: 'gnosis-chiado',
   'gnosis-chiado': gnosisChiado.id,
-  
+
   // Polygon
   [polygonMumbai.id]: 'polygon-mumbai',
   'polygon-mumbai': polygonMumbai.id,
-  
+
   // Optimism
-  [optimismGoerli.id] : 'optimism-goerli',
+  [optimismGoerli.id]: 'optimism-goerli',
   'optimism-goerli': optimismGoerli.id,
 
   // Scroll
-  [scroll_L2.id] : 'scroll-alpha',
+  [scroll_L2.id]: 'scroll-alpha',
   'scroll-alpha': scroll_L2.id,
 
   // Filecoin

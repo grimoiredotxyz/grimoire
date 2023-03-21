@@ -19,7 +19,15 @@ export const Request = () => {
     onSubmitCreateRequestForm,
   } = useSmartContract()
 
-  const { formNewRequest, stateMachineAccordion, stateMachineCollaborators, stateMachineSourcesMediaUris } = useForm({
+  const {
+    comboboxLanguageOptions,
+    formNewRequest,
+    stateMachineAccordion,
+    stateMachineCollaborators,
+    stateMachineSourcesMediaUris,
+    stateMachineComboboxLanguage,
+    stateMachineKeywords,
+  } = useForm({
     //@ts-ignore
     initialValues: {
       source_media_title: '',
@@ -43,6 +51,9 @@ export const Request = () => {
           </p>
         </div>
         <FormNewRequest
+          apiKeywords={stateMachineKeywords}
+          apiComboboxLanguage={stateMachineComboboxLanguage}
+          comboboxLanguageOptions={comboboxLanguageOptions}
           apiCollaborators={stateMachineCollaborators}
           apiAccordion={stateMachineAccordion}
           apiSourcesMediaUris={stateMachineSourcesMediaUris}
@@ -304,10 +315,18 @@ export const Request = () => {
                               <Match when={mutationTxWaitCreateNewRequest?.isSuccess}>
                                 <div class="my-4 text-2xs rounded-md p-3 text-positive-11 border border-positive-5 bg-positive-3">
                                   <p class="font-semibold">Request created successfully !</p>
-                                  <p>Check and share <A class="font-bold underline hover:no-underline focus:no-underline" href={ROUTE_REQUEST_DETAILS
-                                    .replace('[chain]', mutationTxWaitCreateNewRequest.data?.chainAlias as string)
-                                    .replace("[idRequest]", mutationTxWaitCreateNewRequest.data?.request_id)}>the details page here.</A></p>
-
+                                  <p>
+                                    Check and share{' '}
+                                    <A
+                                      class="font-bold underline hover:no-underline focus:no-underline"
+                                      href={ROUTE_REQUEST_DETAILS.replace(
+                                        '[chain]',
+                                        mutationTxWaitCreateNewRequest.data?.chainAlias as string,
+                                      ).replace('[idRequest]', mutationTxWaitCreateNewRequest.data?.request_id)}
+                                    >
+                                      the details page here.
+                                    </A>
+                                  </p>
                                 </div>
                               </Match>
                             </Switch>

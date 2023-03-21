@@ -1,5 +1,6 @@
 export * from './Button'
 export * from './Combobox'
+export * from './Identity'
 export * as FormField from './FormField'
 export * from './FormInput'
 export * from './FormInputSwitch'

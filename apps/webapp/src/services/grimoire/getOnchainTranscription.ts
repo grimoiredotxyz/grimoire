@@ -5,7 +5,7 @@ import { fromUnixTime } from 'date-fns'
 
 export type OnChainTranscription = {
   id: string
-  transcript_id: string
+  transcription_id: string
   communities: string
   contributors: string
   created_at: number
@@ -23,7 +23,7 @@ export type MetadataTranscription = {
   notes: string | null
   revision_must_be_approved_first: string | null
   source_media_title: string | null
-  source_media_uri: string | null
+  source_media_uris: string | null
   srt_file_uri: string | null
   title: string | null
   transcription_plain_text: string | null
@@ -57,10 +57,10 @@ export async function getOnChainTranscription(args: {
   let data = {
     chainId,
     slug: `${args.chainAlias}/${args.idTranscription}`,
-    transcript_id: chainData?.transcript_id,
+    transcription_id: chainData?.transcription_id,
     id: args?.idTranscription,
     communities: chainData.communities,
-    contributors: chainData?.contributors?.length > 0 ? chainData?.contributors?.split(',') : [chainData.creator],
+    contributors: [...chainData.contributors, chainData.creator],
     created_at_epoch_timestamp: chainData.created_at,
     created_at_datetime: fromUnixTime(chainData.created_at),
     creator: chainData.creator,
@@ -75,13 +75,13 @@ export async function getOnChainTranscription(args: {
     notes: null,
     revision_must_be_approved_first: true,
     source_media_title: null,
-    source_media_uri: null,
+    source_media_uris: null,
     srt_file_uri: null,
     title: null,
     transcription_plain_text: null,
     vtt_file_uri: null,
   }
-
+  console.log(chainData)
   if (data?.metadata_uri && data?.metadata_uri !== '') {
     const uri = web3UriToUrl(data?.metadata_uri)
     const response = await fetch(uri)
@@ -89,6 +89,7 @@ export async function getOnChainTranscription(args: {
     data = {
       ...data,
       ...metadata,
+      contributors: metadata.contributors,
     }
     queryClient.setQueryData(['transcription', `${args.chainAlias}/${args.idTranscription}`], data)
   }

@@ -36,11 +36,7 @@ export function useSmartContract() {
   })
   const mutationWriteContractCreateNewRequest = createMutation(
     //@ts-ignore
-    async (args: {
-      updatedAt: number
-      listCollaborators: Array<string>
-      uriMetadata: string
-    }) => {
+    async (args: { updatedAt: number; listCollaborators: Array<string>; uriMetadata: string }) => {
       const network = await getNetwork()
       const chainId = network?.chain?.id
       const config = await prepareWriteContract({
@@ -58,7 +54,7 @@ export function useSmartContract() {
 
       if (apiAccordionCreateNewRequestStatus().value !== 'transaction-1')
         apiAccordionCreateNewRequestStatus().setValue('transaction-1')
-              //@ts-ignore
+      //@ts-ignore
       return await writeContract(config)
     },
     {
@@ -70,37 +66,26 @@ export function useSmartContract() {
           type: 'error',
           placement: 'bottom-right',
         })
-      }
+      },
     },
   )
 
   const mutationTxWaitCreateNewRequest = createMutation(
-    async (args: {hash: `0x${string}` , chainAlias: string}) => {
+    async (args: { hash: `0x${string}`; chainAlias: string }) => {
       const data = await waitForTransaction({ hash: args?.hash })
       const iface = new utils.Interface(ABI_TRANSCRIPTIONS)
-      const log = data.logs      
-      const { 
-        request_id,
-        created_at,
-        creator, 
-        metadata_uri,
-        fulfilled,
-        last_updated_at,
-        receiving_transcripts,
-    } = iface.parseLog(log[0]).args
+      const log = data.logs
+      const { request_id, created_at, creator, metadata_uri, last_updated_at } = iface.parseLog(log[0]).args
 
       return {
         txData: data,
         request_id,
         created_at,
-        creator, 
+        creator,
         metadata_uri,
-        fulfilled,
         last_updated_at,
-        receiving_transcripts,
         chainAlias: args?.chainAlias,
       }
-
     },
     {
       onSuccess() {
@@ -140,9 +125,11 @@ export function useSmartContract() {
 
     const metadata = {
       // Source
-      source_media_uri: formValues?.source_media_uri ?? null,
+      source_media_uris: formValues?.source_media_uris ?? null,
       source_media_title: formValues?.source_media_title ?? null,
       notes: formValues?.notes,
+      language: formValues?.language, // code ; eg: en-GB
+      keywords: formValues?.keywords?.toString(),
       // Workflow & contributors
       collaborators: formValues?.collaborators?.toString(),
     }
@@ -175,6 +162,7 @@ export function useSmartContract() {
     try {
       const network = await getNetwork()
       const chainId = network.chain?.id
+      //@ts-ignore
       const chainAlias = CHAINS_ALIAS[chainId]
 
       /**
@@ -192,17 +180,9 @@ export function useSmartContract() {
         listCollaborators,
       })
 
-
-      if(dataWriteContract?.hash) {
-        const {
-          request_id,
-          created_at,
-          creator, 
-          metadata_uri,
-          fulfilled,
-          last_updated_at,
-          receiving_transcripts,  
-        } = await mutationTxWaitCreateNewRequest.mutateAsync({hash: dataWriteContract.hash, chainAlias})
+      if (dataWriteContract?.hash) {
+        const { request_id, created_at, creator, metadata_uri, last_updated_at } =
+          await mutationTxWaitCreateNewRequest.mutateAsync({ hash: dataWriteContract.hash, chainAlias })
         const slug = `${chainAlias}/${request_id}`
         queryClient.setQueryData(['transcription', slug], {
           chainId,
@@ -212,17 +192,20 @@ export function useSmartContract() {
           creator,
           metadata_uri,
           slug,
-          fulfilled,
           last_updated_at,
-          receiving_transcripts,  
+          fulfilled: false,
+          open_for_transcripts: true,
           created_at_epoch_timestamp: created_at,
           created_at_datetime: fromUnixTime(created_at),
           last_updated_at_epoch_timestamp: last_updated_at,
           last_updated_at_datetime: fromUnixTime(last_updated_at),
-          collaborators: metadata.collaborators,
+          collaborators: metadata.collaborators.split(','),
           source_media_title: metadata.source_media_title,
-          source_media_uri: metadata.source_media_uri,
-          notes: metadata.notes          
+          source_media_uris: metadata.source_media_uris,
+          language: metadata.language,
+          keywords: metadata.keywords?.split(','),
+          notes: metadata.notes,
+          id_linked_transcription: '0x0000000000000000000000000000000000000000000000000000000000000000',
         })
       }
     } catch (e) {

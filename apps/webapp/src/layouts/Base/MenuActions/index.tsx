@@ -43,7 +43,7 @@ export const MenuActions = () => {
       </button>
       <div class="fixed max-h-[90vh] overflow-y-auto text-[0.825rem]" {...apiPopoverMenuActions().positionerProps}>
         <div
-          class="w-[240px] rounded-lg  inline-start-0.5 bg-white shadow-lg border border-neutral-7 divide-y divide-neutral-5"
+          class="w-[240px] rounded-lg inline-start-0.5 bg-white shadow-lg border border-neutral-7 divide-y divide-neutral-5"
           {...apiPopoverMenuActions().contentProps}
         >
           <div {...apiPopoverMenuActions().titleProps} class="sr-only">

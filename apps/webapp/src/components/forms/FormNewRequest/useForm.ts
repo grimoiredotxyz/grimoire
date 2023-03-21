@@ -3,19 +3,31 @@ import { validator } from '@felte/validator-zod'
 import { isAddress } from 'viem'
 import { z } from 'zod'
 import * as accordion from '@zag-js/accordion'
+import * as combobox from '@zag-js/combobox'
 import * as tagsInput from '@zag-js/tags-input'
 import { normalizeProps, useMachine } from '@zag-js/solid'
-import { createMemo, createUniqueId } from 'solid-js'
+import { createMemo, createSignal, createUniqueId } from 'solid-js'
 import { schema } from './schema'
+import { LOCALES } from '~/config'
+
+const comboboxLanguageData = Object.keys(LOCALES).map((locale: string) => ({
+  //@ts-ignore
+  label: LOCALES[locale],
+  value: locale,
+  disabled: false,
+}))
 
 export function useForm(args: {
   onSubmit: (values: z.infer<typeof schema>) => void
   initialValues: z.infer<typeof schema>
 }): {
+  comboboxLanguageOptions: any
   formNewRequest: any
   stateMachineAccordion: any
   stateMachineCollaborators: any
   stateMachineSourcesMediaUris: any
+  stateMachineComboboxLanguage: any
+  stateMachineKeywords: any
 } {
   // Form state manager
   const storeForm = createForm<z.infer<typeof schema>>({
@@ -24,6 +36,45 @@ export function useForm(args: {
     initialValues: args?.initialValues,
   })
 
+  // Keywords input
+  const [stateTagsKeywords, sendTagsKeywords] = useMachine(
+    tagsInput.machine({
+      id: createUniqueId(),
+      blurBehavior: 'clear',
+      validate(details) {
+        return !details.values.includes(details.inputValue) // prevent duplicate tags
+      },
+      onChange(tags) {
+        storeForm?.setData('keywords', tags.values)
+      },
+    }),
+  )
+  const apiKeywords = createMemo(() => tagsInput.connect(stateTagsKeywords, sendTagsKeywords, normalizeProps))
+
+  // Combobox language state machine
+  const [comboboxLanguageOptions, setComboboxLanguageOptions] = createSignal(comboboxLanguageData)
+
+  const [stateComboboxLanguage, sendComboboxLanguage] = useMachine(
+    combobox.machine({
+      id: createUniqueId(),
+      loop: true,
+      placeholder: 'Type or select the language of your transcription...',
+      onOpen() {
+        setComboboxLanguageOptions(comboboxLanguageData)
+      },
+      onInputChange({ value }) {
+        const filtered = comboboxLanguageData.filter((item) => item.label.toLowerCase().includes(value.toLowerCase()))
+        setComboboxLanguageOptions(filtered.length > 0 ? filtered : comboboxLanguageData)
+      },
+      onSelect(details) {
+        storeForm.setFields('language', details?.value as string)
+      },
+    }),
+  )
+
+  const apiComboboxLanguage = createMemo(() =>
+    combobox.connect(stateComboboxLanguage, sendComboboxLanguage, normalizeProps),
+  )
   // Source material
   const [stateTagsSources, sendTagsSources] = useMachine(
     tagsInput.machine({
@@ -72,9 +123,12 @@ export function useForm(args: {
   const apiAccordion = createMemo(() => accordion.connect(stateAccordion, sendAccordion, normalizeProps))
 
   return {
+    comboboxLanguageOptions,
     formNewRequest: storeForm,
     stateMachineAccordion: apiAccordion,
     stateMachineSourcesMediaUris: apiSourcesMediaUris,
     stateMachineCollaborators: apiTagsCollaborators,
+    stateMachineComboboxLanguage: apiComboboxLanguage,
+    stateMachineKeywords: apiKeywords,
   }
 }

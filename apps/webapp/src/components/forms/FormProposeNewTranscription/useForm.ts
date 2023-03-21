@@ -23,7 +23,7 @@ export function useForm(args: {
   initialValues: z.infer<typeof schema>
 }): {
   comboboxLanguageOptions: any
-  formNewTranscription: any
+  formProposeNewTranscription: any
   stateMachineAccordion: any
   stateMachineCollaborators: any
   stateMachineComboboxLanguage: any
@@ -139,7 +139,7 @@ export function useForm(args: {
 
   return {
     comboboxLanguageOptions,
-    formNewTranscription: storeForm,
+    formProposeNewTranscription: storeForm,
     stateMachineAccordion: apiAccordion,
     stateMachineComboboxLanguage: apiComboboxLanguage,
     stateMachineTabs: apiTabs,

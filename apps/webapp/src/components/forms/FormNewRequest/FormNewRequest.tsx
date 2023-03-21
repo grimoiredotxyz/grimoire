@@ -1,17 +1,20 @@
 import { isAddress } from 'viem'
 import { Match, Show, splitProps, Switch } from 'solid-js'
-import { Button, FormTextarea, FormInput, FormTagsInput } from '~/ui'
+import { Button, FormTextarea, FormInput, FormTagsInput, Combobox } from '~/ui'
 import FormField from '~/ui/FormField'
 import { useAuthentication } from '~/hooks/useAuthentication'
 
 interface FormNewRequestProps {
   apiAccordion: any
   apiCollaborators: any
+  apiKeywords: any
+  apiComboboxLanguage: any
   apiSourcesMediaUris: any
   isError: boolean
   isLoading: boolean
   isSuccess: boolean
   storeForm: any
+  comboboxLanguageOptions: any
 }
 
 export const FormNewRequest = (props: FormNewRequestProps) => {
@@ -74,7 +77,10 @@ export const FormNewRequest = (props: FormNewRequestProps) => {
                     Link(s) to the source material of your media (video/audio). Your link can be valid URI starting with{' '}
                     <code>ipfs://</code> (IPFS), <code>ar://</code> (Arweave), or a valid URL starting with{' '}
                     <code>https://</code>.{' '}
-                    <span class="font-bold">Other users will use this link to create transcriptions, make sure the content (audio/video) can be reached from the link(s) you provided.</span>
+                    <span class="font-bold">
+                      Other users will use this link to create transcriptions, make sure the content (audio/video) can
+                      be reached from the link(s) you provided.
+                    </span>
                   </FormField.Description>
                   <FormTagsInput
                     placeholder="Type or paste the source and press 'Enter'..."
@@ -103,7 +109,47 @@ export const FormNewRequest = (props: FormNewRequestProps) => {
                   />
                 </FormField.InputField>
               </FormField>
+              <FormField>
+                <FormField.InputField>
+                  <Combobox
+                    api={props.apiComboboxLanguage}
+                    label={
+                      <>
+                        <FormField.Label
+                          hasError={local.storeForm.errors()?.language?.length > 0 ? true : false}
+                          for="language"
+                        >
+                          Language
+                        </FormField.Label>
+                        <FormField.Description id="language-description">
+                          The language for this transcription
+                        </FormField.Description>
+                      </>
+                    }
+                    hasError={local.storeForm.errors()?.language?.length > 0 ? true : false}
+                    options={props.comboboxLanguageOptions}
+                  />
+                </FormField.InputField>
+              </FormField>
 
+              <FormField>
+                <FormField.InputField>
+                  <FormField.Label
+                    hasError={local.storeForm.errors()?.keywords?.length > 0 ? true : false}
+                    for="keywords"
+                  >
+                    Key words
+                  </FormField.Label>
+                  <FormField.Description id="keywords-description">
+                    Additional key words to describe your transcription.
+                  </FormField.Description>
+                  <FormTagsInput
+                    placeholder="Type your tag and press 'Enter'..."
+                    classWrapper="w-full"
+                    api={props.apiKeywords}
+                  />
+                </FormField.InputField>
+              </FormField>
               <FormField>
                 <FormField.InputField>
                   <FormField.Label hasError={local.storeForm.errors()?.notes?.length > 0 ? true : false} for="notes">
@@ -183,6 +229,8 @@ export const FormNewRequest = (props: FormNewRequestProps) => {
         </div>
         <input disabled hidden name="source_media_uris" />
         <input disabled hidden name="collaborators" />
+        <input disabled hidden name="language" />
+        <input disabled hidden name="keywords" />
 
         <Button disabled={local.isLoading} type="submit">
           <Switch fallback="Create">

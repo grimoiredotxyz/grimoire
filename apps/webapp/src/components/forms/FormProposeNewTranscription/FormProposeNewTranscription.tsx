@@ -6,15 +6,16 @@ import {
   FormInput,
   IconFolderOpen,
   FormInputSwitch,
-  Combobox,
   FormTagsInput,
   IconPencilSquare,
   IconArrowDownSquare,
 } from '~/ui'
 import FormField from '~/ui/FormField'
 import { useAuthentication } from '~/hooks/useAuthentication'
+import { CHAINS_ALIAS } from '~/config'
+import { useParams } from 'solid-start'
 
-interface FormNewTranscriptionProps {
+interface FormProposeNewTranscriptionProps {
   apiAccordion: any
   apiCollaborators: any
   apiComboboxLanguage: any
@@ -28,96 +29,48 @@ interface FormNewTranscriptionProps {
   storeForm: any
 }
 
-export const FormNewTranscription = (props: FormNewTranscriptionProps) => {
+export const FormProposeNewTranscription = (props: FormProposeNewTranscriptionProps) => {
   //@ts-ignore
-  const { currentUser, currentNetwork } = useAuthentication()
+  const { currentUser, currentNetwork, mutationSwitchNetwork } = useAuthentication()
   const [local] = splitProps(props, ['storeForm', 'apiAccordion', 'apiTabs', 'isLoading', 'isError', 'isSuccess'])
   //@ts-ignore
   const { form } = local.storeForm
+  const params = useParams<{ chain: string }>()
 
   return (
     <>
       {/* @ts-ignore */}
       <Show when={!isAddress(currentUser()?.address)}>
         <p class="animate-appear text-start xs:text-center mt-6 mb-4 font-medium text-2xs bg-secondary-3 py-2 rounded-md mx-auto w-fit-content px-4 text-secondary-11">
-          Sign-in to start creating transcriptions.
+          Sign-in to propose a new transcription.
         </p>
+      </Show>
+      <Show when={isAddress(currentUser()?.address) && currentNetwork()?.id !== CHAINS_ALIAS[params.chain]}>
+        <div class="animate-appear text-start xs:text-center mt-6 mb-4 font-medium text-2xs bg-secondary-3 py-2 rounded-md mx-auto w-fit-content px-4 text-secondary-11">
+          <p>You're on a different network than the original request - switch to the right network below.</p>
+          <Button
+            disabled={mutationSwitchNetwork.isLoading}
+            isLoading={mutationSwitchNetwork.isLoading}
+            onClick={async () => {
+              await mutationSwitchNetwork.mutateAsync(CHAINS_ALIAS[params.chain])
+            }}
+            intent="neutral-on-light-layer"
+            scale="xs"
+            class="mx-auto mt-2"
+          >
+            <span
+              classList={{
+                'pis-1ex': mutationSwitchNetwork.isLoading,
+              }}
+            >
+              Switch network
+            </span>
+          </Button>
+        </div>
       </Show>
       {/* @ts-ignore */}
       <form use:form>
         <div class="border bg-accent-1 divide-y divide-neutral-4 rounded-md border-neutral-4 mb-8">
-          <fieldset
-            {...local.apiAccordion().getItemProps({ value: 'source', disabled: !isAddress(currentUser()?.address) })}
-          >
-            <div class="flex relative p-3 font-bold focus-within:ring focus-within:bg-neutral-2">
-              <span
-                classList={{
-                  'text-accent-11': local.apiAccordion().value.includes('source'),
-                  'text-accent-6': !local.apiAccordion().value.includes('source'),
-                }}
-                class="pie-1ex"
-              >
-                #1.
-              </span>
-              <legend>Source media</legend>
-              <button
-                class="disabled:cursor-not-allowed absolute inset-0 w-full h-full opacity-0"
-                {...local
-                  .apiAccordion()
-                  .getTriggerProps({ value: 'source', disabled: !isAddress(currentUser()?.address) })}
-              >
-                Toggle "Source" section
-              </button>
-            </div>
-
-            <div
-              class="pb-6 px-3 sm:px-6 space-y-4"
-              {...local
-                .apiAccordion()
-                .getContentProps({ value: 'source', disabled: !isAddress(currentUser()?.address) })}
-            >
-              <FormField>
-                <FormField.InputField>
-                  <FormField.Label
-                    hasError={local.storeForm.errors()?.source_media_uris?.length > 0 ? true : false}
-                    for="source_media_uris"
-                  >
-                    Source material links
-                  </FormField.Label>
-                  <FormField.Description id="source_media_uris-description">
-                    Link(s) to the source material of your media (video/audio). Your link can be valid URI starting with{' '}
-                    <code>ipfs://</code> (IPFS), <code>ar://</code> (Arweave), or a valid URL starting with{' '}
-                    <code>https://</code>.{' '}
-                  </FormField.Description>
-                  <FormTagsInput
-                    placeholder="Type or paste the source and press 'Enter'..."
-                    classWrapper="w-full"
-                    api={props.apiSourcesMediaUris}
-                  />
-                </FormField.InputField>
-              </FormField>
-
-              <FormField>
-                <FormField.InputField>
-                  <FormField.Label
-                    hasError={local.storeForm.errors()?.source_media_title?.length > 0 ? true : false}
-                    for="source_media_title"
-                  >
-                    Source material title
-                  </FormField.Label>
-                  <FormField.Description id="source_media_title-description">
-                    The title of the source material.
-                  </FormField.Description>
-                  <FormInput
-                    placeholder="eg: Rollups for noobs"
-                    name="source_media_title"
-                    id="source_media_title"
-                    hasError={local.storeForm.errors()?.source_media_title?.length > 0 ? true : false}
-                  />
-                </FormField.InputField>
-              </FormField>
-            </div>
-          </fieldset>
           <fieldset
             class="disabled:opacity-50 disabled:cursor-not-allowed"
             {...local.apiAccordion().getItemProps({
@@ -133,7 +86,7 @@ export const FormNewTranscription = (props: FormNewTranscriptionProps) => {
                 }}
                 class="pie-1ex"
               >
-                #2.
+                #1.
               </span>
 
               <legend>About</legend>
@@ -165,48 +118,6 @@ export const FormNewTranscription = (props: FormNewTranscriptionProps) => {
                     name="title"
                     id="title"
                     hasError={local.storeForm.errors()?.title?.length > 0 ? true : false}
-                  />
-                </FormField.InputField>
-              </FormField>
-
-              <FormField>
-                <FormField.InputField>
-                  <Combobox
-                    api={props.apiComboboxLanguage}
-                    label={
-                      <>
-                        <FormField.Label
-                          hasError={local.storeForm.errors()?.language?.length > 0 ? true : false}
-                          for="language"
-                        >
-                          Language
-                        </FormField.Label>
-                        <FormField.Description id="language-description">
-                          The language used in this transcription.
-                        </FormField.Description>
-                      </>
-                    }
-                    hasError={local.storeForm.errors()?.language?.length > 0 ? true : false}
-                    options={props.comboboxLanguageOptions}
-                  />
-                </FormField.InputField>
-              </FormField>
-
-              <FormField>
-                <FormField.InputField>
-                  <FormField.Label
-                    hasError={local.storeForm.errors()?.keywords?.length > 0 ? true : false}
-                    for="keywords"
-                  >
-                    Key words
-                  </FormField.Label>
-                  <FormField.Description id="keywords-description">
-                    Additional key words to describe your transcription.
-                  </FormField.Description>
-                  <FormTagsInput
-                    placeholder="Type your tag and press 'Enter'..."
-                    classWrapper="w-full"
-                    api={props.apiKeywords}
                   />
                 </FormField.InputField>
               </FormField>
@@ -246,7 +157,7 @@ export const FormNewTranscription = (props: FormNewTranscriptionProps) => {
                 }}
                 class="pie-1ex"
               >
-                #3.
+                #2.
               </span>
               <legend>Transcription & captions</legend>
               <button
@@ -612,7 +523,7 @@ export const FormNewTranscription = (props: FormNewTranscriptionProps) => {
                   </FormField.Label>
                   <FormField.Description id="tags-collaborators">
                     Add the Ethereum address of your collaborators (whitelisted people that will be allowed to review
-                    and accept revisions).
+                    and accept transcriptions).
                   </FormField.Description>
                   <FormTagsInput
                     placeholder="Paste a valid Ethereum address and press 'Enter'..."
@@ -636,6 +547,7 @@ export const FormNewTranscription = (props: FormNewTranscriptionProps) => {
             </div>
           </fieldset>
         </div>
+        <input disabled hidden name="source_media_title" />
         <input disabled hidden name="source_media_uris" />
         <input disabled hidden name="language" />
         <input disabled hidden name="keywords" />
@@ -656,4 +568,4 @@ export const FormNewTranscription = (props: FormNewTranscriptionProps) => {
   )
 }
 
-export default FormNewTranscription
+export default FormProposeNewTranscription

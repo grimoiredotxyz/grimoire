@@ -1,38 +1,15 @@
-import { createEffect, Match, Show, Switch } from 'solid-js'
-import { Button, IconSpinner } from '~/ui'
+import { createEffect, Show } from 'solid-js'
+import { Button, IconSpinner, Identity } from '~/ui'
 import { shortenEthereumAddress } from '~/helpers'
 import { useAuthentication } from '~/hooks'
 import useCurrentUser from './useCurrentUser'
 import { queryClient, ROUTE_SIGN_IN } from '~/config'
 import { A } from 'solid-start'
-import { getEnsForAddress } from '~/services'
-import { isAddress } from 'viem'
-import { createQuery } from '@tanstack/solid-query'
 
 export const MenuCurrentUser = () => {
   //@ts-ignore
   const { currentUser, currentNetwork, mutationDisconnect, queryTokenBalance } = useAuthentication()
   const { apiMenuCurrentUser } = useCurrentUser()
-
-  const queryGetEns = createQuery(
-    () => ['ens', currentUser()?.address],
-    async () => {
-      try {
-        const ens = await getEnsForAddress({
-          query: currentUser()?.address,
-        })
-        return ens?.data?.domains
-      } catch (e) {
-        console.error(e)
-      }
-    },
-    {
-      get enabled() {
-        return currentUser()?.address && isAddress(currentUser()?.address) ? true : false
-      },
-      refetchOnWindowFocus: false,
-    },
-  )
 
   createEffect(async () => {
     if (currentUser()?.address) {
@@ -48,15 +25,7 @@ export const MenuCurrentUser = () => {
         scale="xs"
         {...apiMenuCurrentUser().triggerProps}
       >
-        <Switch>
-          <Match when={queryGetEns?.isSuccess && queryGetEns?.data?.length > 0 && currentUser()?.address}>
-            {queryGetEns?.data?.[0]?.name}
-          </Match>
-          <Match when={currentUser()?.address && currentUser()?.address !== ''}>
-            {shortenEthereumAddress(currentUser()?.address)}
-          </Match>
-        </Switch>
-
+        <Identity address={currentUser()?.address} shortenOnFallback={true} />
         <span
           class=" mis-1ex"
           classList={{
