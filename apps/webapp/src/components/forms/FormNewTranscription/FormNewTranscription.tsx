@@ -644,6 +644,7 @@ export const FormNewTranscription = (props: FormNewTranscriptionProps) => {
         <input disabled hidden name="vtt_uri" />
         <input disabled hidden name="srt_uri" />
         <input disabled hidden name="collaborators" />
+        <input disabled hidden name="communities" />
 
         <Button disabled={local.isLoading || !isAddress(currentUser()?.address)} type="submit">
           <Switch fallback="Create">

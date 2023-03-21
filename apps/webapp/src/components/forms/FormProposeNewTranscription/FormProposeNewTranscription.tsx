@@ -31,9 +31,6 @@ export const FormProposeNewTranscription = (props: FormProposeNewTranscriptionPr
   const { form } = local.storeForm
   const params = useParams<{ chain: string }>()
 
-  createEffect(() => {
-    console.log(local.storeForm.data())
-  })
   return (
     <>
       {/* @ts-ignore */}

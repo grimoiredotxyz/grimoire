@@ -7,18 +7,17 @@ import RequestDetails from '~/components/pages/RequestDetails'
 export function routeData() {
   const params = useParams<{ chain: string; idRequest: string }>()
 
-  const [request] = createResource(async () => {
+  const [request, { mutate, refetch }] = createResource(async () => {
     return await getOnChainRequest({
       chainAlias: params?.chain,
       idRequest: params?.idRequest,
     })
   })
-  return { request }
+  return { request, mutate }
 }
 
 export default function Page() {
-  const { request } = useRouteData<typeof routeData>()
-
+  const { request, mutate } = useRouteData<typeof routeData>()
   return (
     <>
       <Switch
@@ -44,7 +43,7 @@ export default function Page() {
         </Match>
         <Match when={request()?.request_id !== '0x0000000000000000000000000000000000000000000000000000000000000000'}>
           <Title> {request()?.source_media_title} | Grimoire</Title>
-          <RequestDetails request={request} />
+          <RequestDetails mutate={mutate} request={request} />
         </Match>
       </Switch>
     </>

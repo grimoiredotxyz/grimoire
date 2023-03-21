@@ -1,4 +1,4 @@
-import { any, boolean, object, string } from 'zod'
+import { any, boolean, object, array, string } from 'zod'
 
 // Validation schema for the "create a new transcription" form
 export const schema = object({
@@ -22,6 +22,7 @@ export const schema = object({
   // Workflow & contributors
   revision_must_be_approved_first: boolean(),
   collaborators: string(),
+  communities: array(string()).optional(),
 })
 
 export default schema

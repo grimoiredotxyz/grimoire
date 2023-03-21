@@ -64,10 +64,12 @@ export function useSmartContract() {
       })
       if (apiAccordionProposeNewRevisionStatus().value !== 'transaction-1')
         apiAccordionProposeNewRevisionStatus().setValue('transaction-1')
+      //@ts-ignore
       return await writeContract(config)
     },
     {
       onError() {
+        //@ts-ignore
         toast().create({
           title: "Couldn't create your transcription !",
           description: 'Make sure to sign the transaction in your wallet.',
@@ -119,6 +121,7 @@ export function useSmartContract() {
         })
       },
       onError() {
+        //@ts-ignore
         toast().create({
           title: "Couldn't create your revision !",
           description: 'Your transaction might have failed.',
@@ -270,48 +273,7 @@ export function useSmartContract() {
       })
 
       if (dataWriteContract?.hash) {
-        const {
-          transcription_id,
-          created_at,
-          last_updated_at,
-          creator,
-          contributors,
-          revision_metadata_uris,
-          metadata_uri,
-          id_request,
-          communities,
-        } = await mutationTxWaitProposeNewRevision.mutateAsync({ hash: dataWriteContract?.hash, chainAlias })
-
-        const slug = `${chainAlias}/${transcription_id}`
-        queryClient.setQueryData(['transcription', slug], {
-          chainId,
-          id: transcription_id,
-          transcription_id,
-          communities,
-          contributors,
-          created_at,
-          creator,
-          id_request,
-          last_updated_at,
-          metadata_uri,
-          revision_metadata_uris,
-          slug,
-          created_at_epoch_timestamp: created_at,
-          created_at_datetime: fromUnixTime(created_at),
-          last_updated_at_epoch_timestamp: last_updated_at,
-          last_updated_at_datetime: fromUnixTime(last_updated_at),
-          keywords: metadata.keywords.split(','),
-          language: metadata.language,
-          lrc_file_uri: metadata.lrc_file_uri,
-          notes: metadata.notes,
-          revision_must_be_approved_first: metadata.revision_must_be_approved_first,
-          source_media_title: metadata.source_media_title,
-          source_media_uris: metadata.source_media_uris,
-          srt_file_uri: metadata.srt_file_uri,
-          title: metadata.title,
-          transcription_plain_text: metadata.transcription_plain_text,
-          vtt_file_uri: metadata.vtt_file_uri,
-        })
+        await mutationTxWaitProposeNewRevision.mutateAsync({ hash: dataWriteContract?.hash, chainAlias })
       }
     } catch (e) {
       console.error(e)

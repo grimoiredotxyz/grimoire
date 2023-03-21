@@ -21,6 +21,7 @@ export const schema = object({
   // Workflow & contributors
   revision_must_be_approved_first: boolean(),
   collaborators: array(string().regex(/^0x[a-fA-F0-9]{40}$/)).optional(),
+  communities: array(string()).optional(),
 })
 
 export default schema

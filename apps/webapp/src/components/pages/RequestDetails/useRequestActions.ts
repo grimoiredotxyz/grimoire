@@ -1,7 +1,7 @@
 import { createMutation, useQueryClient } from '@tanstack/solid-query'
 import { getNetwork, prepareWriteContract, waitForTransaction, writeContract } from '@wagmi/core'
 import { useNavigate } from 'solid-start'
-import { CONTRACT_TRANSCRIPTIONS } from '~/config'
+import { CHAINS_ALIAS, CONTRACT_TRANSCRIPTIONS } from '~/config'
 import { useToast } from '~/hooks'
 
 export function useRequestActions() {
@@ -70,9 +70,90 @@ export function useRequestActions() {
     },
   )
 
+  const mutationWriteContractUpdateRequestStatus = createMutation(
+    //@ts-ignore
+    async (args: { idRequest: string, isFulfilled: boolean, isOpen: boolean }) => {
+      const network = await getNetwork()
+      const chainId = network?.chain?.id
+      const config = await prepareWriteContract({
+        //@ts-ignore
+        ...CONTRACT_TRANSCRIPTIONS[chainId],
+        functionName: 'updateRequestStatus',
+        /**
+          request_id (bytes32)
+          receiving_transcripts (bool)
+          fulfilled (bool) 
+         */
+        args: [args?.idRequest, args?.isOpen, args?.isFulfilled],
+      })
+      //@ts-ignore
+      return {
+        ...await writeContract(config),
+        chainId,
+      }
+    },
+    {
+      async onSuccess(data, variables, context) {
+        await mutationTxWaitUpdateRequestStatus.mutateAsync({ chainId: data.chainId as number, hash: data?.hash, idRequest: variables?.idRequest, isFulfilled: variables?.isFulfilled, isOpen: variables?.isOpen })
+      },
+      onError() {
+        //@ts-ignore
+        toast().create({
+          title: "Couldn't update your request !",
+          description: 'Make sure to sign the transaction in your wallet.',
+          type: 'error',
+          placement: 'bottom-right',
+        })
+      },
+    },
+  )
+
+  const mutationTxWaitUpdateRequestStatus = createMutation(
+    async (args: { hash: `0x${string}`, idRequest: string, isFulfilled: boolean, isOpen: boolean, chainId: number }) => {
+      await waitForTransaction({ hash: args.hash })
+    },
+    {
+      onSuccess(data, variables) {
+        //@ts-ignore
+        toast().create({
+          title: 'Request updated successfully!',
+          description: "Your request was updated successfully.",
+          type: 'success',
+          placement: 'bottom-right',
+        })
+        const slug = `${CHAINS_ALIAS[variables.chainId]}/${variables.idRequest}`
+        const requestPreviousData = queryClient.getQueriesData(['request', slug])
+        queryClient.setQueryData(['request', slug], {
+          ...requestPreviousData,
+          fulfilled: variables.isFulfilled,
+          fullfiled: variables.isFulfilled,
+          receiving_transcripts: variables.isOpen,
+          open_for_transcripts: variables.isOpen,
+        })
+      },
+      onError() {
+        //@ts-ignore
+        toast().create({
+          title: "Couldn't update the status of your request !",
+          description: 'Your transaction might have failed.',
+          type: 'error',
+          placement: 'bottom-right',
+        })
+      },
+      onSettled() {
+        // Whether or not the transaction is successful, invalidate user balance query
+        // this way we will refresh the balance
+        queryClient.invalidateQueries(['user-balance'])
+      },
+    },
+  )
+
+
   return {
     mutationWriteContractDeleteRequest,
     mutationTxWaitDeleteRequest,
+    mutationWriteContractUpdateRequestStatus,
+    mutationTxWaitUpdateRequestStatus,
   }
 }
 

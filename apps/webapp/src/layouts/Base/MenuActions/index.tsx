@@ -1,10 +1,11 @@
 import { IconChevronDown, IconMenu, IconPlus } from '~/ui'
 import { ROUTE_REQUEST_NEW, ROUTE_TRANSCRIPTION_NEW } from '~/config'
-import { useAuthentication } from '~/hooks'
+import { useAuthentication, usePushChat } from '~/hooks'
 import { A } from 'solid-start'
 import useMenuActions from './useMenuActions'
 
 export const MenuActions = () => {
+  const { queryUserPushChats } = usePushChat()
   const { apiPopoverMenuActions, apiAccordionMenuActions } = useMenuActions()
   const { currentUser } = useAuthentication()
 

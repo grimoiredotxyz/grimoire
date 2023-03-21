@@ -40,6 +40,7 @@ export const NewTranscription = () => {
       revision_must_be_approved_first: true,
       transcription_plain_text: '',
       collaborators: [],
+      communities: [],
       keywords: [],
     },
     onSubmit: (values: z.infer<typeof schema>) => {

@@ -1,7 +1,7 @@
 import { For, Match, Show, splitProps, Switch } from 'solid-js'
 import { formatDistanceToNow } from 'date-fns'
 import { web3UriToUrl } from '~/helpers'
-import { Button, IconEllipsisVertical, IconPlus, IconTrash, Identity } from '~/ui'
+import { Button, IconEllipsisVertical, IconPlus, IconSpinner, IconTrash, Identity } from '~/ui'
 import { A } from '@solidjs/router'
 import useDetails from './useDetails'
 import ProposeNewTranscription from '../ProposeNewTranscription'
@@ -9,17 +9,23 @@ import useRequestActions from './useRequestActions'
 import { LOCALES } from '~/config'
 import { useAuthentication } from '~/hooks'
 import type { Request } from '~/services'
-import type { Resource } from 'solid-js'
+import type { Resource, Setter } from 'solid-js'
 
 interface RequestDetailsProps {
   request: Resource<Request>
+  mutate: Setter<Request | undefined>
 }
 export const RequestDetails = (props: RequestDetailsProps) => {
   const [local] = splitProps(props, ['request'])
+  //@ts-ignore
   const { currentUser } = useAuthentication()
   const { apiTabs, apiPopoverActions } = useDetails()
-  const { mutationWriteContractDeleteRequest, mutationTxWaitDeleteRequest } = useRequestActions()
-
+  const { 
+    mutationWriteContractDeleteRequest,
+    mutationTxWaitDeleteRequest,
+    mutationWriteContractUpdateRequestStatus,
+    mutationTxWaitUpdateRequestStatus
+  } = useRequestActions()
   return (
     <>
       <div class="container flex flex-col-reverse xs:flex-row flex-wrap gap-4 mx-auto pb-6">
@@ -53,6 +59,7 @@ export const RequestDetails = (props: RequestDetailsProps) => {
             </mark>
           </div>
           <p class="pt-4 italic text-neutral-9 text-2xs">
+            {/* @ts-ignore */}
             Posted {formatDistanceToNow(local.request()?.created_at_datetime, { addSuffix: true })} by{' '}
             <Identity address={local.request()?.creator as `0x${string}`} shortenOnFallback={true} />
           </p>
@@ -80,6 +87,93 @@ export const RequestDetails = (props: RequestDetailsProps) => {
                   Actions
                 </div>
                 <div class="py-1">
+                  <Show when={local.request()?.fulfilled === false}>
+                    <Switch>
+                      <Match when={local.request()?.open_for_transcripts === true}>
+                      <button
+                    disabled={[
+                      mutationWriteContractUpdateRequestStatus.isLoading,
+                      mutationTxWaitUpdateRequestStatus.isLoading,
+                    ].includes(true)}
+                    class="disabled:opacity-50 w-full flex items-center justify-start cursor-pointer text-neutral-12 focus:bg-interactive-2 hover:bg-interactive-1 focus:text-interactive-12 hover:text-interactive-11 py-2 px-3"
+                    onClick={async () => {
+                      await mutationWriteContractUpdateRequestStatus.mutateAsync({
+                        idRequest: local.request()?.request_id as string,
+                        isFulfilled: local.request()?.fulfilled as boolean,
+                        isOpen: false
+                      }, {
+                        onSuccess() {
+                          //@ts-ignore
+                          props.mutate({
+                            ...local.request(),
+                            open_for_transcripts: false,
+                            receiving_transcripts: false,
+                          })
+                          setTimeout(() => {
+                            mutationTxWaitUpdateRequestStatus.reset()
+                            mutationWriteContractUpdateRequestStatus.reset()
+  
+                          }, 4000)
+                        }
+                      })
+                    }}
+                  >
+                    <Show when={[mutationWriteContractUpdateRequestStatus.isLoading, mutationTxWaitUpdateRequestStatus.isLoading].includes(true)}>
+                      <IconSpinner class="w-4 h-4 animate-spin" />
+                    </Show>
+                    <span class="pis-1ex">
+
+                    <Switch fallback="Close for proposals">
+                        <Match when={mutationTxWaitUpdateRequestStatus.isLoading}>Closing...</Match>
+                        <Match when={mutationWriteContractUpdateRequestStatus.isLoading}>Sign transaction...</Match>
+                      </Switch>
+                    </span>
+                  </button>
+
+                      </Match>
+                      <Match when={local.request()?.open_for_transcripts === false}>
+                      <button
+                    disabled={[
+                      mutationWriteContractUpdateRequestStatus.isLoading,
+                      mutationTxWaitUpdateRequestStatus.isLoading,
+                    ].includes(true)}
+                    class="disabled:opacity-50 w-full flex items-center justify-start cursor-pointer text-neutral-12 focus:bg-interactive-2 hover:bg-interactive-1 focus:text-interactive-12 hover:text-interactive-11 py-2 px-3"
+                    onClick={async () => {
+                      await mutationWriteContractUpdateRequestStatus.mutateAsync({
+                        idRequest: local.request()?.request_id as string,
+                        isFulfilled: local.request()?.fulfilled as boolean,
+                        isOpen: true
+                      }, {
+                        onSuccess() {
+                          //@ts-ignore
+                          props.mutate({
+                            ...local.request(),
+                            open_for_transcripts: true,
+                            receiving_transcripts: true,
+                          })
+                          setTimeout(() => {
+                            mutationTxWaitUpdateRequestStatus.reset()
+                            mutationWriteContractUpdateRequestStatus.reset()
+  
+                          }, 4000)
+                        }
+                      })
+                    }}
+                  >
+                    <Show when={[mutationWriteContractUpdateRequestStatus.isLoading, mutationTxWaitUpdateRequestStatus.isLoading].includes(true)}>
+                      <IconSpinner class="w-4 h-4 animate-spin" />
+                    </Show>
+                    <span class="pis-1ex">
+                    <Switch fallback="Open for proposals">
+                        <Match when={mutationTxWaitUpdateRequestStatus.isLoading}>Opening...</Match>
+                        <Match when={mutationWriteContractUpdateRequestStatus.isLoading}>Sign transaction...</Match>
+                      </Switch>
+                    </span>
+                  </button>
+
+                      </Match>
+                    </Switch>
+                  </Show>
                   <button
                     disabled={[
                       mutationWriteContractDeleteRequest.isLoading,
@@ -146,6 +240,7 @@ export const RequestDetails = (props: RequestDetailsProps) => {
             <section>
               <h2 class="pb-1 text-2xs uppercase tracking-wide text-accent-9 font-bold">Details</h2>
               <p class="mb-4">
+                {/* @ts-ignore */}
                 Language: <span class="font-bold">{LOCALES[local.request()?.language]}</span>
               </p>
               <p class="whitespace-pre">{local.request()?.notes}</p>
@@ -157,6 +252,7 @@ export const RequestDetails = (props: RequestDetailsProps) => {
               </p>
 
               <ul class="pt-2 space-y-1.5">
+                {/* @ts-ignore */}
                 <For each={local.request()?.source_media_uris}>
                   {(source_media_uri) => (
                     <li class="font-mono">
@@ -186,8 +282,10 @@ export const RequestDetails = (props: RequestDetailsProps) => {
             <h2 class="pb-1 text-2xs uppercase tracking-wide text-accent-9 font-bold">Propositions received</h2>
             <p></p>
           </div>
+          {/* @ts-ignore */}
           <div {...apiTabs().getContentProps({ value: 'propose', disabled: !props.request() })}>
             <Show when={props.request()}>
+              {/* @ts-ignore */}
               <ProposeNewTranscription request={props.request} />
             </Show>
           </div>

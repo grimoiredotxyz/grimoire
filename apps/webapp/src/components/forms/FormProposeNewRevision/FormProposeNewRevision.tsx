@@ -30,10 +30,6 @@ export const FormProposeNewRevision = (props: FormProposeNewRevisionProps) => {
   const { form } = local.storeForm
   const params = useParams()
 
-  createEffect(() => {
-    console.log(local.storeForm.data())
-  })
-
   return (
     <>
       {/* @ts-ignore */}

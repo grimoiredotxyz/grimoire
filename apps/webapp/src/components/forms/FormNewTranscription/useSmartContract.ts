@@ -228,6 +228,7 @@ export function useSmartContract() {
       lrc_file_uri: mutationUploadLRCFile?.data ?? null,
       // Workflow & contributors
       revision_must_be_approved_first: formValues?.revision_must_be_approved_first,
+
       collaborators:
         formValues?.collaborators.constructor === Array
           ? formValues?.collaborators?.toString()
@@ -283,7 +284,6 @@ export function useSmartContract() {
         args?.formValues,
       )
 
-      console.log(uriMetadata, updatedAt, listCollaborators, listCommunities, idRequest)
       /**
        * Smart contract interaction
        */
@@ -326,7 +326,7 @@ export function useSmartContract() {
           created_at_datetime: fromUnixTime(created_at),
           last_updated_at_epoch_timestamp: last_updated_at,
           last_updated_at_datetime: fromUnixTime(last_updated_at),
-          keywords: metadata.keywords.split(','),
+          keywords: metadata?.keywords?.split(','),
           language: metadata.language,
           lrc_file_uri: metadata.lrc_file_uri,
           notes: metadata.notes,

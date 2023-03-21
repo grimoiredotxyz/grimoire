@@ -38,6 +38,7 @@ export const ProposeNewTranscription = (props: ProposeNewTranscriptionProps) => 
         props?.request()?.source_media_uris?.length > 0 ? props?.request()?.source_media_uris.toString() : '',
       language: props.request().language,
       keywords: props.request()?.keywords?.length > 0 ? props.request()?.keywords.toString() : '',
+      communities: [],
       title: '',
       revision_must_be_approved_first: true,
       transcription_plain_text: '',
