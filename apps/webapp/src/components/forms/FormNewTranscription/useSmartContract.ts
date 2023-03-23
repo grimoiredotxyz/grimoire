@@ -210,9 +210,9 @@ export function useSmartContract() {
           : formValues?.source_media_uris?.length > 0
           ? formValues?.source_media_uris
           : '',
-      source_media_title: formValues?.source_media_title ?? null,
+      source_media_title: formValues?.source_media_title ?? '',
       // About
-      title: formValues?.title,
+      title: formValues?.title ?? '',
       language: formValues?.language, // code ; eg: en-GB
       keywords:
         formValues?.keywords.constructor === Array
@@ -220,21 +220,12 @@ export function useSmartContract() {
           : formValues?.keywords?.length > 0
           ? formValues?.keywords
           : '',
-      notes: formValues?.notes,
+      notes: formValues?.notes ?? '',
       // Transcription
       transcription_plain_text: formValues?.transcription_plain_text ?? '',
-      srt_file_uri: mutationUploadSRTFile?.data ?? null,
-      vtt_file_uri: mutationUploadVTTFile?.data ?? null,
-      lrc_file_uri: mutationUploadLRCFile?.data ?? null,
-      // Workflow & contributors
-      revision_must_be_approved_first: formValues?.revision_must_be_approved_first,
-
-      collaborators:
-        formValues?.collaborators.constructor === Array
-          ? formValues?.collaborators?.toString()
-          : formValues?.collaborators?.length > 0
-          ? formValues?.collaborators
-          : '',
+      srt_file_uri: mutationUploadSRTFile?.data ?? '',
+      vtt_file_uri: mutationUploadVTTFile?.data ?? '',
+      lrc_file_uri: mutationUploadLRCFile?.data ?? '',
     }
     let uriMetadata = ''
     if (!mutationUploadMetadata.isSuccess) {
