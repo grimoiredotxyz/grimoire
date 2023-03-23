@@ -3,11 +3,14 @@ import { createMutation, createQuery } from '@tanstack/solid-query'
 import { connect, disconnect, fetchBalance, getNetwork, switchNetwork } from '@wagmi/core'
 import { CONNECTORS, chains } from '~/config/wagmi'
 import { ethers } from 'ethers'
-import * as PushAPI from "@pushprotocol/restapi";
+import * as PushAPI from '@pushprotocol/restapi'
+import * as eth from '@polybase/eth'
 import type { Chain } from '@wagmi/core'
+import { usePolybase } from '../usePolybase'
 
 export const ContextAuthentication = createContext()
 export const ProviderAuthentication = (props: any) => {
+  const { db } = usePolybase()
   const [pushChatProfile, setPushChatProfile] = createSignal()
   const [currentNetwork, setCurrentNetwork] = createSignal<Chain | undefined>()
   const [currentUser, setCurrentUser] = createSignal<
@@ -26,20 +29,20 @@ export const ProviderAuthentication = (props: any) => {
       method: 'injected' // We will just allow users with an injected wallet to sign-in for now, but we could enable magic links and other SSO methods (google, twitter...)
       connector?: 'injected'
     }) => {
-        let connector = CONNECTORS[args?.method]
-        const connection = await connect({
-          chainId: chains[0].id,
-          connector,
-        })
-        let user
-        if (['injected'].includes(args?.method)) {
-          user = {
-            address: connection?.account,
-          }
+      let connector = CONNECTORS[args?.method]
+      const connection = await connect({
+        chainId: chains[0].id,
+        connector,
+      })
+      let user
+      if (['injected'].includes(args?.method)) {
+        user = {
+          address: connection?.account,
         }
-        return {
-          currentUser: user,
-        }
+      }
+      return {
+        currentUser: user,
+      }
     },
     {
       onSuccess(data, variables) {
@@ -48,6 +51,18 @@ export const ProviderAuthentication = (props: any) => {
         if (data?.currentUser) {
           setIsAuthenticated(true)
           setCurrentUser(data?.currentUser)
+          db.signer(async (data: string) => {
+            // A permission dialog will be presented to the user
+            const accounts = await eth.requestAccounts()
+
+            // If there is more than one account, you may wish to ask the user which
+            // account they would like to use
+            const account = accounts[0]
+
+            const sig = await eth.sign(data, account)
+
+            return { h: 'eth-personal-sign', sig }
+          })
         } else {
           setIsAuthenticated(false)
         }
@@ -69,28 +84,30 @@ export const ProviderAuthentication = (props: any) => {
     setMethod()
   })
 
-  const mutationSwitchNetwork = createMutation(async (id: number) => {
+  const mutationSwitchNetwork = createMutation(
+    async (id: number) => {
       const newNetwork = await switchNetwork({
         chainId: id,
       })
       if (newNetwork.id === id) setCurrentNetwork(newNetwork)
       return newNetwork
-    
-  }, {
-    onError(e) {
-      console.error(e)
-    }
-  })
+    },
+    {
+      onError(e) {
+        console.error(e)
+      },
+    },
+  )
 
   // Get gas token of current network for the current user
   const queryTokenBalance = createQuery(
     () => ['balance', currentUser()?.address, currentNetwork()?.id],
     async () => {
-        const balance = await fetchBalance({
-          address: currentUser()?.address as `0x${string}`,
-        })
+      const balance = await fetchBalance({
+        address: currentUser()?.address as `0x${string}`,
+      })
 
-        return balance
+      return balance
     },
     {
       refetchOnWindowFocus: true,
@@ -100,15 +117,18 @@ export const ProviderAuthentication = (props: any) => {
     },
   )
 
-  const mutationCreatePushChatProfile = createMutation(async () => {
-    return await PushAPI.user.create({
-      account: currentUser()?.address
-   })
-  }, {
-    onSuccess(data) {
-        setPushChatProfile(data)
+  const mutationCreatePushChatProfile = createMutation(
+    async () => {
+      return await PushAPI.user.create({
+        account: currentUser()?.address,
+      })
     },
-  })
+    {
+      onSuccess(data) {
+        setPushChatProfile(data)
+      },
+    },
+  )
 
   onMount(async () => {
     try {
@@ -133,16 +153,16 @@ export const ProviderAuthentication = (props: any) => {
   })
 
   createEffect(async () => {
-    if(currentUser()?.address) {
+    if (currentUser()?.address) {
       const user = await PushAPI.user.get({
-        account: `eip155:${currentUser()?.address}`
-     })
-     if(user === null) {
-      await mutationCreatePushChatProfile.mutateAsync()
-    } else {
-      setPushChatProfile(user)
-    }
+        account: `eip155:${currentUser()?.address}`,
+      })
 
+      if (user === null) {
+        await mutationCreatePushChatProfile.mutateAsync()
+      } else {
+        setPushChatProfile(user)
+      }
     }
   })
   const authentication = {

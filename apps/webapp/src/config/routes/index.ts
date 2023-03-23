@@ -34,7 +34,7 @@ export const ROUTE_TRANSCRIPTION_REVISION_NEW = `${BASE_ROUTE_TRANSCRIPTION_REVI
 // Request
 
 // Ongoing/active requests page
-export const ROUTE_REQUEST_ACTIVE = `${BASE_ROUTE_REQUEST}/active`
+export const ROUTE_REQUEST_ACTIVE = `/requests-board`
 
 // Create new request page
 export const ROUTE_REQUEST_NEW = `${BASE_ROUTE_REQUEST}/new`

@@ -3,7 +3,7 @@ import { QueryClientProvider } from '@tanstack/solid-query'
 import { Suspense } from 'solid-js'
 import { Body, ErrorBoundary, FileRoutes, Head, Html, Meta, Routes, Scripts, Title } from 'solid-start'
 import { queryClient } from '~/config'
-import { ProviderAuthentication } from '~/hooks'
+import { ProviderAuthentication, ProviderPolybase } from '~/hooks'
 import { Base as LayoutBase } from './layouts/Base'
 import './root.css'
 
@@ -19,13 +19,15 @@ export default function Root() {
         <Suspense>
           <ErrorBoundary>
             <QueryClientProvider client={queryClient}>
-              <ProviderAuthentication>
-                <LayoutBase>
-                  <Routes>
-                    <FileRoutes />
-                  </Routes>
-                </LayoutBase>
-              </ProviderAuthentication>
+              <ProviderPolybase>
+                <ProviderAuthentication>
+                  <LayoutBase>
+                    <Routes>
+                      <FileRoutes />
+                    </Routes>
+                  </LayoutBase>
+                </ProviderAuthentication>
+              </ProviderPolybase>
             </QueryClientProvider>
           </ErrorBoundary>
         </Suspense>

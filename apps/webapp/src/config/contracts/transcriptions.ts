@@ -8,9 +8,8 @@ export const ABI_TRANSCRIPTIONS = [
       { indexed: false, internalType: 'address', name: 'creator', type: 'address' },
       { indexed: false, internalType: 'bool', name: 'receiving_transcripts', type: 'bool' },
       { indexed: false, internalType: 'bool', name: 'fulfilled', type: 'bool' },
-      { indexed: false, internalType: 'string', name: 'original_media_metadata_uri', type: 'string' },
-      { indexed: false, internalType: 'string', name: 'reference_source_media', type: 'string' },
       { indexed: false, internalType: 'string', name: 'metadata_uri', type: 'string' },
+      { indexed: false, internalType: 'address[]', name: 'collaborators', type: 'address[]' },
     ],
     name: 'requestCreated',
     type: 'event',
@@ -173,6 +172,31 @@ export const ABI_TRANSCRIPTIONS = [
   },
   {
     inputs: [{ internalType: 'bytes32', name: 'request_id', type: 'bytes32' }],
+    name: 'getProposalsByRequestId',
+    outputs: [
+      {
+        components: [
+          { internalType: 'bytes32', name: 'transcription_id', type: 'bytes32' },
+          { internalType: 'uint256', name: 'created_at', type: 'uint256' },
+          { internalType: 'uint256', name: 'last_updated_at', type: 'uint256' },
+          { internalType: 'address', name: 'creator', type: 'address' },
+          { internalType: 'address[]', name: 'contributors', type: 'address[]' },
+          { internalType: 'string[]', name: 'revision_metadata_uris', type: 'string[]' },
+          { internalType: 'string', name: 'metadata_uri', type: 'string' },
+          { internalType: 'bytes32', name: 'id_request', type: 'bytes32' },
+          { internalType: 'string[]', name: 'communities', type: 'string[]' },
+          { internalType: 'bool', name: 'exists', type: 'bool' },
+        ],
+        internalType: 'struct Grimoire.Transcription[]',
+        name: '',
+        type: 'tuple[]',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [{ internalType: 'bytes32', name: 'request_id', type: 'bytes32' }],
     name: 'getRequest',
     outputs: [
       {
@@ -197,31 +221,6 @@ export const ABI_TRANSCRIPTIONS = [
     type: 'function',
   },
   {
-    inputs: [{ internalType: 'address', name: 'user_address', type: 'address' }],
-    name: 'getRequests',
-    outputs: [
-      {
-        components: [
-          { internalType: 'bytes32', name: 'request_id', type: 'bytes32' },
-          { internalType: 'uint256', name: 'created_at', type: 'uint256' },
-          { internalType: 'uint256', name: 'last_updated_at', type: 'uint256' },
-          { internalType: 'address', name: 'creator', type: 'address' },
-          { internalType: 'bool', name: 'receiving_transcripts', type: 'bool' },
-          { internalType: 'bool', name: 'fullfiled', type: 'bool' },
-          { internalType: 'string', name: 'metadata_uri', type: 'string' },
-          { internalType: 'address[]', name: 'collaborators', type: 'address[]' },
-          { internalType: 'bytes32', name: 'id_linked_transcription', type: 'bytes32' },
-          { internalType: 'bool', name: 'exists', type: 'bool' },
-        ],
-        internalType: 'struct Grimoire.Request[]',
-        name: 'requests',
-        type: 'tuple[]',
-      },
-    ],
-    stateMutability: 'view',
-    type: 'function',
-  },
-  {
     inputs: [{ internalType: 'bytes32', name: 'revision_id', type: 'bytes32' }],
     name: 'getRevision',
     outputs: [
@@ -232,8 +231,8 @@ export const ABI_TRANSCRIPTIONS = [
     type: 'function',
   },
   {
-    inputs: [{ internalType: 'address', name: 'user_address', type: 'address' }],
-    name: 'getRevisions',
+    inputs: [{ internalType: 'bytes32', name: 'transcription_id', type: 'bytes32' }],
+    name: 'getRevisionsByTranscriptionId',
     outputs: [
       {
         components: [
@@ -245,7 +244,7 @@ export const ABI_TRANSCRIPTIONS = [
           { internalType: 'bool', name: 'exists', type: 'bool' },
         ],
         internalType: 'struct Grimoire.Revision[]',
-        name: 'revisions',
+        name: '',
         type: 'tuple[]',
       },
     ],
@@ -272,31 +271,6 @@ export const ABI_TRANSCRIPTIONS = [
         internalType: 'struct Grimoire.Transcription',
         name: 'request',
         type: 'tuple',
-      },
-    ],
-    stateMutability: 'view',
-    type: 'function',
-  },
-  {
-    inputs: [{ internalType: 'address', name: 'user_address', type: 'address' }],
-    name: 'getTranscripts',
-    outputs: [
-      {
-        components: [
-          { internalType: 'bytes32', name: 'transcription_id', type: 'bytes32' },
-          { internalType: 'uint256', name: 'created_at', type: 'uint256' },
-          { internalType: 'uint256', name: 'last_updated_at', type: 'uint256' },
-          { internalType: 'address', name: 'creator', type: 'address' },
-          { internalType: 'address[]', name: 'contributors', type: 'address[]' },
-          { internalType: 'string[]', name: 'revision_metadata_uris', type: 'string[]' },
-          { internalType: 'string', name: 'metadata_uri', type: 'string' },
-          { internalType: 'bytes32', name: 'id_request', type: 'bytes32' },
-          { internalType: 'string[]', name: 'communities', type: 'string[]' },
-          { internalType: 'bool', name: 'exists', type: 'bool' },
-        ],
-        internalType: 'struct Grimoire.Transcription[]',
-        name: 'transcripts',
-        type: 'tuple[]',
       },
     ],
     stateMutability: 'view',
@@ -368,6 +342,26 @@ export const ABI_TRANSCRIPTIONS = [
   },
   {
     inputs: [
+      { internalType: 'bytes32', name: '', type: 'bytes32' },
+      { internalType: 'uint256', name: '', type: 'uint256' },
+    ],
+    name: 'request_id_to_proposals',
+    outputs: [{ internalType: 'bytes32', name: '', type: 'bytes32' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [
+      { internalType: 'bytes32', name: '', type: 'bytes32' },
+      { internalType: 'uint256', name: '', type: 'uint256' },
+    ],
+    name: 'transcript_id_to_revisions',
+    outputs: [{ internalType: 'bytes32', name: '', type: 'bytes32' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [
       { internalType: 'bytes32', name: 'request_id', type: 'bytes32' },
       { internalType: 'bool', name: 'receiving_transcripts', type: 'bool' },
       { internalType: 'bool', name: 'fulfilled', type: 'bool' },
@@ -378,7 +372,6 @@ export const ABI_TRANSCRIPTIONS = [
     type: 'function',
   },
 ]
-
 export const CONTRACT_TRANSCRIPTIONS = {
   // Chiado
   10200: {
@@ -389,7 +382,7 @@ export const CONTRACT_TRANSCRIPTIONS = {
   // Mumbai testnet
   80001: {
     chainId: 80001,
-    address: '0x24e9d48Ae3bbd1a4fb10426c48BcaCe0726Bb390',
+    address: '0x03a73edc9F544d3F0bbbb1895111BA918d3d01f6',
     abi: ABI_TRANSCRIPTIONS,
   },
 }
