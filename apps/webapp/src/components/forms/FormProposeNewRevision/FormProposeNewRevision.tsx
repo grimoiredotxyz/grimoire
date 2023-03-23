@@ -29,7 +29,9 @@ export const FormProposeNewRevision = (props: FormProposeNewRevisionProps) => {
   //@ts-ignore
   const { form } = local.storeForm
   const params = useParams()
-
+  createEffect(() => {
+    console.log(local.storeForm.data())
+  })
   return (
     <>
       {/* @ts-ignore */}
@@ -144,18 +146,21 @@ export const FormProposeNewRevision = (props: FormProposeNewRevisionProps) => {
 
               <FormField>
                 <FormField.InputField>
-                  <FormField.Label hasError={local.storeForm.errors()?.notes?.length > 0 ? true : false} for="notes">
+                  <FormField.Label
+                    hasError={local.storeForm.errors()?.change_description?.length > 0 ? true : false}
+                    for="change_description"
+                  >
                     Your notes about this revision
                   </FormField.Label>
-                  <FormField.Description id="notes-description">
-                    What did you change compare to the original transcription version ?
+                  <FormField.Description id="change_description-description">
+                    Describe the changes your revision brings compared to the original transcription.
                   </FormField.Description>
                   <FormTextarea
                     placeholder="eg: Removed all typos in the second paragraph"
-                    name="notes"
-                    id="notes"
+                    name="change_description"
+                    id="change_description"
                     rows="5"
-                    hasError={local.storeForm.errors()?.notes?.length > 0 ? true : false}
+                    hasError={local.storeForm.errors()?.change_description?.length > 0 ? true : false}
                   />
                 </FormField.InputField>
               </FormField>
@@ -502,14 +507,13 @@ export const FormProposeNewRevision = (props: FormProposeNewRevisionProps) => {
         <input disabled hidden name="source_media_uris" />
         <input disabled hidden name="source_media_title" />
         <input disabled hidden name="title" />
+        <input disabled hidden name="notes" />
         <input disabled hidden name="language" />
         <input disabled hidden name="keywords" />
         <input disabled hidden name="lrc_uri" />
         <input disabled hidden name="vtt_uri" />
         <input disabled hidden name="srt_uri" />
-        <input disabled hidden name="collaborators" />
         <input disabled hidden name="id_original_transcription" />
-        <input disabled hidden name="revision_must_be_approved_first" />
 
         <Button
           disabled={
