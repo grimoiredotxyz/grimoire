@@ -231,7 +231,7 @@ export const FormNewRequest = (props: FormNewRequestProps) => {
         <input disabled hidden name="collaborators" />
         <input disabled hidden name="language" />
         <input disabled hidden name="keywords" />
-        
+
         <Button disabled={local.isLoading || !isAddress(currentUser()?.address)}>
           <Switch fallback="Create">
             <Match when={local.isError}>Try again</Match>

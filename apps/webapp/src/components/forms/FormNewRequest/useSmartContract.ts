@@ -1,5 +1,5 @@
 import { fromUnixTime, getUnixTime } from 'date-fns'
-import { createEffect, createMemo, createUniqueId } from 'solid-js'
+import { createEffect, createMemo, createUniqueId, onMount } from 'solid-js'
 import { createMutation, useQueryClient } from '@tanstack/solid-query'
 import { z } from 'zod'
 import * as popover from '@zag-js/popover'
@@ -12,11 +12,14 @@ import { getNetwork, prepareWriteContract, waitForTransaction, writeContract } f
 import { v4 as uuid } from 'uuid'
 import { ABI_TRANSCRIPTIONS, CHAINS_ALIAS, CONTRACT_TRANSCRIPTIONS } from '~/config'
 import { utils } from 'ethers'
+import { usePolybase } from '~/hooks'
 
 interface FormValues extends z.infer<typeof schema> {}
 
 export function useSmartContract() {
   const queryClient = useQueryClient()
+  // DB (polybase)
+  const { db } = usePolybase()
   // UI
   const toast = useToast()
   const [statePopover, sendPopover] = useMachine(popover.machine({ id: createUniqueId(), portalled: true }))
@@ -88,10 +91,50 @@ export function useSmartContract() {
       }
     },
     {
+      onError() {
+        //@ts-ignore
+        toast().create({
+          title: "Couldn't create the request !",
+          description: 'Your transaction might have failed.',
+          type: 'error',
+          placement: 'bottom-right',
+        })
+      },
+      onSettled() {
+        // Whether or not the transaction is successful, invalidate user balance query
+        // this way we will refresh the balance
+        queryClient.invalidateQueries(['user-balance'])
+      },
+    },
+  )
+
+  const mutationIndexRequest = createMutation(
+    async (args: {
+      id: string
+      slug: string
+      source_media_title: string
+      source_media_uris: string
+      language: string
+      keywords: string
+    }) => {
+      const dbCollectionReference = db.collection('Request')
+
+      // Parameters in that order specifically
+      // id, slug, source_media_title, source_media_uris, language, keywords
+      return await dbCollectionReference.create([
+        args?.id,
+        args?.slug,
+        args?.source_media_title,
+        args?.source_media_uris,
+        args?.language,
+        args?.keywords,
+      ])
+    },
+    {
       onSuccess() {
         //@ts-ignore
         toast().create({
-          title: 'Request created successfully!',
+          title: 'Request created and indexed successfully!',
           description: 'The request is now visible on the board and ready to accept new propositions.',
           type: 'success',
           placement: 'bottom-right',
@@ -100,8 +143,8 @@ export function useSmartContract() {
       onError() {
         //@ts-ignore
         toast().create({
-          title: "Couldn't create the request !",
-          description: 'Your transaction might have failed.',
+          title: "Couldn't index this request !",
+          description: 'Make sure to sign the message in your wallet.',
           type: 'error',
           placement: 'bottom-right',
         })
@@ -131,21 +174,14 @@ export function useSmartContract() {
           : formValues?.source_media_uris?.length > 0
           ? formValues?.source_media_uris
           : '',
-      source_media_title: formValues?.source_media_title ?? null,
-      notes: formValues?.notes,
+      source_media_title: formValues?.source_media_title ?? '',
+      notes: formValues?.notes ?? '',
       language: formValues?.language, // code ; eg: en-GB
       keywords:
         formValues?.keywords.constructor === Array
           ? formValues?.keywords?.toString()
           : formValues?.keywords?.length > 0
           ? formValues?.keywords
-          : '',
-      // Workflow & contributors
-      collaborators:
-        formValues?.collaborators.constructor === Array
-          ? formValues?.collaborators?.toString()
-          : formValues?.collaborators?.length > 0
-          ? formValues?.collaborators
           : '',
     }
 
@@ -199,6 +235,14 @@ export function useSmartContract() {
         const { request_id, created_at, creator, metadata_uri, last_updated_at } =
           await mutationTxWaitCreateNewRequest.mutateAsync({ hash: dataWriteContract.hash, chainAlias })
         const slug = `${chainAlias}/${request_id}`
+        await mutationIndexRequest.mutateAsync({
+          id: request_id,
+          slug,
+          source_media_title: metadata.source_media_title,
+          source_media_uris: metadata.source_media_uris,
+          language: metadata.language,
+          keywords: metadata.keywords,
+        })
         queryClient.setQueryData(['transcription', slug], {
           chainId,
           id: request_id,
@@ -214,7 +258,7 @@ export function useSmartContract() {
           created_at_datetime: fromUnixTime(created_at),
           last_updated_at_epoch_timestamp: last_updated_at,
           last_updated_at_datetime: fromUnixTime(last_updated_at),
-          collaborators: metadata.collaborators.split(','),
+          collaborators: args.formValues?.collaborators ?? [],
           source_media_title: metadata.source_media_title,
           source_media_uris: metadata.source_media_uris,
           language: metadata.language,
@@ -235,6 +279,8 @@ export function useSmartContract() {
         // Contract interactions
         mutationWriteContractCreateNewRequest.status,
         mutationTxWaitCreateNewRequest.status,
+        // Index
+        mutationIndexRequest.status,
       ].includes('loading') &&
       !apiPopoverCreateNewRequestStatus().isOpen
     ) {
@@ -253,6 +299,7 @@ export function useSmartContract() {
     // Contract interactions
     mutationWriteContractCreateNewRequest,
     mutationTxWaitCreateNewRequest,
+    mutationIndexRequest,
 
     // Form submit event handlers
     onSubmitCreateRequestForm,

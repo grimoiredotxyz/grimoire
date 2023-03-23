@@ -7,7 +7,7 @@ import RequestDetails from '~/components/pages/RequestDetails'
 export function routeData() {
   const params = useParams<{ chain: string; idRequest: string }>()
 
-  const [request, { mutate, refetch }] = createResource(async () => {
+  const [request, { mutate }] = createResource(async () => {
     return await getOnChainRequest({
       chainAlias: params?.chain,
       idRequest: params?.idRequest,

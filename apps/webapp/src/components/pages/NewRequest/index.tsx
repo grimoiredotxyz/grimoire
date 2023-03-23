@@ -15,6 +15,7 @@ export const Request = () => {
     // Contract interactions
     mutationTxWaitCreateNewRequest,
     mutationWriteContractCreateNewRequest,
+    mutationIndexRequest,
     // Form submit event handlers
     onSubmitCreateRequestForm,
   } = useSmartContract()
@@ -296,6 +297,32 @@ export const Request = () => {
                                 <span>{mutationTxWaitCreateNewRequest.status}</span>
                               </span>
                             </li>
+
+                            <li
+                              classList={{
+                                'text-accent-8': mutationIndexRequest?.isIdle,
+                                'animate-pulse font-bold': mutationIndexRequest?.isLoading,
+                                'text-accent-7': !mutationIndexRequest?.isIdle,
+                              }}
+                              class="flex items-center"
+                            >
+                              <Switch>
+                                <Match when={mutationIndexRequest?.isError}>
+                                  <IconError class="w-4 h-4 shrink-0 mie-1ex text-negative-9" />
+                                </Match>
+
+                                <Match when={mutationIndexRequest?.isSuccess}>
+                                  <IconCheck class="w-4 h-4 shrink-0 mie-1ex text-positive-9" />
+                                </Match>
+                                <Match when={mutationIndexRequest?.isLoading}>
+                                  <IconSpinner class="w-4 h-4 shrink-0 mie-1ex animate-spin" />
+                                </Match>
+                              </Switch>
+                              <span>
+                                <span>Indexing status (sign message in your wallet):&nbsp;</span>{' '}
+                                <span>{mutationIndexRequest.status}</span>
+                              </span>
+                            </li>
                           </ol>
                         </div>
                         <div class="pb-0.5 border-t border-accent-11 border-opacity-50">
@@ -306,15 +333,18 @@ export const Request = () => {
                                   mutationTxWaitCreateNewRequest?.status,
                                   mutationWriteContractCreateNewRequest.status,
                                   mutationUploadMetadata.status,
+                                  mutationIndexRequest.status,
                                 ].includes('error')}
                               >
                                 <div class="mb-4 rounded-md text-2xs p-3 text-negative-11 border border-negative-5 bg-negative-3">
                                   <p class="font-semibold">Something went wrong.</p>
                                 </div>
                               </Match>
-                              <Match when={mutationTxWaitCreateNewRequest?.isSuccess}>
+                              <Match
+                                when={mutationTxWaitCreateNewRequest?.isSuccess && mutationIndexRequest?.isSuccess}
+                              >
                                 <div class="my-4 text-2xs rounded-md p-3 text-positive-11 border border-positive-5 bg-positive-3">
-                                  <p class="font-semibold">Request created successfully !</p>
+                                  <p class="font-semibold">Request created and indexed successfully !</p>
                                   <p>
                                     Check and share{' '}
                                     <A

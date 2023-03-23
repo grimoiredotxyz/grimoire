@@ -2,10 +2,13 @@ import { createMutation, useQueryClient } from '@tanstack/solid-query'
 import { getNetwork, prepareWriteContract, waitForTransaction, writeContract } from '@wagmi/core'
 import { useNavigate } from 'solid-start'
 import { CHAINS_ALIAS, CONTRACT_TRANSCRIPTIONS } from '~/config'
-import { useToast } from '~/hooks'
+import { usePolybase, useToast } from '~/hooks'
 
 export function useRequestActions() {
   const queryClient = useQueryClient()
+  // DB (polybase)
+  const { db } = usePolybase()
+
   const toast = useToast()
   const navigate = useNavigate()
   const mutationWriteContractDeleteRequest = createMutation(
@@ -24,7 +27,7 @@ export function useRequestActions() {
     },
     {
       async onSuccess(data, variables, context) {
-        await mutationTxWaitDeleteRequest.mutateAsync({ hash: data?.hash })
+        await mutationTxWaitDeleteRequest.mutateAsync({ idRequest: variables?.idRequest, hash: data?.hash })
       },
       onError() {
         //@ts-ignore
@@ -39,8 +42,10 @@ export function useRequestActions() {
   )
 
   const mutationTxWaitDeleteRequest = createMutation(
-    async (args: { hash: `0x${string}` }) => {
+    async (args: { hash: `0x${string}`; idRequest: string }) => {
       await waitForTransaction({ hash: args.hash })
+      const dbCollectionReference = db.collection('Request')
+      await dbCollectionReference.record(args?.idRequest).call('del')
     },
     {
       onSuccess() {
@@ -72,7 +77,7 @@ export function useRequestActions() {
 
   const mutationWriteContractUpdateRequestStatus = createMutation(
     //@ts-ignore
-    async (args: { idRequest: string, isFulfilled: boolean, isOpen: boolean }) => {
+    async (args: { idRequest: string; isFulfilled: boolean; isOpen: boolean }) => {
       const network = await getNetwork()
       const chainId = network?.chain?.id
       const config = await prepareWriteContract({
@@ -88,13 +93,19 @@ export function useRequestActions() {
       })
       //@ts-ignore
       return {
-        ...await writeContract(config),
+        ...(await writeContract(config)),
         chainId,
       }
     },
     {
       async onSuccess(data, variables, context) {
-        await mutationTxWaitUpdateRequestStatus.mutateAsync({ chainId: data.chainId as number, hash: data?.hash, idRequest: variables?.idRequest, isFulfilled: variables?.isFulfilled, isOpen: variables?.isOpen })
+        await mutationTxWaitUpdateRequestStatus.mutateAsync({
+          chainId: data.chainId as number,
+          hash: data?.hash,
+          idRequest: variables?.idRequest,
+          isFulfilled: variables?.isFulfilled,
+          isOpen: variables?.isOpen,
+        })
       },
       onError() {
         //@ts-ignore
@@ -109,7 +120,13 @@ export function useRequestActions() {
   )
 
   const mutationTxWaitUpdateRequestStatus = createMutation(
-    async (args: { hash: `0x${string}`, idRequest: string, isFulfilled: boolean, isOpen: boolean, chainId: number }) => {
+    async (args: {
+      hash: `0x${string}`
+      idRequest: string
+      isFulfilled: boolean
+      isOpen: boolean
+      chainId: number
+    }) => {
       await waitForTransaction({ hash: args.hash })
     },
     {
@@ -117,7 +134,7 @@ export function useRequestActions() {
         //@ts-ignore
         toast().create({
           title: 'Request updated successfully!',
-          description: "Your request was updated successfully.",
+          description: 'Your request was updated successfully.',
           type: 'success',
           placement: 'bottom-right',
         })
@@ -148,12 +165,38 @@ export function useRequestActions() {
     },
   )
 
+  const mutationUpvoteRequest = createMutation(
+    async (args: { idRequest: string }) => {
+      const dbCollectionReference = db.collection('Request')
+      await dbCollectionReference.record(args?.idRequest).call('upvote')
+    },
+    {
+      onSuccess(data, variables) {
+        //@ts-ignore
+        toast().create({
+          title: 'Your upvote was casted successfully successfully!',
+          type: 'success',
+          placement: 'bottom-right',
+        })
+      },
+      onError() {
+        //@ts-ignore
+        toast().create({
+          title: "Couldn't upvote this request !",
+          description: 'Make sure to sign the message in your wallet.',
+          type: 'error',
+          placement: 'bottom-right',
+        })
+      },
+    },
+  )
 
   return {
     mutationWriteContractDeleteRequest,
     mutationTxWaitDeleteRequest,
     mutationWriteContractUpdateRequestStatus,
     mutationTxWaitUpdateRequestStatus,
+    mutationUpvoteRequest,
   }
 }
 
