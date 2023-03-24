@@ -392,5 +392,17 @@ export const CONTRACT_TRANSCRIPTIONS = {
     chainId: 420,
     address: '0x239b986D8B3bAB3e89D9586a5D83c5C0B08Fc3D3',
     abi: ABI_TRANSCRIPTIONS,
-  }
+  },
+  // Filecoin Hyperspace
+  3141: {
+    chainId: 3141,
+    address: '0x27B485cD095d4EC7181eE867c991E38654B7F3AA',
+    abi: ABI_TRANSCRIPTIONS,
+  },
+  // Scroll
+  534353: {
+    chainId: 534353,
+    address: '0xF91F71e2AB73a5298CAb2aD8df0EBE6e176961Ce',
+    abi: ABI_TRANSCRIPTIONS,
+  },
 }
