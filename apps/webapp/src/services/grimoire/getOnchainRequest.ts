@@ -1,5 +1,5 @@
 import { readContract } from '@wagmi/core'
-import { queryClient, CHAINS_ALIAS, CONTRACT_TRANSCRIPTIONS, ChainAlias } from '~/config'
+import { CHAINS_ALIAS, CONTRACT_TRANSCRIPTIONS, ChainAlias } from '~/config'
 import { web3UriToUrl } from '~/helpers'
 import { fromUnixTime } from 'date-fns'
 
@@ -75,7 +75,6 @@ export async function getOnChainRequest(args: { chainAlias: string; idRequest: s
       ...metadata,
       collaborators: data.collaborators,
     }
-    queryClient.setQueryData(['request', `${args.chainAlias}/${args.idRequest}`], data)
   }
 
   return data as Request

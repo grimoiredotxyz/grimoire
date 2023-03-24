@@ -37,15 +37,15 @@ export const ProposeNewRevision = (props: ProposeNewRevisionProps) => {
         props?.transcription()?.source_media_uris?.length > 0
           ? props?.transcription()?.source_media_uris.toString()
           : '',
+      notes: props.transcription()?.notes,
       language: props.transcription().language as string,
       keywords: props.transcription()?.keywords?.length > 0 ? props?.transcription()?.keywords.toString() : '',
       title: props.transcription().title as string,
-      revision_must_be_approved_first: props.transcription().revision_must_be_approved_first,
       transcription_plain_text: props.transcription().transcription_plain_text as string,
       srt_uri: props.transcription().srt_file_uri as string,
       vtt_uri: props.transcription().vtt_file_uri as string,
       lrc_uri: props.transcription().lrc_file_uri as string,
-      collaborators: props.transcription().collaborators.toString(),
+      change_description: '',
     },
     onSubmit: (values: z.infer<typeof schema>) => {
       onSubmitProposeNewRevisionForm({

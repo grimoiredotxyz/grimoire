@@ -49,7 +49,7 @@ export const RequestDetails = (props: RequestDetailsProps) => {
               }}
               class="flex items-baseline py-[0.1em] px-[0.5em] border text-[0.785em] "
             >
-              <Switch>
+              <Switch fallback="--">
                 <Match when={local.request()?.open_for_transcripts && !local.request()?.fulfilled}>
                   Open to receive new proposals
                 </Match>
@@ -89,7 +89,7 @@ export const RequestDetails = (props: RequestDetailsProps) => {
                 </div>
                 <div class="py-1">
                   <Show when={local.request()?.fulfilled === false}>
-                    <Switch>
+                    <Switch fallback="--">
                       <Match when={local.request()?.open_for_transcripts === true}>
                         <button
                           disabled={[
@@ -243,7 +243,7 @@ export const RequestDetails = (props: RequestDetailsProps) => {
             </button>
             <Show when={!local.request()?.fulfilled && local.request()?.open_for_transcripts === true}>
               <Button
-                intent="neutral-on-light-layer"
+                intent="neutral-outline"
                 scale="xs"
                 class="mx-auto w-[fit-content] xs:w-auto xs:mie-0 mb-4 mt-2 xs:mt-0 xs:mb-1 inline-flex items-center"
                 {...apiTabs().getTriggerProps({ value: 'propose' })}

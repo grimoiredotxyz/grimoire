@@ -1,5 +1,5 @@
 import { readContract } from '@wagmi/core'
-import { queryClient, CHAINS_ALIAS, CONTRACT_TRANSCRIPTIONS, ChainAlias } from '~/config'
+import { CHAINS_ALIAS, CONTRACT_TRANSCRIPTIONS, ChainAlias } from '~/config'
 import { web3UriToUrl } from '~/helpers'
 import { fromUnixTime } from 'date-fns'
 
@@ -60,7 +60,7 @@ export async function getOnChainTranscription(args: {
     transcription_id: chainData?.transcription_id,
     id: args?.idTranscription,
     communities: chainData.communities,
-    contributors: [...chainData.contributors, chainData.creator],
+    contributors: [...chainData?.contributors, chainData?.creator],
     created_at_epoch_timestamp: chainData.created_at,
     created_at_datetime: fromUnixTime(chainData.created_at),
     creator: chainData.creator,
@@ -88,9 +88,7 @@ export async function getOnChainTranscription(args: {
     data = {
       ...data,
       ...metadata,
-      contributors: metadata.contributors,
     }
-    queryClient.setQueryData(['transcription', `${args.chainAlias}/${args.idTranscription}`], data)
   }
   return data as Transcription
 }

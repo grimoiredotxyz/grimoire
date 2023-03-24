@@ -54,7 +54,7 @@ export const FormProposeNewTranscription = (props: FormProposeNewTranscriptionPr
             }}
             intent="neutral-on-light-layer"
             scale="xs"
-            class="mx-auto mt-2"
+            class="mx-auto mt-2 flex items-center"
           >
             <span
               classList={{
