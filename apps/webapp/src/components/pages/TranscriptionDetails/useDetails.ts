@@ -3,8 +3,12 @@ import * as accordion from '@zag-js/accordion'
 import * as tabs from '@zag-js/tabs'
 import * as popover from '@zag-js/popover'
 import { useMachine, normalizeProps } from '@zag-js/solid'
+import { createQuery } from '@tanstack/solid-query'
+import { useParams } from 'solid-start'
+import getOnchainTranscriptionProposedRevisions from '~/services/grimoire/getOnchainTranscriptionProposedRevisions'
 
 export function useDetails() {
+  const params = useParams()
   const [stateAccordionDetails, sendAccordionDetails] = useMachine(
     accordion.machine({
       id: createUniqueId(),
@@ -53,11 +57,41 @@ export function useDetails() {
     }, 0)
   }
 
+  const queryListReceivedProposedRevisions = createQuery(
+    () => ['transcription-proposed-revisions', `${params.chain}/${params.idTranscription}`],
+    async () => {
+      return await getOnchainTranscriptionProposedRevisions({
+        idTranscription: params.idTranscription,
+        chainAlias: params.chain,
+        status: 0,
+      })
+    },
+    {
+      refetchOnWindowFocus: true,
+    },
+  )
+
+  const queryListAcceptedRevisions = createQuery(
+    () => ['transcription-accepted-revisions', `${params.chain}/${params.idTranscription}`],
+    async () => {
+      return await getOnchainTranscriptionProposedRevisions({
+        idTranscription: params.idTranscription,
+        chainAlias: params.chain,
+        status: 1,
+      })
+    },
+    {
+      refetchOnWindowFocus: true,
+    },
+  )
+
   return {
     apiAccordionDetails,
     apiPopoverActions,
     apiTabs,
     downloadFile,
+    queryListReceivedProposedRevisions,
+    queryListAcceptedRevisions,
   }
 }
 

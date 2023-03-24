@@ -29,9 +29,7 @@ export const FormProposeNewRevision = (props: FormProposeNewRevisionProps) => {
   //@ts-ignore
   const { form } = local.storeForm
   const params = useParams()
-  createEffect(() => {
-    console.log(local.storeForm.data())
-  })
+
   return (
     <>
       {/* @ts-ignore */}
@@ -55,7 +53,7 @@ export const FormProposeNewRevision = (props: FormProposeNewRevisionProps) => {
             }}
             intent="neutral-on-light-layer"
             scale="xs"
-            class="mx-auto mt-2"
+            class="mx-auto mt-2 flex items-center"
           >
             <span
               classList={{

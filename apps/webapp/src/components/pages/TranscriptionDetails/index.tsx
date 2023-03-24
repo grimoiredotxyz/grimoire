@@ -1,32 +1,45 @@
-import { For, Match, Show, splitProps, Switch } from 'solid-js'
+import { createEffect, createSignal, For, Match, onMount, Show, splitProps, Switch } from 'solid-js'
 import { LOCALES, ROUTE_REQUEST_DETAILS } from '~/config'
-import type { Transcription } from '~/services'
-import type { Resource } from 'solid-js'
 import useDetails from './useDetails'
 import { web3UriToUrl } from '~/helpers'
-import { Button, IconDocumentArrowDown, IconEllipsisVertical, IconPlus, IconTrash, Identity } from '~/ui'
+import { Button, IconDocumentArrowDown, IconEllipsisVertical, IconPlus, IconSpinner, IconTrash, Identity } from '~/ui'
 import { callToAction } from '~/design-system'
 import useTranscriptionActions from './useTranscriptionActions'
 import { useAuthentication } from '~/hooks'
 import { A, useParams } from 'solid-start'
 import { formatDistanceToNow } from 'date-fns'
 import ProposeNewRevision from '../ProposeNewRevision'
+import type { Transcription } from '~/services'
+import type { Resource, Accessor } from 'solid-js'
+import ListRevisions from './ListRevisions'
 
 interface TranscriptionDetailsProps {
   transcription: Resource<Transcription>
 }
 export const TranscriptionDetails = (props: TranscriptionDetailsProps) => {
   const params = useParams()
+  const [isMounted, setIsMounted] = createSignal(false)
   const [local] = splitProps(props, ['transcription'])
-  const { apiTabs, apiPopoverActions, apiAccordionDetails, downloadFile } = useDetails()
+  const {
+    apiTabs,
+    apiPopoverActions,
+    apiAccordionDetails,
+    downloadFile,
+    queryListAcceptedRevisions,
+    queryListReceivedProposedRevisions,
+  } = useDetails()
   const { mutationTxWaitDeleteTranscription, mutationWriteContractDeleteTranscription } = useTranscriptionActions()
   const { currentUser } = useAuthentication()
+  onMount(() => {
+    setIsMounted(true)
+  })
+
   return (
     <>
       <div class="flex justify-between container mx-auto pb-6">
         <div class="max-w-prose">
           <div class="flex flex-col-reverse">
-            <h1 class="font-serif text-2xl flex flex-col font-bold">{local.transcription()?.title}</h1>
+            <h1 class="font-serif text-2xl flex flex-col font-bold">{local?.transcription()?.title}</h1>
             <Show
               when={
                 local.transcription()?.id_request !==
@@ -47,7 +60,7 @@ export const TranscriptionDetails = (props: TranscriptionDetailsProps) => {
             <div class="flex flex-wrap pt-1">
               <span class="text-neutral-11">Keywords:&nbsp;</span>
               <ul class="flex flex-wrap gap-2">
-                <For each={local.transcription()?.keywords}>
+                <For each={local.transcription()?.keywords?.split(',')}>
                   {(keyword) => (
                     <li class="leading-none font-medium text-[0.8em] py-[0.25em] px-[0.5em] rounded-md bg-accent-1 border-accent-6 text-accent-11 border">
                       {keyword}
@@ -154,12 +167,27 @@ export const TranscriptionDetails = (props: TranscriptionDetailsProps) => {
             </button>
             <button
               class="data-[selected]:text-interactive-11 data-[selected]:underline xs:data-[selected]:no-underline p-2 xs:pb-2 xs:pt-0.5 font-semibold text-2xs text-neutral-11 xs:data-[selected]:border-b-2 xs:border-b-2 xs:border-transparent xs:data-[selected]:border-b-interactive-9"
-              {...apiTabs().getTriggerProps({ value: 'transcriptions' })}
+              {...apiTabs().getTriggerProps({ value: 'proposed-revisions' })}
             >
-              Revisions
+              Proposed revisions{' '}
+              <Show
+                fallback={<IconSpinner class="w-4 h-4 animate-spin" />}
+                when={queryListReceivedProposedRevisions?.data}
+              >
+                ({queryListReceivedProposedRevisions?.data?.length})
+              </Show>
+            </button>
+            <button
+              class="data-[selected]:text-interactive-11 data-[selected]:underline xs:data-[selected]:no-underline p-2 xs:pb-2 xs:pt-0.5 font-semibold text-2xs text-neutral-11 xs:data-[selected]:border-b-2 xs:border-b-2 xs:border-transparent xs:data-[selected]:border-b-interactive-9"
+              {...apiTabs().getTriggerProps({ value: 'accepted-revisions' })}
+            >
+              History{' '}
+              <Show fallback={<IconSpinner class="w-4 h-4 animate-spin" />} when={queryListAcceptedRevisions?.data}>
+                ({queryListAcceptedRevisions?.data?.length})
+              </Show>
             </button>
             <Button
-              intent="neutral-on-light-layer"
+              intent="neutral-outline"
               scale="xs"
               class="mx-auto w-[fit-content] xs:w-auto xs:mie-0 mb-4 mt-2 xs:mt-0 xs:mb-1 inline-flex items-center"
               {...apiTabs().getTriggerProps({ value: 'propose' })}
@@ -219,7 +247,19 @@ export const TranscriptionDetails = (props: TranscriptionDetailsProps) => {
                       >
                         <ul class="text-ellispis overflow-hidden flex flex-col space-y-1.5">
                           <For each={local.transcription()?.contributors}>
-                            {(contributor) => <li class="text-ellispis overflow-hidden">{contributor}</li>}
+                            {(contributor) => (
+                              <li class="text-ellispis overflow-hidden">
+                                {<Identity address={contributor} shortenOnFallback={true} />}{' '}
+                                <span class="text-[0.9em] font-medium italic text-accent-9">&nbsp;(core)</span>
+                              </li>
+                            )}
+                          </For>
+                          <For each={queryListAcceptedRevisions?.data}>
+                            {(revision) => (
+                              <li class="text-ellispis overflow-hidden">
+                                {<Identity address={revision[2]} shortenOnFallback={true} />}{' '}
+                              </li>
+                            )}
                           </For>
                         </ul>
                       </div>
@@ -375,13 +415,54 @@ export const TranscriptionDetails = (props: TranscriptionDetailsProps) => {
               </div>
             </div>
           </div>
-          <div {...apiTabs().getContentProps({ value: 'revisions' })}>
-            <h2 class="pb-1 text-2xs uppercase tracking-wide text-accent-9 font-bold">Revision history</h2>
-            <p></p>
+          <div {...apiTabs().getContentProps({ value: 'accepted-revisions' })}>
+            <h2 class="pb-4 text-2xs uppercase tracking-wide text-accent-9 font-bold">
+              Accepted revisions{' '}
+              <Show fallback={<IconSpinner class="w-4 h-4 animate-spin" />} when={queryListAcceptedRevisions?.data}>
+                ({queryListAcceptedRevisions?.data?.length})
+              </Show>
+            </h2>
+            <Switch>
+              <Match when={isMounted() && queryListAcceptedRevisions?.isLoading}>
+                <p>Loading revisions...</p>
+              </Match>
+              <Match when={isMounted() && queryListAcceptedRevisions?.isSuccess && queryListAcceptedRevisions?.data}>
+                <ListRevisions contributors={local?.transcription()?.contributors} query={queryListAcceptedRevisions} />
+              </Match>
+            </Switch>
           </div>
-          <div {...apiTabs().getContentProps({ value: 'propose', disabled: !props.transcription() })}>
-            <Show when={props.transcription()}>
-              <ProposeNewRevision transcription={props.transcription} />
+
+          <div {...apiTabs().getContentProps({ value: 'proposed-revisions' })}>
+            <h2 class="pb-4 text-2xs uppercase tracking-wide text-accent-9 font-bold">
+              Proposed revisions{' '}
+              <Show
+                fallback={<IconSpinner class="w-4 h-4 animate-spin" />}
+                when={queryListReceivedProposedRevisions?.data}
+              >
+                ({queryListReceivedProposedRevisions?.data?.length})
+              </Show>
+            </h2>
+            <Switch>
+              <Match when={isMounted() && queryListReceivedProposedRevisions?.isLoading}>
+                <p>Loading propositions...</p>
+              </Match>
+              <Match
+                when={
+                  isMounted() &&
+                  queryListReceivedProposedRevisions?.isSuccess &&
+                  queryListReceivedProposedRevisions?.data
+                }
+              >
+                <ListRevisions
+                  contributors={local?.transcription()?.contributors}
+                  query={queryListReceivedProposedRevisions}
+                />
+              </Match>
+            </Switch>
+          </div>
+          <div {...apiTabs().getContentProps({ value: 'propose', disabled: !local?.transcription() })}>
+            <Show when={local?.transcription()}>
+              <ProposeNewRevision transcription={local?.transcription as Accessor<Transcription>} />
             </Show>
           </div>
         </div>

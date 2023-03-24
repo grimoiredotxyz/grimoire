@@ -19,7 +19,7 @@ interface FormValues extends z.infer<typeof schema> {}
 
 export function useSmartContract() {
   // Route params
-  const params = useParams<{ chain: string; idTranscript: string }>()
+  const params = useParams<{ chain: string; idTranscription: string }>()
   const queryClient = useQueryClient()
   // UI
   const toast = useToast()
@@ -47,7 +47,7 @@ export function useSmartContract() {
   })
   const mutationWriteContractProposeNewRevision = createMutation(
     //@ts-ignore
-    async (args: { updatedAt: number; idTranscript: string; uriMetadata: string }) => {
+    async (args: { updatedAt: number; idTranscription: string; uriMetadata: string }) => {
       const network = await getNetwork()
       const chainId = network?.chain?.id
       const config = await prepareWriteContract({
@@ -60,7 +60,7 @@ export function useSmartContract() {
             updated_time (uint256)
             content_uri (string)
         */
-        args: [args?.idTranscript, args?.updatedAt, args?.uriMetadata],
+        args: [args?.idTranscription, args?.updatedAt, args?.uriMetadata],
       })
       if (apiAccordionProposeNewRevisionStatus().value !== 'transaction-1')
         apiAccordionProposeNewRevisionStatus().setValue('transaction-1')
@@ -195,6 +195,9 @@ export function useSmartContract() {
      */
 
     const metadata = {
+      // Helpful for our subgraph
+      type: 'REVISION',
+      isRevision: true,
       // Source
       source_media_uris:
         formValues?.source_media_uris.constructor === Array
@@ -214,7 +217,7 @@ export function useSmartContract() {
           : '',
       notes: formValues?.notes ?? '',
       // Revision
-      change_type: formValues?.change_type,
+      change_type: formValues?.change_type?.toString(),
       change_description: formValues?.change_description,
       transcription_plain_text: formValues?.transcription_plain_text ?? '',
       srt_file_uri: mutationUploadSRTFile?.data ?? '',
@@ -240,7 +243,7 @@ export function useSmartContract() {
     return {
       uriMetadata,
       updatedAt: getUnixTime(new Date()),
-      idTranscript: params?.idTranscript?.length > 0 ? params?.idTranscript : utils.formatBytes32String(''),
+      idTranscription: params?.idTranscription,
       metadata,
     }
   }
@@ -255,7 +258,7 @@ export function useSmartContract() {
        * Prepare data
        */
 
-      const { metadata, uriMetadata, updatedAt, idTranscript } = await prepareData(args?.formValues)
+      const { metadata, uriMetadata, updatedAt, idTranscription } = await prepareData(args?.formValues)
 
       /**
        * Smart contract interaction
@@ -263,7 +266,7 @@ export function useSmartContract() {
       const dataWriteContract = await mutationWriteContractProposeNewRevision.mutateAsync({
         uriMetadata: uriMetadata as string,
         updatedAt,
-        idTranscript,
+        idTranscription,
       })
 
       if (dataWriteContract?.hash) {
