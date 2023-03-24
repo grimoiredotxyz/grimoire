@@ -125,7 +125,6 @@ export const ABI_TRANSCRIPTIONS = [
     inputs: [
       { internalType: 'bytes32', name: 'transcript_id', type: 'bytes32' },
       { internalType: 'bytes32', name: 'request_id', type: 'bytes32' },
-      { internalType: 'address', name: 'collaborator', type: 'address' },
     ],
     name: 'approveTranscript',
     outputs: [],
@@ -231,7 +230,10 @@ export const ABI_TRANSCRIPTIONS = [
     type: 'function',
   },
   {
-    inputs: [{ internalType: 'bytes32', name: 'transcription_id', type: 'bytes32' }],
+    inputs: [
+      { internalType: 'bytes32', name: 'transcription_id', type: 'bytes32' },
+      { internalType: 'enum Grimoire.revisionStates', name: 'state', type: 'uint8' },
+    ],
     name: 'getRevisionsByTranscriptionId',
     outputs: [
       {
@@ -376,13 +378,19 @@ export const CONTRACT_TRANSCRIPTIONS = {
   // Chiado
   10200: {
     chainId: 10200,
-    address: '0x47D8d3832C48Df605bD91819442f5fB03F9fb741',
+    address: '0x92C410556C7AeD3C9aa6ED3552431C876770FF99',
     abi: ABI_TRANSCRIPTIONS,
   },
   // Mumbai testnet
   80001: {
     chainId: 80001,
-    address: '0x03a73edc9F544d3F0bbbb1895111BA918d3d01f6',
+    address: '0xD9f939e8eCD876Ca0908E8CE35C109161488E895',
     abi: ABI_TRANSCRIPTIONS,
   },
+  // Optimism Goerli
+  420: {
+    chainId: 420,
+    address: '0x239b986D8B3bAB3e89D9586a5D83c5C0B08Fc3D3',
+    abi: ABI_TRANSCRIPTIONS,
+  }
 }

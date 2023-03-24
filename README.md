@@ -1,4 +1,4 @@
-# Grimoire
+# Grimoire front-end
 
 > **[REDACTED]**
 
@@ -8,7 +8,7 @@
 
 ## Monorepo structure
 
-- `apps/webapp` - Front-end (webapp) [REDACTED]
+- `apps/webapp` - SolidJS webapp - allow users to create requests, transcriptions as well as proposing and managing transcriptions revisions
 
 ## Tech stack overview
 
@@ -36,7 +36,10 @@ VITE_FLEEK_IPFS_SECRET=
 
 ### Transcriptions
 
-- Chiado contract address `0x47D8d3832C48Df605bD91819442f5fB03F9fb741` ([view on Sourcify](https://repo.sourcify.dev/contracts/full_match/10200/0x47D8d3832C48Df605bD91819442f5fB03F9fb741/sources/contracts/))
-- Mumbai contract address `0x91c3bB9814EB7719F04FF014d590D84F23788413` ([view on Mumbaiscan](https://mumbai.polygonscan.com/address/0x91c3bB9814EB7719F04FF014d590D84F23788413#code))
+- Gnosis Chiado (testnet) contract address : `0x92C410556C7AeD3C9aa6ED3552431C876770FF99`
+- Optimism Goerli (testnet) contract address : `0x239b986D8B3bAB3e89D9586a5D83c5C0B08Fc3D3`
+- Scroll alpha (testnet) contract address : [REDACTED]
+- FVM Hyperspace (testnet) contract address : [REDACTED]
+- Polygon Mumbai (testnet) contract address: `0x03a73edc9F544d3F0bbbb1895111BA918d3d01f6` ([view on Mumbaiscan](https://mumbai.polygonscan.com/address/0x03a73edc9F544d3F0bbbb1895111BA918d3d01f6#code))
 
 ## Deployed subgraphs (hosted service)
