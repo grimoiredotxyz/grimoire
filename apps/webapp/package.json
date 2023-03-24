@@ -20,9 +20,11 @@
     "vite-plugin-node-polyfills": "^0.7.0"
   },
   "dependencies": {
+    "@eth-optimism/atst": "^0.2.0",
     "@felte/solid": "^1.2.7",
     "@felte/validator-zod": "^1.0.13",
     "@fleekhq/fleek-storage-js": "^1.0.24",
+    "@gelatonetwork/relay-sdk": "^3.5.0",
     "@polybase/client": "^0.3.36",
     "@polybase/eth": "^0.3.36",
     "@polybase/util": "^0.3.36",
@@ -45,6 +47,7 @@
     "date-fns": "^2.29.3",
     "ethers": "^5.7.2",
     "graphql-request": "^5.2.0",
+    "keccak": "^3.0.3",
     "solid-js": "^1.6.15",
     "solid-start": "^0.2.23",
     "undici": "^5.15.1",

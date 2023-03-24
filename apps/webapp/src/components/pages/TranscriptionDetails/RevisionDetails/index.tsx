@@ -213,139 +213,136 @@ export const RevisionDetails = (props) => {
               </div>
             </div>
           </div>
-          <Show
-            when={
-              currentUser()?.address &&
-              currentNetwork()?.id === CHAINS_ALIAS[params.chain] &&
-              props?.query?.data?.state === 0
-            }
-          >
-            <Switch>
-              <Match when={!currentUser()?.address}>
-                <p class="italic text-center text-neutral-9 text-2xs">Sign-in to reveal more actions</p>
-              </Match>
-              <Match
-                //@ts-ignore
-                when={isAddress(currentUser()?.address) && currentNetwork()?.id !== CHAINS_ALIAS[params.chain]}
-              >
-                <div class="animate-appear text-start xs:text-center mt-6 mb-4 font-medium text-2xs bg-secondary-3 py-2 rounded-md mx-auto w-fit-content px-4 text-secondary-11">
-                  <p>You're on a different network than the original request - switch to the right network below.</p>
-                  <Button
-                    disabled={mutationSwitchNetwork.isLoading}
-                    isLoading={mutationSwitchNetwork.isLoading}
-                    onClick={async () => {
-                      //@ts-ignore
-                      await mutationSwitchNetwork.mutateAsync(CHAINS_ALIAS[params.chain])
-                    }}
-                    intent="neutral-on-light-layer"
-                    scale="xs"
-                    class="mx-auto mt-2 flex items-center"
-                  >
-                    <span
-                      classList={{
-                        'pis-1ex': mutationSwitchNetwork.isLoading,
+          <Show when={currentUser()?.address && props?.query?.data?.state === 0}>
+            <div class="border-t -mx-3 xs:-mx-4 px-4 border-neutral-5">
+              <Switch>
+                <Match when={!currentUser()?.address}>
+                  <p class="italic text-center text-neutral-9 text-2xs">Sign-in to reveal more actions</p>
+                </Match>
+                <Match
+                  //@ts-ignore
+                  when={isAddress(currentUser()?.address) && currentNetwork()?.id !== CHAINS_ALIAS[params.chain]}
+                >
+                  <div class="animate-appear text-start xs:text-center mt-6 mb-4 font-medium text-2xs bg-secondary-3 py-2 rounded-md mx-auto w-fit-content px-4 text-secondary-11">
+                    <p>You're on a different network than the original request - switch to the right network below.</p>
+                    <Button
+                      disabled={mutationSwitchNetwork.isLoading}
+                      isLoading={mutationSwitchNetwork.isLoading}
+                      onClick={async () => {
+                        //@ts-ignore
+                        await mutationSwitchNetwork.mutateAsync(CHAINS_ALIAS[params.chain])
                       }}
+                      intent="neutral-on-light-layer"
+                      scale="xs"
+                      class="mx-auto mt-2 flex items-center"
                     >
-                      Switch network
-                    </span>
-                  </Button>
-                </div>
-              </Match>
-              <Match
-                when={
-                  currentUser()?.address &&
-                  currentNetwork()?.id === CHAINS_ALIAS[params.chain] &&
-                  props?.query?.data?.state === 0
-                }
-              >
-                <div class="border-t border-neutral-5 -mx-3 xs:-mx-4 px-4 pt-4 flex gap-y-4 gap-x-2 flex-col xs:flex-row">
-                  <Button
-                    onClick={async () =>
-                      await mutationWriteAcceptRevision.mutateAsync({
-                        idRevision: props.query?.data?.id_revision,
-                      })
-                    }
-                    class="flex items-center"
-                    type="button"
-                    isLoading={[
-                      mutationTxWaitAcceptRevision?.isLoading,
-                      mutationWriteAcceptRevision.isLoading,
-                    ].includes(true)}
-                    disabled={
-                      !props.query?.data?.reviewers?.includes(currentUser()?.address) ||
-                      [
-                        mutationTxWaitAcceptRevision.isSuccess,
-                        mutationTxWaitRejectRevision.isSuccess,
+                      <span
+                        classList={{
+                          'pis-1ex': mutationSwitchNetwork.isLoading,
+                        }}
+                      >
+                        Switch network
+                      </span>
+                    </Button>
+                  </div>
+                </Match>
+                <Match
+                  when={
+                    currentUser()?.address &&
+                    currentNetwork()?.id === CHAINS_ALIAS[params.chain] &&
+                    props?.query?.data?.state === 0
+                  }
+                >
+                  <div class="pt-4 flex gap-y-4 gap-x-2 flex-col xs:flex-row">
+                    <Button
+                      onClick={async () =>
+                        await mutationWriteAcceptRevision.mutateAsync({
+                          idRevision: props.query?.data?.id_revision,
+                        })
+                      }
+                      class="flex items-center"
+                      type="button"
+                      isLoading={[
                         mutationTxWaitAcceptRevision?.isLoading,
-                        mutationTxWaitRejectRevision.isLoading,
-                        mutationWriteRejectRevision.isLoading,
                         mutationWriteAcceptRevision.isLoading,
-                      ].includes(true)
-                    }
-                    scale="xs"
-                    intent="primary-faint"
-                  >
-                    <span
-                      classList={{
-                        'pis-1ex': [
+                      ].includes(true)}
+                      disabled={
+                        !props.query?.data?.reviewers?.includes(currentUser()?.address) ||
+                        [
+                          mutationTxWaitAcceptRevision.isSuccess,
+                          mutationTxWaitRejectRevision.isSuccess,
                           mutationTxWaitAcceptRevision?.isLoading,
-                          mutationWriteAcceptRevision.isLoading,
-                        ].includes(true),
-                      }}
-                    >
-                      <Switch fallback="Accept">
-                        <Match when={mutationWriteAcceptRevision.isLoading}>Sign message...</Match>
-                        <Match when={mutationTxWaitAcceptRevision.isLoading}>Accepting...</Match>
-                        <Match when={mutationTxWaitAcceptRevision.isError}>Try accepting again</Match>
-                        <Match when={mutationTxWaitAcceptRevision.isSuccess}>Accepted !</Match>
-                      </Switch>
-                    </span>
-                  </Button>
-
-                  <Button
-                    onClick={async () =>
-                      await mutationWriteRejectRevision.mutateAsync({
-                        idRevision: props.query?.data?.id_revision,
-                      })
-                    }
-                    type="button"
-                    class="flex items-center"
-                    isLoading={[mutationTxWaitRejectRevision.isLoading, mutationWriteRejectRevision.isLoading].includes(
-                      true,
-                    )}
-                    disabled={
-                      !props.query?.data?.reviewers?.includes(currentUser()?.address) ||
-                      [
-                        mutationTxWaitAcceptRevision.isSuccess,
-                        mutationTxWaitRejectRevision.isSuccess,
-                        mutationTxWaitAcceptRevision?.isLoading,
-                        mutationTxWaitRejectRevision.isLoading,
-                        mutationWriteRejectRevision.isLoading,
-                        mutationWriteAcceptRevision.isLoading,
-                      ].includes(true)
-                    }
-                    scale="xs"
-                    intent="negative-ghost"
-                  >
-                    <span
-                      classList={{
-                        'pis-1ex': [
                           mutationTxWaitRejectRevision.isLoading,
                           mutationWriteRejectRevision.isLoading,
-                        ].includes(true),
-                      }}
+                          mutationWriteAcceptRevision.isLoading,
+                        ].includes(true)
+                      }
+                      scale="xs"
+                      intent="primary-faint"
                     >
-                      <Switch fallback="Reject">
-                        <Match when={mutationWriteRejectRevision.isLoading}>Sign message...</Match>
-                        <Match when={mutationTxWaitRejectRevision.isLoading}>Rejecting...</Match>
-                        <Match when={mutationTxWaitRejectRevision.isError}>Try rejecting again</Match>
-                        <Match when={mutationTxWaitRejectRevision.isSuccess}>Rejected !</Match>
-                      </Switch>
-                    </span>
-                  </Button>
-                </div>
-              </Match>
-            </Switch>
+                      <span
+                        classList={{
+                          'pis-1ex': [
+                            mutationTxWaitAcceptRevision?.isLoading,
+                            mutationWriteAcceptRevision.isLoading,
+                          ].includes(true),
+                        }}
+                      >
+                        <Switch fallback="Accept">
+                          <Match when={mutationWriteAcceptRevision.isLoading}>Sign message...</Match>
+                          <Match when={mutationTxWaitAcceptRevision.isLoading}>Accepting...</Match>
+                          <Match when={mutationTxWaitAcceptRevision.isError}>Try accepting again</Match>
+                          <Match when={mutationTxWaitAcceptRevision.isSuccess}>Accepted !</Match>
+                        </Switch>
+                      </span>
+                    </Button>
+
+                    <Button
+                      onClick={async () =>
+                        await mutationWriteRejectRevision.mutateAsync({
+                          idRevision: props.query?.data?.id_revision,
+                        })
+                      }
+                      type="button"
+                      class="flex items-center"
+                      isLoading={[
+                        mutationTxWaitRejectRevision.isLoading,
+                        mutationWriteRejectRevision.isLoading,
+                      ].includes(true)}
+                      disabled={
+                        !props.query?.data?.reviewers?.includes(currentUser()?.address) ||
+                        [
+                          mutationTxWaitAcceptRevision.isSuccess,
+                          mutationTxWaitRejectRevision.isSuccess,
+                          mutationTxWaitAcceptRevision?.isLoading,
+                          mutationTxWaitRejectRevision.isLoading,
+                          mutationWriteRejectRevision.isLoading,
+                          mutationWriteAcceptRevision.isLoading,
+                        ].includes(true)
+                      }
+                      scale="xs"
+                      intent="negative-ghost"
+                    >
+                      <span
+                        classList={{
+                          'pis-1ex': [
+                            mutationTxWaitRejectRevision.isLoading,
+                            mutationWriteRejectRevision.isLoading,
+                          ].includes(true),
+                        }}
+                      >
+                        <Switch fallback="Reject">
+                          <Match when={mutationWriteRejectRevision.isLoading}>Sign message...</Match>
+                          <Match when={mutationTxWaitRejectRevision.isLoading}>Rejecting...</Match>
+                          <Match when={mutationTxWaitRejectRevision.isError}>Try rejecting again</Match>
+                          <Match when={mutationTxWaitRejectRevision.isSuccess}>Rejected !</Match>
+                        </Switch>
+                      </span>
+                    </Button>
+                  </div>
+                </Match>
+              </Switch>
+            </div>
           </Show>
         </div>
       </div>
