@@ -203,6 +203,9 @@ export function useSmartContract() {
      */
 
     const metadata = {
+      // Helpful for our subgraph
+      type: 'TRANSCRIPTION',
+
       // Source
       source_media_uris:
         formValues?.source_media_uris.constructor === Array
