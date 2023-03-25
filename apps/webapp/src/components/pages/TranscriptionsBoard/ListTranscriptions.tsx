@@ -1,13 +1,11 @@
 import type { CreateQueryResult } from '@tanstack/solid-query'
 import { For, Match, Show, Switch } from 'solid-js'
 import { A } from 'solid-start'
-import { LOCALES, ROUTE_REQUEST_DETAILS } from '~/config'
+import { LOCALES, ROUTE_TRANSCRIPTION_DETAILS } from '~/config'
 import { deriveEthAddressFromPublicKey } from '~/helpers'
 import { Identity } from '~/ui'
-import Upvote from '../RequestDetails/Upvote'
 
-interface ListRequestsProps {
-  filterStatus: string
+interface ListTranscriptionsProps {
   query: CreateQueryResult<
     {
       data: {
@@ -30,7 +28,7 @@ interface ListRequestsProps {
     unknown
   >
 }
-export const ListRequests = (props: ListRequestsProps) => {
+export const ListTranscriptions = (props: ListTranscriptionsProps) => {
   return (
     <>
       <Switch>
@@ -70,24 +68,17 @@ export const ListRequests = (props: ListRequestsProps) => {
 
                       <A
                         class="absolute z-0 inset-0 block w-full h-full opacity-0"
-                        href={ROUTE_REQUEST_DETAILS.replace(
-                          '[chain]/request/[idRequest]',
-                          request.data.slug.replace('/', '/request/'),
+                        href={ROUTE_TRANSCRIPTION_DETAILS.replace(
+                          '[chain]/transcription/[idTranscription]',
+                          request.data.slug.replace('/', '/transcription/'),
                         )}
                       >
-                        View more details
+                        View detailed transcription
                       </A>
                       <div class="space-y-4">
                         <span class="link block text-2xs" aria-hidden="true">
-                          View more details
+                          View detailed transcription
                         </span>
-                        <Upvote
-                          idRequest={request.data?.id}
-                          voters={request?.data?.voters}
-                          class="relative flex items-center w-auto z-10"
-                          scale="sm"
-                          intent="neutral-outline"
-                        />
                       </div>
                     </li>
                   )
@@ -101,4 +92,4 @@ export const ListRequests = (props: ListRequestsProps) => {
   )
 }
 
-export default ListRequests
+export default ListTranscriptions
