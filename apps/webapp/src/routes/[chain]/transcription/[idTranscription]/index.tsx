@@ -13,7 +13,6 @@ export function routeData() {
       idTranscription: params?.idTranscription,
     })
   })
-
   return { transcription }
 }
 

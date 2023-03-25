@@ -1,13 +1,20 @@
+import * as rating from '@zag-js/rating-group'
+import { useMachine, normalizeProps } from '@zag-js/solid'
+import { createMemo, createUniqueId } from 'solid-js'
 import { createMutation, useQueryClient } from '@tanstack/solid-query'
 import { getNetwork, prepareWriteContract, waitForTransaction, writeContract } from '@wagmi/core'
 import { useNavigate } from 'solid-start'
 import { CONTRACT_TRANSCRIPTIONS } from '~/config'
-import { useToast } from '~/hooks'
+import { usePolybase, useToast } from '~/hooks'
 
-export function useTranscriptionActions() {
+export function useTranscriptionActions(args: { averageRating: number; id: string }) {
+  //@ts-ignore
+  const navigate = useNavigate()
+  //@ts-ignore
+  const { db } = usePolybase()
   const queryClient = useQueryClient()
   const toast = useToast()
-  const navigate = useNavigate()
+
   const mutationWriteContractDeleteTranscription = createMutation(
     //@ts-ignore
     async (args: { idTranscription: string }) => {
@@ -71,9 +78,57 @@ export function useTranscriptionActions() {
     },
   )
 
+  /**
+   * Mutation that updates the rating a user gave to a specific Transcription record
+   */
+  const mutationGiveRating = createMutation(
+    async (args: { idTranscription: string; rating: number }) => {
+      const dbCollectionReference = db.collection('Transcription')
+      await dbCollectionReference.record(args?.idTranscription).call('evaluateTranscription', [args?.rating])
+
+      return args?.rating
+    },
+    {
+      onSuccess() {
+        //@ts-ignore
+        toast().create({
+          title: 'Rating saved!',
+          description: 'You can update your rating for this transcription whenever you want',
+          type: 'success',
+          placement: 'bottom-right',
+        })
+      },
+      onError() {
+        //@ts-ignore
+        toast().create({
+          title: "Couldn't update your rating for this transcription !",
+          description: 'Make sure to sign the message in your wallet.',
+          type: 'error',
+          placement: 'bottom-right',
+        })
+      },
+    },
+  )
+  const [stateRateTranscription, sendRateTranscription] = useMachine(
+    rating.machine({
+      id: createUniqueId(),
+      value: args?.averageRating ?? 0,
+      async onChange({ value }) {
+        await mutationGiveRating.mutateAsync({
+          idTranscription: args?.id,
+          rating: value,
+        })
+      },
+    }),
+  )
+  const apiRateTranscription = createMemo(() =>
+    rating.connect(stateRateTranscription, sendRateTranscription, normalizeProps),
+  )
   return {
     mutationWriteContractDeleteTranscription,
     mutationTxWaitDeleteTranscription,
+    apiRateTranscription,
+    mutationGiveRating,
   }
 }
 

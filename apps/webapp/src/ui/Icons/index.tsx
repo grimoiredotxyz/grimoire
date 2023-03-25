@@ -1,6 +1,17 @@
 import type { JSX } from 'solid-js'
 
 export interface SVGProps extends JSX.SvgSVGAttributes<SVGSVGElement> {}
+export const IconStarFilled = (props: SVGProps) => {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" {...props}>
+      <path
+        fill-rule="evenodd"
+        d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.007 5.404.433c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.433 2.082-5.006z"
+        clip-rule="evenodd"
+      />
+    </svg>
+  )
+}
 
 export const IconSpinner = (props: SVGProps) => {
   return (
@@ -59,18 +70,6 @@ export const IconExclamationCircle = (props: SVGProps) => {
   )
 }
 
-export const IconMusicNote = (props: SVGProps) => {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" {...props}>
-      <path
-        fill-rule="evenodd"
-        d="M19.952 1.651a.75.75 0 01.298.599V16.303a3 3 0 01-2.176 2.884l-1.32.377a2.553 2.553 0 11-1.403-4.909l2.311-.66a1.5 1.5 0 001.088-1.442V6.994l-9 2.572v9.737a3 3 0 01-2.176 2.884l-1.32.377a2.553 2.553 0 11-1.402-4.909l2.31-.66a1.5 1.5 0 001.088-1.442V9.017 5.25a.75.75 0 01.544-.721l10.5-3a.75.75 0 01.658.122z"
-        clip-rule="evenodd"
-      />
-    </svg>
-  )
-}
-
 export const IconBrowser = (props: SVGProps) => {
   return (
     <svg
@@ -120,28 +119,6 @@ export const IconError = (props: SVGProps) => {
         stroke-linejoin="round"
         d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"
       />
-    </svg>
-  )
-}
-
-export const IconSingingMic = (props: SVGProps) => {
-  return (
-    <svg
-      stroke="currentColor"
-      fill="none"
-      stroke-width="2"
-      viewBox="0 0 24 24"
-      stroke-linecap="round"
-      stroke-linejoin="round"
-      height="24"
-      width="24"
-      xmlns="http://www.w3.org/2000/svg"
-      {...props}
-    >
-      <desc></desc>
-      <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-      <path d="M15.002 12.9a5 5 0 1 0 -3.902 -3.9"></path>
-      <path d="M15.002 12.9l-3.902 -3.899l-7.513 8.584a2 2 0 1 0 2.827 2.83l8.588 -7.515z"></path>
     </svg>
   )
 }

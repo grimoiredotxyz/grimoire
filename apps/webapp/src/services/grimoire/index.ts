@@ -1,4 +1,5 @@
 export * from './getOnchainRequest'
 export * from './getOnchainTranscription'
+export * from './getOnchainTranscriptionProposedRevisions'
 export * from './getRequestsBoard'
 export * from './getTranscriptionsBoard'

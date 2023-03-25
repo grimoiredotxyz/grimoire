@@ -1,11 +1,11 @@
-import { createMemo, createUniqueId } from 'solid-js'
+import { createQuery } from '@tanstack/solid-query'
 import * as accordion from '@zag-js/accordion'
 import * as tabs from '@zag-js/tabs'
 import * as popover from '@zag-js/popover'
 import { useMachine, normalizeProps } from '@zag-js/solid'
-import { createQuery } from '@tanstack/solid-query'
+import { createMemo, createUniqueId } from 'solid-js'
 import { useParams } from 'solid-start'
-import getOnchainTranscriptionProposedRevisions from '~/services/grimoire/getOnchainTranscriptionProposedRevisions'
+import { getOnchainTranscriptionProposedRevisions } from '~/services'
 
 export function useDetails() {
   const params = useParams()

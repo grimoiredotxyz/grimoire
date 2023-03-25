@@ -1,17 +1,28 @@
-import { createEffect, createSignal, For, Match, Show, splitProps, Switch } from 'solid-js'
-import { LOCALES, ROUTE_REQUEST_DETAILS } from '~/config'
-import useDetails from './useDetails'
-import { web3UriToUrl } from '~/helpers'
-import { Button, IconDocumentArrowDown, IconEllipsisVertical, IconPlus, IconSpinner, IconTrash, Identity } from '~/ui'
-import { callToAction } from '~/design-system'
-import useTranscriptionActions from './useTranscriptionActions'
-import { useAuthentication } from '~/hooks'
-import { A, useParams } from 'solid-start'
 import { formatDistanceToNow } from 'date-fns'
-import ProposeNewRevision from '../ProposeNewRevision'
-import type { Transcription } from '~/services'
+import { createEffect, createSignal, For, Match, Show, splitProps, Switch } from 'solid-js'
 import type { Resource, Accessor } from 'solid-js'
+import { A, useParams } from 'solid-start'
+import { LOCALES, ROUTE_REQUEST_DETAILS } from '~/config'
+import { callToAction } from '~/design-system'
+import { deriveEthAddressFromPublicKey, web3UriToUrl } from '~/helpers'
+import { useAuthentication } from '~/hooks'
+import type { Transcription } from '~/services'
+import {
+  Button,
+  IconDocumentArrowDown,
+  IconEllipsisVertical,
+  IconExclamationCircle,
+  IconPlus,
+  IconSpinner,
+  IconStarFilled,
+  IconTrash,
+  Identity,
+} from '~/ui'
+import ProposeNewRevision from '../ProposeNewRevision'
 import ListRevisions from './ListRevisions'
+import Rate from './Rate'
+import useDetails from './useDetails'
+import useTranscriptionActions from './useTranscriptionActions'
 
 interface TranscriptionDetailsProps {
   transcription: Resource<Transcription>
@@ -30,8 +41,19 @@ export const TranscriptionDetails = (props: TranscriptionDetailsProps) => {
   } = useDetails()
   const { mutationTxWaitDeleteTranscription, mutationWriteContractDeleteTranscription } = useTranscriptionActions()
   const { currentUser } = useAuthentication()
+  const [currentUserRating, setCurrentUserRating] = createSignal(0)
   createEffect(() => {
     setIsMounted(true)
+  })
+
+  createEffect(() => {
+    if (currentUser()?.address && local?.transcription()?.rating) {
+      Object.keys(local?.transcription()?.rating)?.filter((r) => {
+        if (deriveEthAddressFromPublicKey(r)?.toLowerCase() === currentUser()?.address?.toLowerCase()) {
+          setCurrentUserRating(local?.transcription()?.rating?.[r])
+        }
+      })
+    }
   })
 
   return (
@@ -69,6 +91,24 @@ export const TranscriptionDetails = (props: TranscriptionDetailsProps) => {
                 </For>
               </ul>
             </div>
+            <p class="pt-1 flex items-center text-neutral-11">
+              Average rating:{' '}
+              <span class="pis-2 flex gap-0.5">
+                <For each={[...Array(5).keys()]}>
+                  {(x, i) => (
+                    <>
+                      <IconStarFilled
+                        class="w-3 h-3"
+                        classList={{
+                          'text-accent-5': local.transcription().average_rating < x,
+                          'text-accent-11': local.transcription().average_rating >= x,
+                        }}
+                      />
+                    </>
+                  )}
+                </For>
+              </span>
+            </p>
             <p class="pt-4 italic text-neutral-9 text-2xs">
               Proposed {formatDistanceToNow(local.transcription()?.created_at_datetime, { addSuffix: true })} by{' '}
               <Identity address={local.transcription()?.creator as `0x${string}`} shortenOnFallback={true} />{' '}
@@ -467,6 +507,32 @@ export const TranscriptionDetails = (props: TranscriptionDetailsProps) => {
           </div>
         </div>
       </div>
+      <section class="mt-16 sm:text-center bg-neutral-1 border border-neutral-6 p-6">
+        <div class="max-w-prose mx-auto">
+          <h3 class="text-lg mb-1 font-serif font-semibold text-accent-12">Rate this transcription</h3>
+          <p class="mb-4 text-neutral-11 text-sm"></p>
+          <Show
+            fallback={
+              <>
+                <span class="flex text-2xs text-accent-11 items-center justify-center">
+                  Average rating: {local.transcription()?.average_rating ?? 0}/5
+                </span>
+                <p class="text-center justify-center flex items-center pt-2 font-semibold text-[0.725em] text-accent-9">
+                  <IconExclamationCircle class="mie-1ex w-4 h-4" />
+                  Connect your wallet to rate this transcription.
+                </p>
+              </>
+            }
+            when={currentUser()?.address && currentUserRating()}
+          >
+            <Rate
+              currentUserInitialRating={currentUserRating()}
+              idTranscription={local?.transcription()?.transcription_id as string}
+              averageRating={local.transcription()?.average_rating ?? 0}
+            />
+          </Show>
+        </div>
+      </section>
     </>
   )
 }
