@@ -1,3 +1,6 @@
+/**
+ * Get list of transcriptions indexed on Polybase
+ */
 export async function getTranscriptionsBoard(args: { sortOrder: 'asc' | 'desc'; cursor?: string }) {
   const encoded = encodeURIComponent(`${import.meta.env.VITE_POLYBASE_NAMESPACE}/Transcription`)
   let requestUrl = `https://testnet.polybase.xyz/v0/collections/${encoded}/records?limit=30`

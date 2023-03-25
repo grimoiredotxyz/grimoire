@@ -92,7 +92,6 @@ export async function getOnChainTranscription(args: {
   }
   let polybaseData
   if (chainData?.transcription_id) {
-    console.log('spsojgjoe jioegoejfopefjpzj')
     const encoded = encodeURIComponent(`${import.meta.env.VITE_POLYBASE_NAMESPACE}/Transcription`)
     const requestUrl = `https://testnet.polybase.xyz/v0/collections/${encoded}/records/${chainData?.transcription_id}`
     const response = await fetch(requestUrl, {

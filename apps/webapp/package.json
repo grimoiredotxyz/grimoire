@@ -25,6 +25,7 @@
     "@felte/validator-zod": "^1.0.13",
     "@fleekhq/fleek-storage-js": "^1.0.24",
     "@gelatonetwork/relay-sdk": "^3.5.0",
+    "@polybase/auth": "^0.3.38",
     "@polybase/client": "^0.3.36",
     "@polybase/eth": "^0.3.36",
     "@polybase/util": "^0.3.36",

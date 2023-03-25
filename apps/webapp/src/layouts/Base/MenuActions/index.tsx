@@ -1,35 +1,40 @@
-import { IconChevronDown, IconMenu, IconPlus } from '~/ui'
-import { ROUTE_REQUEST_NEW, ROUTE_TRANSCRIPTION_NEW } from '~/config'
-import { useAuthentication, usePushChat } from '~/hooks'
+import { createQuery } from '@tanstack/solid-query'
+import { For, Match, Switch } from 'solid-js'
 import { A } from 'solid-start'
+import {
+  CHAINS_ALIAS,
+  ROUTE_REQUEST_DETAILS,
+  ROUTE_REQUEST_NEW,
+  ROUTE_TRANSCRIPTION_DETAILS,
+  ROUTE_TRANSCRIPTION_NEW,
+} from '~/config'
+import { useAuthentication, usePushChat } from '~/hooks'
+import { getUserContributions } from '~/services'
+import { IconChevronDown, IconMenu, IconPlus, IconSpinner } from '~/ui'
 import useMenuActions from './useMenuActions'
 
 export const MenuActions = () => {
   const { queryUserPushChats } = usePushChat()
   const { apiPopoverMenuActions, apiAccordionMenuActions } = useMenuActions()
+  //@ts-ignore
   const { currentUser } = useAuthentication()
 
-  /*
   const queryMenuContent = createQuery(
-    () => ['transcriptions', currentUser()?.address ],
+    () => ['shortcuts', currentUser()?.address],
     async () => {
-      // Fetch transcriptions created by the current user on multiple chains
-      const contracts = Object.keys(CONTRACT_TRANSCRIPTIONS).map(contract => {
-        return {
-          ...CONTRACT_TRANSCRIPTIONS[contract],
-
-        }
+      return await getUserContributions({
+        address: currentUser()?.address,
       })
     },
     {
       refetchOnWindowFocus: false,
       get enabled() {
         //@ts-ignore
-        return useCurrentUser()?.address ? true : false
+        return currentUser()?.address ? true : false
       },
     },
   )
-  */
+
   return (
     <>
       <button
@@ -42,7 +47,7 @@ export const MenuActions = () => {
       >
         <IconMenu class="w-7 h-7" />
       </button>
-      <div class="fixed max-h-[90vh] overflow-y-auto text-[0.825rem]" {...apiPopoverMenuActions().positionerProps}>
+      <div class="fixed max-h-[90vh] text-[0.825rem]" {...apiPopoverMenuActions().positionerProps}>
         <div
           class="w-[240px] rounded-lg inline-start-0.5 bg-white shadow-lg border border-neutral-7 divide-y divide-neutral-5"
           {...apiPopoverMenuActions().contentProps}
@@ -68,6 +73,14 @@ export const MenuActions = () => {
                       }}
                     />
                     My transcriptions
+                    <Switch>
+                      <Match when={queryMenuContent?.isLoading}>
+                        <IconSpinner class="w-4 h-4 animate-spin" />
+                      </Match>
+                      <Match when={queryMenuContent?.data?.transcriptions?.data?.length > 0}>
+                        ({queryMenuContent?.data?.transcriptions?.data?.length ?? 0})
+                      </Match>
+                    </Switch>
                   </button>
                   <A
                     href={ROUTE_TRANSCRIPTION_NEW}
@@ -78,11 +91,35 @@ export const MenuActions = () => {
                     <span class="sr-only">Create new transcription</span>
                   </A>
                 </h3>
-                <div
-                  class=" h-[60vh] overflow-y-auto"
-                  {...apiAccordionMenuActions().getContentProps({ value: 'transcriptions' })}
-                >
-                  ... list of transcriptions
+                <div class="max-h-[50vh]" {...apiAccordionMenuActions().getContentProps({ value: 'transcriptions' })}>
+                  <Switch>
+                    <Match when={queryMenuContent?.isLoading}>
+                      <IconSpinner class="w-4 h-4 animate-spin" />
+                    </Match>
+                    <Match when={queryMenuContent?.data?.transcriptions?.data?.length > 0}>
+                      <ul class="divide-y divide-neutral-6 overflow-y-auto">
+                        <For each={queryMenuContent?.data?.transcriptions?.data}>
+                          {(t: { data: any }) => {
+                            const transcription = t?.data
+                            return (
+                              <li class="whitespace-nowrap p-2 md:pb-0">
+                                <A
+                                  class="p-4 md:pt-1 md:pb-3 hover:bg-interactive-2 overflow-auto text-ellipsis rounded-md hover:text-interactive-11 focus:text-interactive-11 block  w-full"
+                                  href={ROUTE_TRANSCRIPTION_DETAILS.replace(
+                                    '[chain]',
+                                    //@ts-ignore
+                                    CHAINS_ALIAS[transcription?.chain_id] as string,
+                                  ).replace('[idTranscription]', transcription?.id)}
+                                >
+                                  {transcription?.title}
+                                </A>
+                              </li>
+                            )
+                          }}
+                        </For>
+                      </ul>
+                    </Match>
+                  </Switch>
                 </div>
               </div>
 
@@ -102,6 +139,14 @@ export const MenuActions = () => {
                       }}
                     />
                     My requests
+                    <Switch>
+                      <Match when={queryMenuContent?.isLoading}>
+                        <IconSpinner class="w-4 h-4 animate-spin" />
+                      </Match>
+                      <Match when={queryMenuContent?.data?.requests?.data?.length > 0}>
+                        ({queryMenuContent?.data?.requests?.data?.length ?? 0})
+                      </Match>
+                    </Switch>
                   </button>
                   <A
                     href={ROUTE_REQUEST_NEW}
@@ -112,11 +157,35 @@ export const MenuActions = () => {
                     <span class="sr-only">Create new request</span>
                   </A>
                 </h3>
-                <div
-                  class=" h-[60vh] overflow-y-auto"
-                  {...apiAccordionMenuActions().getContentProps({ value: 'requests' })}
-                >
-                  ... list of requests
+                <div class="max-h-[50vh]" {...apiAccordionMenuActions().getContentProps({ value: 'requests' })}>
+                  <Switch>
+                    <Match when={queryMenuContent?.isLoading}>
+                      <IconSpinner class="w-4 h-4 animate-spin" />
+                    </Match>
+                    <Match when={queryMenuContent?.data?.requests?.data?.length > 0}>
+                      <ul class="divide-y divide-neutral-6 overflow-y-auto">
+                        <For each={queryMenuContent?.data?.requests?.data}>
+                          {(r: { data: any }) => {
+                            const request = r?.data
+                            return (
+                              <li class="whitespace-nowrap p-2 md:pb-0">
+                                <A
+                                  class="overflow-auto text-ellipsis p-4 md:pt-1 md:pb-3 hover:bg-interactive-2 rounded-md hover:text-interactive-11 focus:text-interactive-11 inline-flex w-full"
+                                  href={ROUTE_REQUEST_DETAILS.replace(
+                                    '[chain]',
+                                    //@ts-ignore
+                                    CHAINS_ALIAS[request?.chain_id] as string,
+                                  ).replace('[idRequest]', request?.id)}
+                                >
+                                  {request?.source_media_title}
+                                </A>
+                              </li>
+                            )
+                          }}
+                        </For>
+                      </ul>
+                    </Match>
+                  </Switch>
                 </div>
               </div>
 
@@ -135,14 +204,46 @@ export const MenuActions = () => {
                         'text-accent-11': apiAccordionMenuActions().value === 'contributions',
                       }}
                     />
-                    My contributions
+                    My contributions{' '}
+                    <Switch>
+                      <Match when={queryMenuContent?.isLoading}>
+                        <IconSpinner class="w-4 h-4 animate-spin" />
+                      </Match>
+                      <Match when={queryMenuContent?.data?.revisions?.data?.length > 0}>
+                        ({queryMenuContent?.data?.revisions?.data?.length ?? 0})
+                      </Match>
+                    </Switch>
                   </button>
                 </h3>
-                <div
-                  class=" h-[60vh] overflow-y-auto"
-                  {...apiAccordionMenuActions().getContentProps({ value: 'contributions' })}
-                >
-                  ... list of contributions
+                <div class="max-h-[50vh]" {...apiAccordionMenuActions().getContentProps({ value: 'contributions' })}>
+                  <Switch>
+                    <Match when={queryMenuContent?.isLoading}>
+                      <IconSpinner class="w-4 h-4 animate-spin" />
+                    </Match>
+                    <Match when={queryMenuContent?.data?.revisions?.data?.length > 0}>
+                      <ul class="divide-y divide-neutral-6 overflow-y-auto">
+                        <For each={queryMenuContent?.data?.revisions?.data}>
+                          {(r: { data: any }) => {
+                            const revision = r?.data
+                            return (
+                              <li class="whitespace-nowrap p-2 md:pb-0">
+                                <A
+                                  class="overflow-auto text-ellipsis p-4 md:pt-1 md:pb-2 hover:bg-interactive-2 rounded-md hover:text-interactive-11 focus:text-interactive-11 inline-flex w-full"
+                                  href={ROUTE_TRANSCRIPTION_DETAILS.replace(
+                                    '[chain]',
+                                    //@ts-ignore
+                                    CHAINS_ALIAS[revision?.chain_id] as string,
+                                  ).replace('[idTranscription]', revision?.id)}
+                                >
+                                  {revision?.title}
+                                </A>
+                              </li>
+                            )
+                          }}
+                        </For>
+                      </ul>
+                    </Match>
+                  </Switch>
                 </div>
               </div>
             </div>

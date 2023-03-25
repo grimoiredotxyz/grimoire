@@ -1,3 +1,6 @@
+/**
+ * Get list of requests indexed on Polybase
+ */
 export async function getRequestsBoard(args: { sortOrder: 'asc' | 'desc'; cursor?: string }) {
   const encoded = encodeURIComponent(`${import.meta.env.VITE_POLYBASE_NAMESPACE}/Request`)
   let requestUrl = `https://testnet.polybase.xyz/v0/collections/${encoded}/records?limit=30&sort=[["upvotes","${

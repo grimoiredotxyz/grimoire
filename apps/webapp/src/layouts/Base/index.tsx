@@ -12,6 +12,7 @@ export const Base = (props: any) => {
   //@ts-ignore
   const { isAuthenticated } = useAuthentication()
   const location = useLocation()
+
   return (
     <ToastProvider>
       <div class="z-30 pointer-events-auto fixed w-fit-content inline-start-3 top-2">

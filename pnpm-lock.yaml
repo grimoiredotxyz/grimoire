@@ -15,6 +15,7 @@ importers:
       '@felte/validator-zod': ^1.0.13
       '@fleekhq/fleek-storage-js': ^1.0.24
       '@gelatonetwork/relay-sdk': ^3.5.0
+      '@polybase/auth': ^0.3.38
       '@polybase/client': ^0.3.36
       '@polybase/eth': ^0.3.36
       '@polybase/util': ^0.3.36
@@ -62,6 +63,7 @@ importers:
       '@felte/validator-zod': 1.0.13_zod@3.21.4
       '@fleekhq/fleek-storage-js': 1.0.24
       '@gelatonetwork/relay-sdk': 3.5.0
+      '@polybase/auth': 0.3.38
       '@polybase/client': 0.3.36
       '@polybase/eth': 0.3.36
       '@polybase/util': 0.3.36
@@ -2131,6 +2133,12 @@ packages:
 
   /@polka/url/1.0.0-next.21:
     resolution: {integrity: sha512-a5Sab1C4/icpTZVzZc5Ghpz88yQtGOyNqYXcZgOssB2uuAr+wF/MvN6bgtW32q7HHrvBki+BsZ0OuNv6EV3K9g==}
+
+  /@polybase/auth/0.3.38:
+    resolution: {integrity: sha512-UPbFIpTNwG13R2spuJ3ZApRA2uH53l8y+7Iwyw1/tvQCBh0nOmqb8D6MLLX+7yXt9YZfDDGFPAS/fEmdjYBFzg==}
+    dependencies:
+      penpal: 6.2.2
+    dev: false
 
   /@polybase/client/0.3.36:
     resolution: {integrity: sha512-sfLGt4FpGd0cnPYcUgSmie9af1ySOnlXAOfJU9WNdpXjumbsxLgIy8RGOdkpndVcBVkDp/uMoS6KdzvcLdOkOA==}
@@ -6058,6 +6066,10 @@ packages:
       ripemd160: 2.0.2
       safe-buffer: 5.2.1
       sha.js: 2.4.11
+
+  /penpal/6.2.2:
+    resolution: {integrity: sha512-RQD7hTx14/LY7QoS3tQYO3/fzVtwvZI+JeS5udgsu7FPaEDjlvfK9HBcme9/ipzSPKnrxSgacI9PI7154W62YQ==}
+    dev: false
 
   /picocolors/1.0.0:
     resolution: {integrity: sha512-1fygroTLlHu66zi26VoTDv8yRgm0Fccecssto+MhsZ0D/DGW2sm8E8AjW7NU5VVTRt5GxbeZ5qBuJr+HyLYkjQ==}
