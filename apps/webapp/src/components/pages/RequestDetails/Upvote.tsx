@@ -1,0 +1,45 @@
+import { Match, splitProps, Switch } from 'solid-js'
+import { useAuthentication } from '~/hooks'
+import { Button, ButtonProps } from '~/ui'
+import useRequestActions from './useRequestActions'
+
+interface UpvoteProps extends ButtonProps {
+  idRequest: string
+  voters: any
+}
+export const Upvote = (props: UpvoteProps) => {
+  const { currentUser } = useAuthentication()
+  const { mutationUpvoteRequest } = useRequestActions()
+  const [local, buttonProps] = splitProps(props, ['idRequest', 'voters'])
+
+  return (
+    <Button
+      isLoading={mutationUpvoteRequest.isLoading}
+      onClick={async () => await mutationUpvoteRequest.mutateAsync({ idRequest: local.idRequest })}
+      disabled={
+        !currentUser()?.address ||
+        mutationUpvoteRequest.isLoading ||
+        mutationUpvoteRequest.isSuccess ||
+        local.voters?.[!currentUser()?.address] === true
+      }
+      type="button"
+      {...buttonProps}
+    >
+      <span
+        classList={{
+          'pis-1ex': mutationUpvoteRequest.isLoading,
+        }}
+      >
+        <Switch fallback="Upvote">
+          <Match when={mutationUpvoteRequest.isError}>Upvoted !</Match>
+          <Match when={mutationUpvoteRequest.isLoading}>Casting vote...</Match>
+          <Match when={mutationUpvoteRequest.isSuccess || local.voters?.[currentUser()?.address] === true}>
+            Upvoted !
+          </Match>
+        </Switch>
+      </span>
+    </Button>
+  )
+}
+
+export default Upvote

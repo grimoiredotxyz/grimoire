@@ -1,25 +1,28 @@
-import { useParams } from 'solid-start'
+import { createMutation, useQueryClient } from '@tanstack/solid-query'
+import { getNetwork, prepareWriteContract, waitForTransaction, writeContract } from '@wagmi/core'
+import * as accordion from '@zag-js/accordion'
+import * as popover from '@zag-js/popover'
+import { useMachine, normalizeProps } from '@zag-js/solid'
+import { utils } from 'ethers'
 import { fromUnixTime, getUnixTime } from 'date-fns'
 import { createEffect, createMemo, createUniqueId } from 'solid-js'
-import { createMutation, useQueryClient } from '@tanstack/solid-query'
-import { z } from 'zod'
-import * as popover from '@zag-js/popover'
-import * as accordion from '@zag-js/accordion'
-import { useMachine, normalizeProps } from '@zag-js/solid'
-import { useToast } from '~/hooks/useToast'
-import { uploadFileToIPFS } from '~/helpers'
-import { schema } from './schema'
-import { getNetwork, prepareWriteContract, waitForTransaction, writeContract } from '@wagmi/core'
+import { useParams } from 'solid-start'
 //@ts-ignore
 import { v4 as uuid } from 'uuid'
+import { z } from 'zod'
 import { ABI_TRANSCRIPTIONS, CHAINS_ALIAS, CONTRACT_TRANSCRIPTIONS } from '~/config'
-import { utils } from 'ethers'
+import { uploadFileToIPFS } from '~/helpers'
+import { useToast, usePolybase } from '~/hooks'
+import { schema } from './schema'
 
 interface FormValues extends z.infer<typeof schema> {}
 
 export function useSmartContract() {
+  //@ts-ignore
+  const { db } = usePolybase() // Database
   // Route params
   const params = useParams<{ chain: string; idRequest: string }>()
+  // Query & cache
   const queryClient = useQueryClient()
   // UI
   const toast = useToast()
@@ -33,18 +36,30 @@ export function useSmartContract() {
   )
 
   // Mutations
-  // File uploads
+  /**
+   * Mutations that handles uploading our various files to IPFS   *
+   */
   const mutationUploadVTTFile = createMutation(uploadFileToIPFS)
   const mutationUploadSRTFile = createMutation(uploadFileToIPFS)
   const mutationUploadLRCFile = createMutation(uploadFileToIPFS)
 
-  // Metadata file upload
+  /**
+   * Mutation that handles uploading our metadata (JSON file) to IPFS
+   * If it is successful, it opens the "transaction" accordion in the UI
+   *
+   */
   const mutationUploadMetadata = createMutation(uploadFileToIPFS, {
     onSuccess() {
       if (apiAccordionCreateNewTranscriptionStatus().value !== 'transaction-1')
         apiAccordionCreateNewTranscriptionStatus().setValue('transaction-1') // Open the transaction accordion when the metadata are uploaded successfully
     },
   })
+
+  /**
+   * Mutation that handles writing a new Transcription on chain (createTranscription function)
+   * If it is successful, it triggers the txWait mutation
+   *
+   */
   const mutationWriteContractCreateNewTranscription = createMutation(
     //@ts-ignore
     async (args: {
@@ -70,6 +85,8 @@ export function useSmartContract() {
           */
         args: [args?.updatedAt, args?.listCollaborators, args?.uriMetadata, args?.idRequest, args?.listCommunities],
       })
+
+      // Opens the transaction accordion in the UI if it's not open
       if (apiAccordionCreateNewTranscriptionStatus().value !== 'transaction-1')
         apiAccordionCreateNewTranscriptionStatus().setValue('transaction-1')
       //@ts-ignore
@@ -88,13 +105,17 @@ export function useSmartContract() {
     },
   )
 
+  /**
+   * Mutation that handles waiting for an on-chain transaction to be successful (in this case, after calling the createTranscription function)
+   *
+   */
   const mutationTxWaitCreateNewTranscription = createMutation(
     async (args: { hash: `0x${string}`; chainAlias: string }) => {
       const data = await waitForTransaction({ hash: args.hash })
       const iface = new utils.Interface(ABI_TRANSCRIPTIONS)
       const log = data.logs
       const {
-        transcription_id,
+        transcript_id,
         created_at,
         last_updated_at,
         creator,
@@ -106,7 +127,7 @@ export function useSmartContract() {
       } = iface.parseLog(log[0]).args
       return {
         txData: data,
-        transcription_id,
+        transcript_id,
         created_at,
         last_updated_at,
         creator,
@@ -145,6 +166,68 @@ export function useSmartContract() {
     },
   )
 
+  /**
+   * Mutation that handles creating a new `Transcription` record on Polybase
+   * constructor (id: string, chain_id: number, slug: string, title: title, source_media_title: string, source_media_uris: string, language: string, keywords: string
+   */
+  const mutationIndexTranscription = createMutation(
+    async (args: {
+      id: string
+      slug: string
+      chain_id: number
+      title: string
+      source_media_title: string
+      source_media_uris: string
+      language: string
+      keywords: string
+    }) => {
+      const dbCollectionReference = db.collection('Transcription')
+
+      // Parameters in that order specifically
+      // id, chain id, slug, title, source_media_title, source_media_uris, language, keywords
+      return await dbCollectionReference.create([
+        args?.id,
+        args?.chain_id,
+        args?.slug,
+        args?.title,
+        args?.source_media_title,
+        args?.source_media_uris,
+        args?.language,
+        args?.keywords,
+      ])
+    },
+    {
+      onSuccess() {
+        //@ts-ignore
+        toast().create({
+          title: 'Transcription created and indexed successfully!',
+          description: 'The transcription is now visible on the board and ready to accept new revisions.',
+          type: 'success',
+          placement: 'bottom-right',
+        })
+      },
+      onError() {
+        //@ts-ignore
+        toast().create({
+          title: "Couldn't index this transcription !",
+          description: 'Make sure to sign the message in your wallet.',
+          type: 'error',
+          placement: 'bottom-right',
+        })
+      },
+      onSettled() {
+        // Whether or not the transaction is successful, invalidate user balance query
+        // this way we will refresh the balance
+        queryClient.invalidateQueries(['user-balance'])
+      },
+    },
+  )
+
+  /**
+   * - Upload files to IPFS
+   * - Returns data required by the smart contract to create a new transcription on chain
+   * @param formValues: FormValues
+   */
   async function prepareData(formValues: any) {
     apiAccordionCreateNewTranscriptionStatus().setValue('file-uploads')
 
@@ -245,6 +328,7 @@ export function useSmartContract() {
       uriMetadata = mutationUploadMetadata.data
     }
     return {
+      metadata,
       uriMetadata,
       updatedAt: getUnixTime(new Date()),
       listCollaborators:
@@ -260,10 +344,17 @@ export function useSmartContract() {
           ? formValues?.communities
           : [],
       idRequest: params?.idRequest?.length > 0 ? params?.idRequest : utils.formatBytes32String(''),
-      metadata: {},
     }
   }
 
+  /**
+   * FormNewRequest handler
+   * - Upload all files to IPFS and prepare data
+   * - Create a new transcription onchain
+   * - Index request on Polybase schema
+   *
+   * @param args {formValues: FormValues}
+   */
   async function onSubmitCreateTranscriptionForm(args: { formValues: FormValues }) {
     try {
       const network = await getNetwork()
@@ -291,7 +382,7 @@ export function useSmartContract() {
 
       if (dataWriteContract?.hash) {
         const {
-          transcription_id,
+          transcript_id,
           created_at,
           last_updated_at,
           creator,
@@ -301,12 +392,21 @@ export function useSmartContract() {
           id_request,
           communities,
         } = await mutationTxWaitCreateNewTranscription.mutateAsync({ hash: dataWriteContract?.hash, chainAlias })
-
-        const slug = `${chainAlias}/${transcription_id}`
+        const slug = `${chainAlias}/${transcript_id}`
+        await mutationIndexTranscription.mutateAsync({
+          id: transcript_id,
+          chain_id: chainId as number,
+          slug,
+          title: metadata.title,
+          source_media_title: metadata.source_media_title,
+          source_media_uris: metadata.source_media_uris,
+          language: metadata.language,
+          keywords: metadata.keywords,
+        })
         queryClient.setQueryData(['transcription', slug], {
           chainId,
-          id: transcription_id,
-          transcription_id,
+          id: transcript_id,
+          transcript_id,
           communities,
           contributors,
           created_at,
@@ -324,7 +424,7 @@ export function useSmartContract() {
           language: metadata.language,
           lrc_file_uri: metadata.lrc_file_uri,
           notes: metadata.notes,
-          revision_must_be_approved_first: metadata.revision_must_be_approved_first,
+          revision_must_be_approved_first: args?.formValues?.revision_must_be_approved_first,
           source_media_title: metadata.source_media_title,
           source_media_uris: metadata.source_media_uris,
           srt_file_uri: metadata.srt_file_uri,
@@ -369,7 +469,8 @@ export function useSmartContract() {
     // Contract interactions
     mutationWriteContractCreateNewTranscription,
     mutationTxWaitCreateNewTranscription,
-
+    // Indexer
+    mutationIndexTranscription,
     // Form submit event handlers
     onSubmitCreateTranscriptionForm,
   }

@@ -1,4 +1,4 @@
-import { For, Match, Show, splitProps, Switch } from 'solid-js'
+import { createEffect, For, Match, Show, splitProps, Switch } from 'solid-js'
 import { formatDistanceToNow } from 'date-fns'
 import { web3UriToUrl } from '~/helpers'
 import { Button, IconEllipsisVertical, IconPlus, IconSpinner, IconTrash, Identity } from '~/ui'
@@ -11,6 +11,7 @@ import { useAuthentication } from '~/hooks'
 import type { Request } from '~/services'
 import type { Resource, Setter } from 'solid-js'
 import ListPropositions from './ListPropositions'
+import Upvote from './Upvote'
 
 interface RequestDetailsProps {
   request: Resource<Request>
@@ -27,6 +28,7 @@ export const RequestDetails = (props: RequestDetailsProps) => {
     mutationWriteContractUpdateRequestStatus,
     mutationTxWaitUpdateRequestStatus,
   } = useRequestActions()
+
   return (
     <>
       <div class="container flex flex-col-reverse xs:flex-row flex-wrap gap-4 mx-auto pb-6">
@@ -322,6 +324,24 @@ export const RequestDetails = (props: RequestDetailsProps) => {
           </div>
         </div>
       </div>
+      <Show when={!props.request()?.fulfilled}>
+        <section class="mt-16 sm:text-center bg-neutral-1 border border-neutral-6 p-6">
+          <div class="max-w-prose mx-auto">
+            <h3 class="text-lg mb-1 font-serif font-semibold text-accent-12">Need this transcription ?</h3>
+            <p class="mb-4 text-neutral-11 text-sm">
+              You can help making this request more visible on the request board by upvoting it. By the way - upvoting
+              is completely free !
+            </p>
+            <Upvote
+              class="flex items-center mx-auto"
+              intent="neutral-outline"
+              scale="sm"
+              voters={props.request()?.voters}
+              idRequest={props.request()?.id as string}
+            />
+          </div>
+        </section>
+      </Show>
     </>
   )
 }

@@ -479,7 +479,7 @@ export const NewTranscription = () => {
                                         mutationTxWaitCreateNewTranscription.data?.chainAlias as string,
                                       ).replace(
                                         '[idTranscription]',
-                                        mutationTxWaitCreateNewTranscription.data?.transcription_id,
+                                        mutationTxWaitCreateNewTranscription.data?.transcript_id,
                                       )}
                                     >
                                       the details page here.

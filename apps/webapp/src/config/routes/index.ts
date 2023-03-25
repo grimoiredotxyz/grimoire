@@ -15,7 +15,7 @@ export const ROUTE_DASHBOARD = '/dashboard'
 // Transcriptions
 
 // Search transcripts page
-export const ROUTE_TRANSCRIPTION_SEARCH = `${BASE_ROUTE_TRANSCRIPTION}/search`
+export const ROUTE_TRANSCRIPTION_SEARCH = `${BASE_ROUTE_TRANSCRIPTION}s`
 
 // Transcription details page
 export const ROUTE_TRANSCRIPTION_DETAILS = `/[chain]${BASE_ROUTE_TRANSCRIPTION}/[idTranscription]`
@@ -34,7 +34,7 @@ export const ROUTE_TRANSCRIPTION_REVISION_NEW = `${BASE_ROUTE_TRANSCRIPTION_REVI
 // Request
 
 // Ongoing/active requests page
-export const ROUTE_REQUEST_ACTIVE = `/requests-board`
+export const ROUTE_REQUEST_ACTIVE = `/requests`
 
 // Create new request page
 export const ROUTE_REQUEST_NEW = `${BASE_ROUTE_REQUEST}/new`

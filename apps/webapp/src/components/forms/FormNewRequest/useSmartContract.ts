@@ -1,24 +1,26 @@
-import { fromUnixTime, getUnixTime } from 'date-fns'
-import { createEffect, createMemo, createUniqueId, onMount } from 'solid-js'
 import { createMutation, useQueryClient } from '@tanstack/solid-query'
-import { z } from 'zod'
-import * as popover from '@zag-js/popover'
-import * as accordion from '@zag-js/accordion'
-import { useMachine, normalizeProps } from '@zag-js/solid'
-import { useToast } from '~/hooks/useToast'
-import { uploadFileToIPFS } from '~/helpers'
-import { schema } from './schema'
 import { getNetwork, prepareWriteContract, waitForTransaction, writeContract } from '@wagmi/core'
-import { v4 as uuid } from 'uuid'
-import { ABI_TRANSCRIPTIONS, CHAINS_ALIAS, CONTRACT_TRANSCRIPTIONS } from '~/config'
+import * as accordion from '@zag-js/accordion'
+import * as popover from '@zag-js/popover'
+import { useMachine, normalizeProps } from '@zag-js/solid'
+import { fromUnixTime, getUnixTime } from 'date-fns'
 import { utils } from 'ethers'
-import { usePolybase } from '~/hooks'
+import { createEffect, createMemo, createUniqueId } from 'solid-js'
+//@ts-ignore
+import { v4 as uuid } from 'uuid'
+import { z } from 'zod'
+import { ABI_TRANSCRIPTIONS, CHAINS_ALIAS, CONTRACT_TRANSCRIPTIONS } from '~/config'
+import { uploadFileToIPFS } from '~/helpers'
+import { usePolybase, useToast } from '~/hooks'
+import { schema } from './schema'
 
 interface FormValues extends z.infer<typeof schema> {}
 
 export function useSmartContract() {
+  // Query & cache
   const queryClient = useQueryClient()
   // DB (polybase)
+  //@ts-ignore
   const { db } = usePolybase()
   // UI
   const toast = useToast()
@@ -30,13 +32,23 @@ export function useSmartContract() {
   )
 
   // Mutations
-  // Metadata file upload
+  /**
+   * Mutation that handles uploading our metadata (JSON file) to IPFS
+   * If it is successful, it opens the "transaction" accordion in the UI
+   *
+   */
   const mutationUploadMetadata = createMutation(uploadFileToIPFS, {
     onSuccess() {
       if (apiAccordionCreateNewRequestStatus().value !== 'transaction-1')
         apiAccordionCreateNewRequestStatus().setValue('transaction-1') // Open the transaction accordion when the metadata are uploaded successfully
     },
   })
+
+  /**
+   * Mutation that handles writing a new Request on chain (createRequest function)
+   * If it is successful, it triggers the txWait mutation
+   *
+   */
   const mutationWriteContractCreateNewRequest = createMutation(
     //@ts-ignore
     async (args: { updatedAt: number; listCollaborators: Array<string>; uriMetadata: string }) => {
@@ -55,6 +67,7 @@ export function useSmartContract() {
         args: [args?.updatedAt, args?.uriMetadata, args?.listCollaborators],
       })
 
+      // Opens the transaction accordion in the UI if it's not open
       if (apiAccordionCreateNewRequestStatus().value !== 'transaction-1')
         apiAccordionCreateNewRequestStatus().setValue('transaction-1')
       //@ts-ignore
@@ -73,6 +86,10 @@ export function useSmartContract() {
     },
   )
 
+  /**
+   * Mutation that handles waiting for an on-chain transaction to be successful  (in this case, after calling the createRequest function)
+   *
+   */
   const mutationTxWaitCreateNewRequest = createMutation(
     async (args: { hash: `0x${string}`; chainAlias: string }) => {
       const data = await waitForTransaction({ hash: args?.hash })
@@ -108,26 +125,34 @@ export function useSmartContract() {
     },
   )
 
+  /**
+   * Mutation that handles creating a new `Request` record on Polybase
+   * constructor:  (id: string, chain_id: number, slug: string, source_media_title: string, source_media_uris: string, language: string, keywords: string, content_uri: string
+   */
   const mutationIndexRequest = createMutation(
     async (args: {
       id: string
       slug: string
+      chain_id: number
       source_media_title: string
       source_media_uris: string
       language: string
       keywords: string
+      content_uri: string
     }) => {
       const dbCollectionReference = db.collection('Request')
 
       // Parameters in that order specifically
-      // id, slug, source_media_title, source_media_uris, language, keywords
+      // id, chain id, slug, source_media_title, source_media_uris, language, keywords, content_uri
       return await dbCollectionReference.create([
         args?.id,
+        args?.chain_id,
         args?.slug,
         args?.source_media_title,
         args?.source_media_uris,
         args?.language,
         args?.keywords,
+        args?.content_uri,
       ])
     },
     {
@@ -157,6 +182,11 @@ export function useSmartContract() {
     },
   )
 
+  /**
+   * - Upload files to IPFS
+   * - Returns data required by the smart contract to create a new request on chain
+   * @param formValues: FormValues
+   */
   async function prepareData(formValues: any) {
     apiAccordionCreateNewRequestStatus().setValue('file-uploads')
 
@@ -211,6 +241,14 @@ export function useSmartContract() {
     }
   }
 
+  /**
+   * FormNewRequest handler
+   * - Upload all files to IPFS and prepare data
+   * - Create a new request onchain
+   * - Index request on Polybase schema
+   *
+   * @param args {formValues: FormValues}
+   */
   async function onSubmitCreateRequestForm(args: { formValues: FormValues }) {
     try {
       const network = await getNetwork()
@@ -227,6 +265,8 @@ export function useSmartContract() {
       /**
        * Smart contract interaction
        */
+
+      // Write action
       const dataWriteContract = await mutationWriteContractCreateNewRequest.mutateAsync({
         uriMetadata: uriMetadata as string,
         updatedAt,
@@ -234,17 +274,23 @@ export function useSmartContract() {
       })
 
       if (dataWriteContract?.hash) {
+        // Wait action
         const { request_id, created_at, creator, metadata_uri, last_updated_at } =
           await mutationTxWaitCreateNewRequest.mutateAsync({ hash: dataWriteContract.hash, chainAlias })
         const slug = `${chainAlias}/${request_id}`
+
+        // Index action
         await mutationIndexRequest.mutateAsync({
           id: request_id,
+          chain_id: chainId as number,
           slug,
           source_media_title: metadata.source_media_title,
           source_media_uris: metadata.source_media_uris,
           language: metadata.language,
           keywords: metadata.keywords,
+          content_uri: metadata_uri,
         })
+        // Update query cache
         queryClient.setQueryData(['transcription', slug], {
           chainId,
           id: request_id,
@@ -286,6 +332,7 @@ export function useSmartContract() {
       ].includes('loading') &&
       !apiPopoverCreateNewRequestStatus().isOpen
     ) {
+      // Opens the transaction/upload popover if any of those actions in ongoing
       apiPopoverCreateNewRequestStatus().open()
     }
   })

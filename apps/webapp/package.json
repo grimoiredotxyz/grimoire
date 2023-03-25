@@ -43,6 +43,7 @@
     "@zag-js/tabs": "^0.2.13",
     "@zag-js/tags-input": "^0.3.14",
     "@zag-js/toast": "^0.2.14",
+    "buffer": "^6.0.3",
     "class-variance-authority": "^0.4.0",
     "date-fns": "^2.29.3",
     "ethers": "^5.7.2",

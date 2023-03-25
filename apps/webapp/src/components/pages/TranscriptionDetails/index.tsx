@@ -1,4 +1,4 @@
-import { createEffect, createSignal, For, Match, onMount, Show, splitProps, Switch } from 'solid-js'
+import { createEffect, createSignal, For, Match, Show, splitProps, Switch } from 'solid-js'
 import { LOCALES, ROUTE_REQUEST_DETAILS } from '~/config'
 import useDetails from './useDetails'
 import { web3UriToUrl } from '~/helpers'
@@ -30,7 +30,7 @@ export const TranscriptionDetails = (props: TranscriptionDetailsProps) => {
   } = useDetails()
   const { mutationTxWaitDeleteTranscription, mutationWriteContractDeleteTranscription } = useTranscriptionActions()
   const { currentUser } = useAuthentication()
-  onMount(() => {
+  createEffect(() => {
     setIsMounted(true)
   })
 

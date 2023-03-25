@@ -5,6 +5,7 @@ import { CHAINS_ALIAS, LOCALES, ROUTE_REQUEST_DETAILS } from '~/config'
 import { deriveEthAddressFromPublicKey } from '~/helpers'
 import { useAuthentication } from '~/hooks'
 import { Button, Identity } from '~/ui'
+import Upvote from '../RequestDetails/Upvote'
 import useRequestActions from '../RequestDetails/useRequestActions'
 
 interface ListRequestsProps {
@@ -61,7 +62,14 @@ export const ListRequests = (props: ListRequestsProps) => {
                         <span class="capitalize font-semibold">
                           {request.data.slug.split('/')?.[0]?.replace('-', ' ')}
                         </span>
-                        &nbsp; by {request?.data?.creator}
+                        &nbsp;{' '}
+                        <Show when={request?.data?.creator?.slice(0, 2) === '0x'}>
+                          by{' '}
+                          <Identity
+                            address={deriveEthAddressFromPublicKey(request?.data?.creator) as `0x${string}`}
+                            shortenOnFallback={true}
+                          />
+                        </Show>
                       </span>
 
                       <A
@@ -77,27 +85,13 @@ export const ListRequests = (props: ListRequestsProps) => {
                         <span class="link block text-2xs" aria-hidden="true">
                           View more details
                         </span>
-                        <Button
-                          isLoading={mutationUpvoteRequest.isLoading}
-                          onClick={async () => await mutationUpvoteRequest.mutateAsync({ idRequest: request.data.id })}
-                          disabled={
-                            !currentUser()?.address ||
-                            mutationUpvoteRequest.isLoading ||
-                            request.data.voters?.[!currentUser()?.address] === true
-                          }
-                          type="button"
+                        <Upvote
+                          idRequest={request.data?.id}
+                          voters={request?.data?.voters}
                           class="relative flex items-center w-auto z-10"
                           scale="sm"
                           intent="neutral-outline"
-                        >
-                          <span
-                            classList={{
-                              'pis-1ex': mutationUpvoteRequest.isLoading,
-                            }}
-                          >
-                            Upvote
-                          </span>
-                        </Button>
+                        />
                       </div>
                     </li>
                   )
