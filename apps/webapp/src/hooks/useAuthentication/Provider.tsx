@@ -1,4 +1,4 @@
-import { createSignal, onMount, createContext, createEffect } from 'solid-js'
+import { createSignal, onMount, createContext } from 'solid-js'
 import { createMutation, createQuery } from '@tanstack/solid-query'
 import { connect, disconnect, fetchBalance, getNetwork, switchNetwork } from '@wagmi/core'
 import { CONNECTORS, chains } from '~/config/wagmi'
@@ -152,22 +152,22 @@ export const ProviderAuthentication = (props: any) => {
     }
   })
 
-  createEffect(async () => {
-    if (currentUser()?.address) {
-      const user = await PushAPI.user.get({
-        account: `eip155:${currentUser()?.address}`,
-      })
+  const mutationGetPushUser = createMutation(async () => {
+    const user = await PushAPI.user.get({
+      account: `eip155:${currentUser()?.address}`,
+    })
 
-      if (user === null) {
-        await mutationCreatePushChatProfile.mutateAsync()
-      } else {
-        setPushChatProfile(user)
-      }
+    if (user === null) {
+      await mutationCreatePushChatProfile.mutateAsync()
+    } else {
+      setPushChatProfile(user)
     }
   })
+
   const authentication = {
     pushChatProfile,
     mutationCreatePushChatProfile,
+    mutationGetPushUser,
     currentNetwork,
     queryTokenBalance,
     isReady,
