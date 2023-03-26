@@ -66,6 +66,17 @@ export async function getOnChainRequest(args: { chainAlias: string; idRequest: s
     fulfilled: chainData.fullfiled,
     open_for_transcripts: chainData.receiving_transcripts,
   }
+  let polybaseData
+  if (chainData?.request_id) {
+    const encoded = encodeURIComponent(`${import.meta.env.VITE_POLYBASE_NAMESPACE}/Request`)
+    const requestUrl = `https://testnet.polybase.xyz/v0/collections/${encoded}/records/${chainData?.request_id}`
+    const response = await fetch(requestUrl, {
+      headers: {
+        Accept: 'application/json',
+      },
+    })
+    polybaseData = await response.json()
+  }
 
   if (data?.metadata_uri && data?.metadata_uri !== '') {
     const uri = web3UriToUrl(data?.metadata_uri)
@@ -75,6 +86,7 @@ export async function getOnChainRequest(args: { chainAlias: string; idRequest: s
       ...data,
       ...metadata,
       collaborators: data.collaborators,
+      voters: polybaseData?.data?.voters ?? {},
     }
   }
 
