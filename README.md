@@ -4,12 +4,12 @@
 
 ## Features Overview
 
-[x] Create and manage transcriptions requests and their transcription proposals ;
-[x] Create and manage transcriptions and their revision proposals ;
-[x] Issue a social attestation for any successul contribution ; (accepted revision, accepted transcription proposal)
-[x] Rate transcriptions ;
-[ ] Message reviewers openly (public group chat) ; (work-in-progress)
-[ ] Search and filter through transcriptions ; (work-in-progress)
+- [x] Create and manage transcriptions requests and their transcription proposals ;
+- [x] Create and manage transcriptions and their revision proposals ;
+- [x] Issue a social attestation for any successul contribution ; (accepted revision, accepted transcription proposal)
+- [x] Rate transcriptions ;
+- [ ] Message reviewers openly (public group chat) ; (work-in-progress)
+- [ ] Search and filter through transcriptions ; (work-in-progress)
 
 ## Description
 
@@ -60,7 +60,8 @@ This Solidity smart contract is compatible with EVM chains. It enables the manag
 - [Gnosis Chiado `0x92C410556C7AeD3C9aa6ED3552431C876770FF99`](https://repo.sourcify.dev/contracts/full_match/10200/0x92C410556C7AeD3C9aa6ED3552431C876770FF99/)
 - [Optimism Goerli `0x239b986D8B3bAB3e89D9586a5D83c5C0B08Fc3D3`](https://repo.sourcify.dev/contracts/full_match/420/0x239b986D8B3bAB3e89D9586a5D83c5C0B08Fc3D3/)
 - [Scroll Alpha tesnet `0xF91F71e2AB73a5298CAb2aD8df0EBE6e176961Ce`](https://blockscout.scroll.io/address/0xF91F71e2AB73a5298CAb2aD8df0EBE6e176961Ce)
-- [Filecoin Hyperspace `0xB293049B4940C3AF4191C8b03f79C8c0e5B39199`](https://w3s.link/ipfs/bafkreighmwwfhnothnmw53y2fz5xesjr5d7lpxz5oavcg5h76geg42dp4m) -[Polygon zkEVM `0x239b986D8B3bAB3e89D9586a5D83c5C0B08Fc3D3`](https://explorer.public.zkevm-test.net/address/0x239b986D8B3bAB3e89D9586a5D83c5C0B08Fc3D3)
+- [Filecoin Hyperspace `0xB293049B4940C3AF4191C8b03f79C8c0e5B39199`](https://w3s.link/ipfs/bafkreighmwwfhnothnmw53y2fz5xesjr5d7lpxz5oavcg5h76geg42dp4m)
+-[Polygon zkEVM `0x239b986D8B3bAB3e89D9586a5D83c5C0B08Fc3D3`](https://explorer.public.zkevm-test.net/address/0x239b986D8B3bAB3e89D9586a5D83c5C0B08Fc3D3)
 - [Taiko Sepolia `0x239b986D8B3bAB3e89D9586a5D83c5C0B08Fc3D3`](https://sepolia.etherscan.io/address/0x239b986D8B3bAB3e89D9586a5D83c5C0B08Fc3D3)
 
 ## Deployed subgraphs (hosted service)
