@@ -24,6 +24,7 @@ export const ProposeNewRevision = (props: ProposeNewRevisionProps) => {
     // Contract interactions
     mutationWriteContractProposeNewRevision,
     mutationTxWaitProposeNewRevision,
+    mutationIndexRevision,
     // Form submit event handlers
     onSubmitProposeNewRevisionForm,
   } = useSmartContract()
@@ -31,23 +32,31 @@ export const ProposeNewRevision = (props: ProposeNewRevisionProps) => {
   const { formProposeNewRevision, stateMachineAccordion, stateMachineTabs } = useForm({
     //@ts-ignore
     initialValues: {
-      id_original_transcription: props.transcription().transcription_id,
-      source_media_title: props?.transcription().source_media_title ?? '',
+      id_original_transcription: props.transcription?.data.transcription_id,
+      source_media_title: props?.transcription?.data.source_media_title ?? '',
       source_media_uris:
-        props?.transcription()?.source_media_uris?.length > 0
-          ? props?.transcription()?.source_media_uris.toString()
+        props?.transcription?.data?.source_media_uris?.length > 0
+          ? props?.transcription?.data?.source_media_uris.toString()
           : '',
-      notes: props.transcription()?.notes,
-      language: props.transcription().language as string,
-      keywords: props.transcription()?.keywords?.length > 0 ? props?.transcription()?.keywords.toString() : '',
-      title: props.transcription().title as string,
-      transcription_plain_text: props.transcription().transcription_plain_text as string,
-      srt_uri: props.transcription().srt_file_uri as string,
-      vtt_uri: props.transcription().vtt_file_uri as string,
-      lrc_uri: props.transcription().lrc_file_uri as string,
+      notes: props.transcription?.data?.notes,
+      language: props.transcription?.data.language as string,
+      keywords: props.transcription?.data?.keywords?.length > 0 ? props?.transcription?.data?.keywords.toString() : '',
+      title: props.transcription?.data.title as string,
+      transcription_plain_text: props.transcription?.data.transcription_plain_text as string,
+      srt_uri: props.transcription?.data.srt_file_uri as string,
+      vtt_uri: props.transcription?.data.vtt_file_uri as string,
+      lrc_uri: props.transcription?.data.lrc_file_uri as string,
       change_description: '',
     },
     onSubmit: (values: z.infer<typeof schema>) => {
+      if (mutationTxWaitProposeNewRevision.isSuccess) {
+        mutationUploadVTTFile.reset()
+        mutationUploadLRCFile.reset()
+        mutationUploadSRTFile.reset()
+        mutationUploadMetadata.reset()
+        mutationIndexRevision.reset()
+        mutationWriteContractProposeNewRevision.reset()
+      }
       onSubmitProposeNewRevisionForm({
         formValues: values,
       })

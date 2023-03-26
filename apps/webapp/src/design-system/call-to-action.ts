@@ -82,6 +82,13 @@ export const callToAction = cva(
         'scrollAlpha-outline': [
           'border-[#f18740] hover:bg-opacity-90 hover:bg-[#f18740] focus:bg-[#f18740] text-neutral-12 hover:text-neutral-1 focus:text-white',
         ],
+        'taikoSepolia-outline': [
+          'border-[#FF51D8] hover:bg-opacity-90 hover:bg-[#FF51D8] focus:bg-[#FF51D8] text-neutral-12 hover:text-neutral-1 focus:text-white',
+        ],
+
+        'polygonZkEvmTestnet-outline': [
+          'border-[#7B3FE4] hover:bg-opacity-90 hover:bg-[#7B3FE4] focus:bg-[#7B3FE4] text-neutral-12 hover:text-neutral-1 focus:text-white',
+        ],
       },
       scale: {
         default: ['text-xs py-[0.9em]'],

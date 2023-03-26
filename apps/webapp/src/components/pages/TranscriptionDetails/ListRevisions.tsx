@@ -16,7 +16,7 @@ export const ListRevisions = (props) => {
         [3]: string // content_uri
         [4]: number // state
       }) => ({
-        queryKey: () => ['revision', `${params.chain}/${params.idTranscription}/${raw[0]}`],
+        queryKey: () => ['transcription', `${params.chain}/${raw[0]}`],
         queryFn: async () => {
           const chainId = CHAINS_ALIAS[params.chain]
           const idRevision = raw[0]
@@ -29,7 +29,7 @@ export const ListRevisions = (props) => {
           const metadata = await response.json()
           let data = {
             chainId,
-            slug: `${params.chain}/${idTranscription}/revision/${idRevision}`,
+            slug: `${params.chain}/${idRevision}`,
             transcription_id: idTranscription,
             state,
             creator,
@@ -63,7 +63,7 @@ export const ListRevisions = (props) => {
     <>
       <ul class="space-y-6">
         <For each={queriesRevisionsProposals}>
-          {(query) => {
+          {(query, i) => {
             return (
               <>
                 <Show when={query?.data}>

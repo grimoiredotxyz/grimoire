@@ -67,6 +67,9 @@ export function useDetails() {
       })
     },
     {
+      get enabled() {
+        return params?.chain && params?.idTranscription ? true : false
+      },
       refetchOnWindowFocus: true,
     },
   )
@@ -81,6 +84,9 @@ export function useDetails() {
       })
     },
     {
+      get enabled() {
+        return params?.chain && params?.idTranscription ? true : false
+      },
       refetchOnWindowFocus: true,
     },
   )

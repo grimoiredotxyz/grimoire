@@ -1,4 +1,5 @@
 import { Match, splitProps, Switch } from 'solid-js'
+import { deriveEthAddressFromPublicKey } from '~/helpers'
 import { useAuthentication } from '~/hooks'
 import { Button, ButtonProps } from '~/ui'
 import useRequestActions from './useRequestActions'
@@ -20,7 +21,9 @@ export const Upvote = (props: UpvoteProps) => {
         !currentUser()?.address ||
         mutationUpvoteRequest.isLoading ||
         mutationUpvoteRequest.isSuccess ||
-        local.voters?.[!currentUser()?.address] === true
+        Object.keys(local?.voters ?? {}).filter(
+          (pubKey) => deriveEthAddressFromPublicKey(pubKey) === currentUser()?.address.toLowerCase(),
+        )?.length > 0
       }
       type="button"
       {...buttonProps}
@@ -33,7 +36,14 @@ export const Upvote = (props: UpvoteProps) => {
         <Switch fallback="Upvote">
           <Match when={mutationUpvoteRequest.isError}>Upvoted !</Match>
           <Match when={mutationUpvoteRequest.isLoading}>Casting vote...</Match>
-          <Match when={mutationUpvoteRequest.isSuccess || local.voters?.[currentUser()?.address] === true}>
+          <Match
+            when={
+              mutationUpvoteRequest.isSuccess ||
+              Object.keys(local?.voters ?? {}).filter(
+                (pubKey) => deriveEthAddressFromPublicKey(pubKey) === currentUser()?.address?.toLowerCase(),
+              )?.length > 0
+            }
+          >
             Upvoted !
           </Match>
         </Switch>

@@ -1,38 +1,41 @@
 import { Title, useParams } from 'solid-start'
-import { createResource, Switch, Match } from 'solid-js'
+import { Switch, Match } from 'solid-js'
 import { useRouteData } from 'solid-start'
 import { getOnChainRequest } from '~/services'
 import RequestDetails from '~/components/pages/RequestDetails'
+import { createQuery } from '@tanstack/solid-query'
 
 export function routeData() {
   const params = useParams<{ chain: string; idRequest: string }>()
 
-  const [request, { mutate }] = createResource(async () => {
-    return await getOnChainRequest({
-      chainAlias: params?.chain,
-      idRequest: params?.idRequest,
-    })
-  })
-  return { request, mutate }
+  const queryRequest = createQuery(
+    () => ['request', `${params?.chain}/${params?.idRequest}`],
+    async () => {
+      return await getOnChainRequest({
+        chainAlias: params?.chain,
+        idRequest: params?.idRequest,
+      })
+    },
+  )
+
+  return queryRequest
 }
 
 export default function Page() {
-  const { request, mutate } = useRouteData<typeof routeData>()
+  const queryRequest = useRouteData<typeof routeData>()
   return (
     <>
-      <Switch
-        fallback={
+      <Switch>
+        <Match when={queryRequest?.isLoading}>
           <div class="m-auto">
             <Title> Loading request... | Grimoire</Title>
-
             <p class="font-bold text-lg animate-pulse">Loading...</p>
           </div>
-        }
-      >
+        </Match>
         <Match
           when={
-            !request()?.request_id ||
-            request()?.request_id === '0x0000000000000000000000000000000000000000000000000000000000000000'
+            !queryRequest?.data?.request_id ||
+            queryRequest?.data?.request_id === '0x0000000000000000000000000000000000000000000000000000000000000000'
           }
         >
           <Title> Request not found | Grimoire</Title>
@@ -41,9 +44,11 @@ export default function Page() {
             <p class="text-accent-11">This request wasn't deleted or doesn't exist.</p>
           </div>
         </Match>
-        <Match when={request()?.request_id !== '0x0000000000000000000000000000000000000000000000000000000000000000'}>
-          <Title> {request()?.source_media_title} | Grimoire</Title>
-          <RequestDetails mutate={mutate} request={request} />
+        <Match
+          when={queryRequest?.data?.request_id !== '0x0000000000000000000000000000000000000000000000000000000000000000'}
+        >
+          <Title> {queryRequest?.data?.source_media_title} | Grimoire</Title>
+          <RequestDetails request={queryRequest} />
         </Match>
       </Switch>
     </>

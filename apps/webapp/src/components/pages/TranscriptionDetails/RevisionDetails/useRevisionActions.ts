@@ -1,15 +1,15 @@
 import { createMutation, useQueryClient } from '@tanstack/solid-query'
 import { getNetwork, prepareWriteContract, writeContract, waitForTransaction, fetchSigner } from '@wagmi/core'
 import { CONTRACT_ATTESTATION_STATION, CONTRACT_TRANSCRIPTIONS } from '~/config'
-import { useAuthentication, usePolybase, useToast } from '~/hooks'
+import { useAuthentication, usePolybase, usePushChat, useToast } from '~/hooks'
 import { GelatoRelay, SponsoredCallRequest } from '@gelatonetwork/relay-sdk'
 import { ethers } from 'ethers'
-import { createEffect } from 'solid-js'
 import * as atst from '@eth-optimism/atst'
 export function useRevisionActions() {
   const queryClient = useQueryClient()
   const toast = useToast()
-  const { currentUser } = useAuthentication()
+  const { currentUser, pushChatProfile } = useAuthentication()
+  const { mutationSendMessage } = usePushChat()
   const mutationWriteAcceptRevision = createMutation(
     //@ts-ignore
     async (args: { idRevision: string; contributorAddress: `0x${string}`; slug: string }) => {
@@ -51,6 +51,9 @@ export function useRevisionActions() {
     },
     {
       async onSuccess(data, variables) {
+        await queryClient.invalidateQueries({ queryKey: ['transcription-accepted-revisions'] })
+        await queryClient.invalidateQueries({ queryKey: ['transcription'] })
+
         //@ts-ignore
         toast().create({
           title: 'Revision accepted successfully!',
@@ -74,7 +77,7 @@ export function useRevisionActions() {
       onSettled() {
         // Whether or not the transaction is successful, invalidate user balance query
         // this way we will refresh the balance
-        queryClient.invalidateQueries(['user-balance'])
+        queryClient.invalidateQueries({ queryKey: ['user-balance'] })
       },
     },
   )
@@ -124,7 +127,15 @@ export function useRevisionActions() {
       return txHash
     },
     {
-      onSuccess(data, variables, context) {
+      async onSuccess(data, variables, context) {
+        if (pushChatProfile()?.encryptedPrivateKey) {
+          await mutationSendMessage.mutateAsync({
+            messageType: 'Text',
+            messageContent: `Thank you for your contribution ! I issued a contribution attestation on Optimism Goerli for you. You can check it on the explorer.`,
+            receiverAddress: `0xD8E6f4f880812562027EFF36B808DF3bc9229E48`,
+          })
+        }
+
         //@ts-ignore
         toast().create({
           title: 'Attestation issued !',
@@ -170,7 +181,14 @@ export function useRevisionActions() {
       return await waitForTransaction({ hash: args.hash })
     },
     {
-      onSuccess() {
+      async onSuccess() {
+        await queryClient.invalidateQueries({
+          queryKey: ['transcription-proposed-revisions'],
+        })
+        await queryClient.invalidateQueries({
+          queryKey: ['transcription'],
+        })
+
         //@ts-ignore
         toast().create({
           title: 'Revision rejected successfully!',
@@ -190,7 +208,7 @@ export function useRevisionActions() {
       onSettled() {
         // Whether or not the transaction is successful, invalidate user balance query
         // this way we will refresh the balance
-        queryClient.invalidateQueries(['user-balance'])
+        queryClient.invalidateQueries({ queryKey: ['user-balance'] })
       },
     },
   )

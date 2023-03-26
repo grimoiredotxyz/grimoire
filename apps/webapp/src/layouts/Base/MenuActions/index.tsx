@@ -10,7 +10,7 @@ import {
   ROUTE_TRANSCRIPTION_NEW,
 } from '~/config'
 import { shortenEthereumAddress } from '~/helpers'
-import { useAuthentication, usePushChat } from '~/hooks'
+import { useAuthentication, usePolybase, usePushChat } from '~/hooks'
 import { getUserContributions } from '~/services'
 import {
   Button,
@@ -25,10 +25,13 @@ import {
   Identity,
 } from '~/ui'
 import useMenuActions from './useMenuActions'
+import * as PushAPI from '@pushprotocol/restapi'
+import RevisionShortcut from './RevisionShortcut'
 
 export const MenuActions = () => {
+  const { db } = usePolybase()
   const queryClient = useQueryClient()
-  const { queryUserPushChats } = usePushChat()
+  const { getKeyAndSigner } = usePushChat()
   const { apiPopoverMenuActions, apiAccordionMenuActions } = useMenuActions()
   //@ts-ignore
   const { currentUser, mutationGetPushUser, pushChatProfile, currentNetwork, mutationDisconnect, queryTokenBalance } =
@@ -49,16 +52,35 @@ export const MenuActions = () => {
       },
     },
   )
+
+  const queryUserPushChats = createQuery(
+    () => ['user-push-chats', currentUser()?.address],
+    async () => {
+      const { decryptedKey } = await getKeyAndSigner()
+
+      // actual api
+      const chats = await PushAPI.chat.chats({
+        account: `eip155:${currentUser()?.address}`,
+        toDecrypt: true,
+        pgpPrivateKey: decryptedKey,
+      })
+      return chats
+    },
+    {
+      refetchOnWindowFocus: false,
+      get enabled() {
+        return pushChatProfile()?.encryptedPrivateKey ? true : false
+      },
+    },
+  )
+
   createEffect(async () => {
     if (currentUser()?.address) {
-      await queryClient.invalidateQueries(['ens', currentUser()?.address])
-      await queryClient.refetchQueries(['ens', currentUser()?.address])
+      await queryClient.invalidateQueries({ queryKey: ['ens', currentUser()?.address] })
+      await queryClient.refetchQueries({ queryKey: ['ens', currentUser()?.address] })
     }
   })
 
-  createEffect(() => {
-    console.log(queryUserPushChats?.data)
-  })
   return (
     <>
       <button
@@ -67,7 +89,7 @@ export const MenuActions = () => {
           'bg-neutral-7 shadow-inner': apiPopoverMenuActions().isOpen,
         }}
         {...apiPopoverMenuActions().triggerProps}
-        class="aspect-square p-2 rounded-md hover:bg-neutral-4"
+        class="aspect-square bg-neutral-2 border border-neutral-4 p-2 rounded-md hover:bg-neutral-4"
       >
         <IconMenu class="w-7 h-7" />
       </button>
@@ -326,7 +348,9 @@ export const MenuActions = () => {
                       </Match>
                       <Match when={queryMenuContent?.data?.requests?.data?.length > 0}>
                         <span class="bg-accent-3 py-0.5 px-[0.5em] flex justify-center items-center text-accent-11 rounded-md text-[0.85em]">
-                          {queryMenuContent?.data?.requests?.data?.length ?? 0}
+                          <Show fallback="0" when={queryMenuContent?.data?.requests?.data?.length}>
+                            {queryMenuContent?.data?.requests?.data?.length}
+                          </Show>
                         </span>
                       </Match>
                     </Switch>
@@ -356,10 +380,9 @@ export const MenuActions = () => {
                                 <A
                                   class="overflow-auto text-ellipsis p-4 md:pt-1 md:pb-3 hover:bg-interactive-2 rounded-md hover:text-interactive-11 focus:text-interactive-11 inline-flex w-full"
                                   href={ROUTE_REQUEST_DETAILS.replace(
-                                    '[chain]',
-                                    //@ts-ignore
-                                    CHAINS_ALIAS[request?.chain_id] as string,
-                                  ).replace('[idRequest]', request?.id)}
+                                    '[chain]/request/[idRequest]',
+                                    request.slug.replace('/', '/request/'),
+                                  )}
                                 >
                                   {request?.source_media_title}
                                 </A>
@@ -420,9 +443,9 @@ export const MenuActions = () => {
                                     '[chain]',
                                     //@ts-ignore
                                     CHAINS_ALIAS[revision?.chain_id] as string,
-                                  ).replace('[idTranscription]', revision?.id)}
+                                  ).replace('[idTranscription]', revision?.transcription?.id)}
                                 >
-                                  {revision?.title}
+                                  <RevisionShortcut revision={revision} />
                                 </A>
                               </li>
                             )

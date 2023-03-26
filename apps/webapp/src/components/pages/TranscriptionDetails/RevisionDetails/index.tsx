@@ -1,13 +1,14 @@
-import { For, Match, Show, Switch } from 'solid-js'
+import { createEffect, For, Match, Show, Switch } from 'solid-js'
 import { useParams } from 'solid-start'
 import { isAddress } from 'viem'
 import { CHAINS_ALIAS } from '~/config'
 import { callToAction } from '~/design-system'
 import { web3UriToUrl } from '~/helpers'
-import { useAuthentication } from '~/hooks'
+import { useAuthentication, usePushChat } from '~/hooks'
 import { Button, IconDocumentArrowDown, Identity } from '~/ui'
 import { useDetails as useRevisionDetails } from '../useDetails'
 import { useDetails as useTranscriptionDetails } from './useDetails'
+import * as PushAPI from '@pushprotocol/restapi'
 
 import useRevisionActions from './useRevisionActions'
 
@@ -15,7 +16,7 @@ export const RevisionDetails = (props) => {
   const params = useParams()
   const { currentUser, currentNetwork, mutationSwitchNetwork } = useAuthentication()
   const { downloadFile } = useTranscriptionDetails()
-
+  const { getKeyAndSigner } = usePushChat()
   const { apiAccordionDetails } = useRevisionDetails()
   const {
     mutationWriteAcceptRevision,
@@ -28,26 +29,26 @@ export const RevisionDetails = (props) => {
     <>
       <div>
         <div class="text-start block w-full">
-          <p class="font-medium whitespace-pre pb-6 text-sm text-accent-12">{props.query?.data?.change_description}</p>
+          <p class="font-medium whitespace-pre pb-6 text-sm text-accent-12">{props?.query?.data?.change_description}</p>
           <p class="italic text-neutral-11 text-2xs">
             <span class="not:last:after:content-[','] font-semibold text-accent-10">
-              <Show when={props.query?.data?.transcription_plain_text?.trim()?.length > 0}>
+              <Show when={props?.query?.data?.transcription_plain_text?.trim()?.length > 0}>
                 <span>Plain text transcription ;&nbsp;</span>
               </Show>
-              <Show when={props.query?.data?.srt_file_uri?.trim()?.length > 0}>
+              <Show when={props?.query?.data?.srt_file_uri?.trim()?.length > 0}>
                 <span>.srt file ;&nbsp;</span>
               </Show>
-              <Show when={props.query?.data?.vtt_file_uri?.trim()?.length > 0}>
+              <Show when={props?.query?.data?.vtt_file_uri?.trim()?.length > 0}>
                 <span>.vtt file ;&nbsp;</span>
               </Show>
-              <Show when={props.query?.data?.lrc_file_uri?.trim()?.length > 0}>
+              <Show when={props?.query?.data?.lrc_file_uri?.trim()?.length > 0}>
                 <span>.lrc file ;&nbsp;</span>
               </Show>
             </span>
-            proposed by <Identity shortenOnFallback={true} address={props.query?.data?.creator} />{' '}
+            proposed by <Identity shortenOnFallback={true} address={props?.query?.data?.creator} />{' '}
           </p>
           <p class="pt-2 pb-4 flex flex-wrap gap-2">
-            <For each={props.query?.data?.change_type}>
+            <For each={props?.query?.data?.change_type.split(',')}>
               {(type) => (
                 <mark class="leading-none font-medium text-[0.8em] py-[0.25em] px-[0.5em] rounded-md bg-accent-1 border-accent-6 text-accent-11 border">
                   {type}
@@ -64,12 +65,12 @@ export const RevisionDetails = (props) => {
                 <button
                   class="disabled:opacity-50 disabled:cursor-not-allowed font-semibold text-neutral-11 text-2xs flex w-full p-3"
                   {...apiAccordionDetails().getTriggerProps({
-                    disabled: props.query?.data?.transcription_plain_text?.trim()?.length === 0,
+                    disabled: props?.query?.data?.transcription_plain_text?.trim()?.length === 0,
                     value: 'text-transcription',
                   })}
                 >
                   Plain-text transcription{' '}
-                  <Show when={props.query?.data?.transcription_plain_text?.trim()?.length === 0}>
+                  <Show when={props?.query?.data?.transcription_plain_text?.trim()?.length === 0}>
                     <span class="italic">(not provided)</span>
                   </Show>
                 </button>
@@ -78,7 +79,7 @@ export const RevisionDetails = (props) => {
                 class="pb-2 whitespace-pre px-4"
                 {...apiAccordionDetails().getContentProps({ value: 'text-transcription' })}
               >
-                {props.query?.data?.transcription_plain_text}
+                {props?.query?.data?.transcription_plain_text}
               </div>
             </div>
             <div {...apiAccordionDetails().getItemProps({ value: 'files' })}>
@@ -103,13 +104,13 @@ export const RevisionDetails = (props) => {
                       <Show
                         fallback={<p class="font-medium text-neutral-8 italic text-2xs">No file provided</p>}
                         when={
-                          props.query?.data.srt_file_uri !== null &&
-                          (props.query?.data.srt_file_uri?.length as number) > 0
+                          props?.query?.data.srt_file_uri !== null &&
+                          (props?.query?.data.srt_file_uri?.length as number) > 0
                         }
                       >
                         <a
                           class="text-[0.75em] link"
-                          href={web3UriToUrl(props.query?.data.srt_file_uri as string)}
+                          href={web3UriToUrl(props?.query?.data.srt_file_uri as string)}
                           target="_blank"
                         >
                           Open in a new tab
@@ -119,8 +120,8 @@ export const RevisionDetails = (props) => {
                           type="button"
                           onClick={async () => {
                             await downloadFile({
-                              filename: `${props.query?.data.slug}.srt`,
-                              uri: web3UriToUrl(props.query?.data.srt_file_uri as string),
+                              filename: `${props?.query?.data.slug}.srt`,
+                              uri: web3UriToUrl(props?.query?.data.srt_file_uri as string),
                             })
                           }}
                           class={callToAction({
@@ -141,13 +142,13 @@ export const RevisionDetails = (props) => {
                       <Show
                         fallback={<p class="font-medium text-neutral-8 italic text-2xs">No file provided</p>}
                         when={
-                          props.query?.data.vtt_file_uri !== null &&
-                          (props.query?.data.vtt_file_uri?.length as number) > 0
+                          props?.query?.data.vtt_file_uri !== null &&
+                          (props?.query?.data.vtt_file_uri?.length as number) > 0
                         }
                       >
                         <a
                           class="text-[0.75em] link"
-                          href={web3UriToUrl(props.query?.data.vtt_file_uri as string)}
+                          href={web3UriToUrl(props?.query?.data.vtt_file_uri as string)}
                           target="_blank"
                         >
                           Open in a new tab
@@ -157,8 +158,8 @@ export const RevisionDetails = (props) => {
                           type="button"
                           onClick={async () => {
                             await downloadFile({
-                              filename: `${props.query?.data.slug}.vtt`,
-                              uri: web3UriToUrl(props.query?.data.vtt_file_uri as string),
+                              filename: `${props?.query?.data.slug}.vtt`,
+                              uri: web3UriToUrl(props?.query?.data.vtt_file_uri as string),
                             })
                           }}
                           class={callToAction({
@@ -179,13 +180,13 @@ export const RevisionDetails = (props) => {
                       <Show
                         fallback={<p class="font-medium text-neutral-8 italic text-2xs">No file provided</p>}
                         when={
-                          props.query?.data.lrc_file_uri !== null &&
-                          (props.query?.data.lrc_file_uri?.length as number) > 0
+                          props?.query?.data.lrc_file_uri !== null &&
+                          (props?.query?.data.lrc_file_uri?.length as number) > 0
                         }
                       >
                         <a
                           class="text-[0.75em] link"
-                          href={web3UriToUrl(props.query?.data.lrc_file_uri as string)}
+                          href={web3UriToUrl(props?.query?.data.lrc_file_uri as string)}
                           target="_blank"
                         >
                           Open in a new tab
@@ -195,8 +196,8 @@ export const RevisionDetails = (props) => {
                           type="button"
                           onClick={async () => {
                             await downloadFile({
-                              filename: `${props.query?.data.slug}.lrc`,
-                              uri: web3UriToUrl(props.query?.data.lrc_file_uri as string),
+                              filename: `${props?.query?.data.slug}.lrc`,
+                              uri: web3UriToUrl(props?.query?.data.lrc_file_uri as string),
                             })
                           }}
                           class={callToAction({
@@ -212,138 +213,178 @@ export const RevisionDetails = (props) => {
                 </ul>
               </div>
             </div>
-          </div>
-          <Show when={currentUser()?.address && props?.query?.data?.state === 0}>
-            <div class="border-t -mx-3 xs:-mx-4 px-4 border-neutral-5">
-              <Switch>
-                <Match when={!currentUser()?.address}>
-                  <p class="italic text-center text-neutral-9 text-2xs">Sign-in to reveal more actions</p>
-                </Match>
-                <Match
-                  //@ts-ignore
-                  when={isAddress(currentUser()?.address) && currentNetwork()?.id !== CHAINS_ALIAS[params.chain]}
-                >
-                  <div class="animate-appear text-start xs:text-center mt-6 mb-4 font-medium text-2xs bg-secondary-3 py-2 rounded-md mx-auto w-fit-content px-4 text-secondary-11">
-                    <p>You're on a different network than the original request - switch to the right network below.</p>
-                    <Button
-                      disabled={mutationSwitchNetwork.isLoading}
-                      isLoading={mutationSwitchNetwork.isLoading}
-                      onClick={async () => {
+            <Show
+              when={
+                currentUser()?.address &&
+                props?.query?.data?.reviewers?.includes(currentUser()?.address) &&
+                props?.query?.data?.state === 0
+              }
+            >
+              <div class="border-t px-4 border-neutral-5">
+                <div {...apiAccordionDetails().getItemProps({ value: 'actions' })}>
+                  <h3>
+                    <button
+                      class="font-semibold text-neutral-11 text-2xs flex w-full pt-3"
+                      {...apiAccordionDetails().getTriggerProps({ value: 'actions' })}
+                    >
+                      Actions
+                    </button>
+                  </h3>
+                  <div
+                    {...apiAccordionDetails().getContentProps({ value: 'actions' })}
+                    class="relative z-10 flex gap-y-4 gap-x-2 flex-col xs:flex-row"
+                  >
+                    <Switch>
+                      <Match when={!currentUser()?.address}>
+                        <p class="italic text-center text-neutral-9 text-2xs">Sign-in to reveal more actions</p>
+                      </Match>
+                      <Match
                         //@ts-ignore
-                        await mutationSwitchNetwork.mutateAsync(CHAINS_ALIAS[params.chain])
-                      }}
-                      intent="neutral-on-light-layer"
-                      scale="xs"
-                      class="mx-auto mt-2 flex items-center"
-                    >
-                      <span
-                        classList={{
-                          'pis-1ex': mutationSwitchNetwork.isLoading,
-                        }}
+                        when={isAddress(currentUser()?.address) && currentNetwork()?.id !== CHAINS_ALIAS[params.chain]}
                       >
-                        Switch network
-                      </span>
-                    </Button>
-                  </div>
-                </Match>
-                <Match
-                  when={
-                    currentUser()?.address &&
-                    currentNetwork()?.id === CHAINS_ALIAS[params.chain] &&
-                    props?.query?.data?.state === 0
-                  }
-                >
-                  <div class="pt-4 flex gap-y-4 gap-x-2 flex-col xs:flex-row">
-                    <Button
-                      onClick={async () =>
-                        await mutationWriteAcceptRevision.mutateAsync({
-                          idRevision: props.query?.data?.id_revision,
-                        })
-                      }
-                      class="flex items-center"
-                      type="button"
-                      isLoading={[
-                        mutationTxWaitAcceptRevision?.isLoading,
-                        mutationWriteAcceptRevision.isLoading,
-                      ].includes(true)}
-                      disabled={
-                        !props.query?.data?.reviewers?.includes(currentUser()?.address) ||
-                        [
-                          mutationTxWaitAcceptRevision.isSuccess,
-                          mutationTxWaitRejectRevision.isSuccess,
-                          mutationTxWaitAcceptRevision?.isLoading,
-                          mutationTxWaitRejectRevision.isLoading,
-                          mutationWriteRejectRevision.isLoading,
-                          mutationWriteAcceptRevision.isLoading,
-                        ].includes(true)
-                      }
-                      scale="xs"
-                      intent="primary-faint"
-                    >
-                      <span
-                        classList={{
-                          'pis-1ex': [
-                            mutationTxWaitAcceptRevision?.isLoading,
-                            mutationWriteAcceptRevision.isLoading,
-                          ].includes(true),
-                        }}
+                        <div class="animate-appear relative z-10 text-start xs:text-center mt-6 mb-4 font-medium text-2xs bg-secondary-3 py-2 rounded-md mx-auto w-fit-content px-4 text-secondary-11">
+                          <p>
+                            You're on a different network than the original request - switch to the right network below.
+                          </p>
+                          <Button
+                            disabled={mutationSwitchNetwork.isLoading}
+                            isLoading={mutationSwitchNetwork.isLoading}
+                            onClick={async () => {
+                              //@ts-ignore
+                              await mutationSwitchNetwork.mutateAsync(CHAINS_ALIAS[params.chain])
+                            }}
+                            intent="neutral-on-light-layer"
+                            scale="xs"
+                            class="mx-auto z-10 relative  mt-2 flex items-center"
+                          >
+                            <span
+                              classList={{
+                                'pis-1ex': mutationSwitchNetwork.isLoading,
+                              }}
+                            >
+                              Switch network
+                            </span>
+                          </Button>
+                        </div>
+                      </Match>
+                      <Match
+                        when={
+                          currentUser()?.address &&
+                          currentNetwork()?.id === CHAINS_ALIAS[params.chain] &&
+                          props?.query?.data?.state === 0
+                        }
                       >
-                        <Switch fallback="Accept">
-                          <Match when={mutationWriteAcceptRevision.isLoading}>Sign message...</Match>
-                          <Match when={mutationTxWaitAcceptRevision.isLoading}>Accepting...</Match>
-                          <Match when={mutationTxWaitAcceptRevision.isError}>Try accepting again</Match>
-                          <Match when={mutationTxWaitAcceptRevision.isSuccess}>Accepted !</Match>
-                        </Switch>
-                      </span>
-                    </Button>
+                        <div class="pt-4 relative z-10 flex gap-y-4 gap-x-2 flex-col xs:flex-row">
+                          <Button
+                            onClick={async () =>
+                              await mutationWriteAcceptRevision.mutateAsync({
+                                idRevision: props?.query?.data?.id_revision,
+                                slug: props?.query?.data?.slug,
+                                contributorAddress: props?.query?.data?.creator,
+                              })
+                            }
+                            class="flex relative z-10 items-center"
+                            type="button"
+                            isLoading={[
+                              mutationTxWaitAcceptRevision?.isLoading,
+                              mutationWriteAcceptRevision.isLoading,
+                            ].includes(true)}
+                            disabled={
+                              !props?.query?.data?.reviewers?.includes(currentUser()?.address) ||
+                              [
+                                mutationTxWaitAcceptRevision.isSuccess,
+                                mutationTxWaitRejectRevision.isSuccess,
+                                mutationTxWaitAcceptRevision?.isLoading,
+                                mutationTxWaitRejectRevision.isLoading,
+                                mutationWriteRejectRevision.isLoading,
+                                mutationWriteAcceptRevision.isLoading,
+                              ].includes(true)
+                            }
+                            scale="xs"
+                            intent="primary-faint"
+                          >
+                            <span
+                              classList={{
+                                'pis-1ex': [
+                                  mutationTxWaitAcceptRevision?.isLoading,
+                                  mutationWriteAcceptRevision.isLoading,
+                                ].includes(true),
+                              }}
+                            >
+                              <Switch fallback="Accept">
+                                <Match when={mutationWriteAcceptRevision.isLoading}>Sign message...</Match>
+                                <Match when={mutationTxWaitAcceptRevision.isLoading}>Accepting...</Match>
+                                <Match when={mutationTxWaitAcceptRevision.isError}>Try accepting again</Match>
+                                <Match when={mutationTxWaitAcceptRevision.isSuccess}>Accepted !</Match>
+                              </Switch>
+                            </span>
+                          </Button>
 
-                    <Button
-                      onClick={async () =>
-                        await mutationWriteRejectRevision.mutateAsync({
-                          idRevision: props.query?.data?.id_revision,
-                        })
-                      }
-                      type="button"
-                      class="flex items-center"
-                      isLoading={[
-                        mutationTxWaitRejectRevision.isLoading,
-                        mutationWriteRejectRevision.isLoading,
-                      ].includes(true)}
-                      disabled={
-                        !props.query?.data?.reviewers?.includes(currentUser()?.address) ||
-                        [
-                          mutationTxWaitAcceptRevision.isSuccess,
-                          mutationTxWaitRejectRevision.isSuccess,
-                          mutationTxWaitAcceptRevision?.isLoading,
-                          mutationTxWaitRejectRevision.isLoading,
-                          mutationWriteRejectRevision.isLoading,
-                          mutationWriteAcceptRevision.isLoading,
-                        ].includes(true)
-                      }
-                      scale="xs"
-                      intent="negative-ghost"
-                    >
-                      <span
-                        classList={{
-                          'pis-1ex': [
-                            mutationTxWaitRejectRevision.isLoading,
-                            mutationWriteRejectRevision.isLoading,
-                          ].includes(true),
-                        }}
-                      >
-                        <Switch fallback="Reject">
-                          <Match when={mutationWriteRejectRevision.isLoading}>Sign message...</Match>
-                          <Match when={mutationTxWaitRejectRevision.isLoading}>Rejecting...</Match>
-                          <Match when={mutationTxWaitRejectRevision.isError}>Try rejecting again</Match>
-                          <Match when={mutationTxWaitRejectRevision.isSuccess}>Rejected !</Match>
-                        </Switch>
-                      </span>
-                    </Button>
+                          <Button
+                            onClick={async () =>
+                              await mutationWriteRejectRevision.mutateAsync({
+                                idRevision: props?.query?.data?.id_revision,
+                              })
+                            }
+                            type="button"
+                            class="flex relative z-10 items-center"
+                            isLoading={[
+                              mutationTxWaitRejectRevision.isLoading,
+                              mutationWriteRejectRevision.isLoading,
+                            ].includes(true)}
+                            disabled={
+                              !props?.query?.data?.reviewers?.includes(currentUser()?.address) ||
+                              [
+                                mutationTxWaitAcceptRevision.isSuccess,
+                                mutationTxWaitRejectRevision.isSuccess,
+                                mutationTxWaitAcceptRevision?.isLoading,
+                                mutationTxWaitRejectRevision.isLoading,
+                                mutationWriteRejectRevision.isLoading,
+                                mutationWriteAcceptRevision.isLoading,
+                              ].includes(true)
+                            }
+                            scale="xs"
+                            intent="negative-ghost"
+                          >
+                            <span
+                              classList={{
+                                'pis-1ex': [
+                                  mutationTxWaitRejectRevision.isLoading,
+                                  mutationWriteRejectRevision.isLoading,
+                                ].includes(true),
+                              }}
+                            >
+                              <Switch fallback="Reject">
+                                <Match when={mutationWriteRejectRevision.isLoading}>Sign message...</Match>
+                                <Match when={mutationTxWaitRejectRevision.isLoading}>Rejecting...</Match>
+                                <Match when={mutationTxWaitRejectRevision.isError}>Try rejecting again</Match>
+                                <Match when={mutationTxWaitRejectRevision.isSuccess}>Rejected !</Match>
+                              </Switch>
+                            </span>
+                          </Button>
+
+                          <button
+                            onClick={async () => {
+                              const { signer, decryptedKey } = await getKeyAndSigner()
+                              await PushAPI.chat.send({
+                                messageContent: 'args.messageContent',
+                                messageType: 'Text',
+                                receiverAddress: `eip155:0xD8E6f4f880812562027EFF36B808DF3bc9229E48`,
+                                signer: signer,
+                                pgpPrivateKey: decryptedKey,
+                              })
+                            }}
+                          >
+                            Send message
+                          </button>
+                        </div>
+                      </Match>
+                    </Switch>
                   </div>
-                </Match>
-              </Switch>
-            </div>
-          </Show>
+                </div>
+              </div>
+            </Show>
+          </div>
         </div>
       </div>
     </>

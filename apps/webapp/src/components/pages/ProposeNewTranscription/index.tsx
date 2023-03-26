@@ -33,16 +33,16 @@ export const ProposeNewTranscription = (props: ProposeNewTranscriptionProps) => 
   const { formProposeNewTranscription, stateMachineAccordion, stateMachineTabs } = useForm({
     //@ts-ignore
     initialValues: {
-      source_media_title: props?.request().source_media_title ?? '',
+      source_media_title: props?.request.data.source_media_title ?? '',
       source_media_uris:
-        props?.request()?.source_media_uris?.length > 0 ? props?.request()?.source_media_uris.toString() : '',
-      language: props.request().language,
-      keywords: props.request()?.keywords?.length > 0 ? props.request()?.keywords.toString() : '',
+        props?.request.data?.source_media_uris?.length > 0 ? props?.request.data?.source_media_uris.toString() : '',
+      language: props.request.data.language,
+      keywords: props.request.data?.keywords?.length > 0 ? props.request.data?.keywords.toString() : '',
       communities: [],
       title: '',
       revision_must_be_approved_first: true,
       transcription_plain_text: '',
-      collaborators: props.request().collaborators.toString(),
+      collaborators: props.request.data.collaborators.toString(),
     },
     onSubmit: (values: z.infer<typeof schema>) => {
       onSubmitCreateTranscriptionForm({

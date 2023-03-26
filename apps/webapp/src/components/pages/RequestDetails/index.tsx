@@ -2,20 +2,19 @@ import { createEffect, For, Match, Show, splitProps, Switch } from 'solid-js'
 import { formatDistanceToNow } from 'date-fns'
 import { web3UriToUrl } from '~/helpers'
 import { Button, IconEllipsisVertical, IconPlus, IconSpinner, IconTrash, Identity } from '~/ui'
-import { A } from '@solidjs/router'
+import { A, useParams } from '@solidjs/router'
 import useDetails from './useDetails'
 import ProposeNewTranscription from '../ProposeNewTranscription'
 import useRequestActions from './useRequestActions'
 import { LOCALES } from '~/config'
 import { useAuthentication } from '~/hooks'
-import type { Request } from '~/services'
-import type { Resource, Setter } from 'solid-js'
 import ListPropositions from './ListPropositions'
 import Upvote from './Upvote'
+import type { Request } from '~/services'
+import type { CreateQueryResult } from '@tanstack/solid-query'
 
 interface RequestDetailsProps {
-  request: Resource<Request>
-  mutate: Setter<Request | undefined>
+  request: CreateQueryResult<Request, unknown>
 }
 export const RequestDetails = (props: RequestDetailsProps) => {
   const [local] = splitProps(props, ['request'])
@@ -28,6 +27,7 @@ export const RequestDetails = (props: RequestDetailsProps) => {
     mutationWriteContractUpdateRequestStatus,
     mutationTxWaitUpdateRequestStatus,
   } = useRequestActions()
+  const params = useParams()
 
   return (
     <>
@@ -36,26 +36,26 @@ export const RequestDetails = (props: RequestDetailsProps) => {
           <h1 class="font-serif text-2xl flex flex-col font-bold">
             <span class="font-sans font-black uppercase tracking-widest text-accent-10 italic">
               <Switch>
-                <Match when={local.request()?.fulfilled}>Request fulfilled</Match>
-                <Match when={!local.request()?.fulfilled}>Transcription wanted</Match>
+                <Match when={local.request?.data?.fulfilled}>Request fulfilled</Match>
+                <Match when={!local.request?.data?.fulfilled}>Transcription wanted</Match>
               </Switch>
               &nbsp;-&nbsp;
             </span>
-            {local.request()?.source_media_title}
+            {local.request?.data?.source_media_title}
           </h1>
           <div class="text-2xs flex flex-wrap pt-2 gap-2">
             <mark
               classList={{
-                'bg-negative-3 border-negative-6 text-negative-11 ': !local.request()?.open_for_transcripts,
-                'bg-positive-3 border-positive-6 text-positive-11': local.request()?.open_for_transcripts,
+                'bg-negative-3 border-negative-6 text-negative-11 ': !local.request?.data?.open_for_transcripts,
+                'bg-positive-3 border-positive-6 text-positive-11': local.request?.data?.open_for_transcripts,
               }}
               class="flex items-baseline py-[0.1em] px-[0.5em] border text-[0.785em] "
             >
               <Switch fallback="--">
-                <Match when={local.request()?.open_for_transcripts && !local.request()?.fulfilled}>
+                <Match when={local.request?.data?.open_for_transcripts && !local.request?.data?.fulfilled}>
                   Open to receive new proposals
                 </Match>
-                <Match when={!local.request()?.open_for_transcripts && !local.request()?.fulfilled}>
+                <Match when={!local.request?.data?.open_for_transcripts && !local.request?.data?.fulfilled}>
                   Reviewing (closed for new proposals)
                 </Match>
               </Switch>
@@ -63,11 +63,11 @@ export const RequestDetails = (props: RequestDetailsProps) => {
           </div>
           <p class="pt-4 italic text-neutral-9 text-2xs">
             {/* @ts-ignore */}
-            Posted {formatDistanceToNow(local.request()?.created_at_datetime, { addSuffix: true })} by{' '}
-            <Identity address={local.request()?.creator as `0x${string}`} shortenOnFallback={true} />
+            Posted {formatDistanceToNow(local.request?.data?.created_at_datetime, { addSuffix: true })} by{' '}
+            <Identity address={local.request?.data?.creator as `0x${string}`} shortenOnFallback={true} />
           </p>
         </div>
-        <Show when={currentUser()?.address === local.request()?.creator}>
+        <Show when={currentUser()?.address === local.request?.data?.creator}>
           <div class="xs:mt-2 xs:mis-auto">
             <button
               type="button"
@@ -90,9 +90,9 @@ export const RequestDetails = (props: RequestDetailsProps) => {
                   Actions
                 </div>
                 <div class="py-1">
-                  <Show when={local.request()?.fulfilled === false}>
+                  <Show when={local.request?.data?.fulfilled === false}>
                     <Switch fallback="--">
-                      <Match when={local.request()?.open_for_transcripts === true}>
+                      <Match when={local.request?.data?.open_for_transcripts === true}>
                         <button
                           disabled={[
                             mutationWriteContractUpdateRequestStatus.isLoading,
@@ -100,27 +100,11 @@ export const RequestDetails = (props: RequestDetailsProps) => {
                           ].includes(true)}
                           class="disabled:opacity-50 w-full flex items-center justify-start cursor-pointer text-neutral-12 focus:bg-interactive-2 hover:bg-interactive-1 focus:text-interactive-12 hover:text-interactive-11 py-2 px-3"
                           onClick={async () => {
-                            await mutationWriteContractUpdateRequestStatus.mutateAsync(
-                              {
-                                idRequest: local.request()?.request_id as string,
-                                isFulfilled: local.request()?.fulfilled as boolean,
-                                isOpen: false,
-                              },
-                              {
-                                onSuccess() {
-                                  //@ts-ignore
-                                  props.mutate({
-                                    ...local.request(),
-                                    open_for_transcripts: false,
-                                    receiving_transcripts: false,
-                                  })
-                                  setTimeout(() => {
-                                    mutationTxWaitUpdateRequestStatus.reset()
-                                    mutationWriteContractUpdateRequestStatus.reset()
-                                  }, 4000)
-                                },
-                              },
-                            )
+                            await mutationWriteContractUpdateRequestStatus.mutateAsync({
+                              idRequest: local.request?.data?.request_id as string,
+                              isFulfilled: local.request?.data?.fulfilled as boolean,
+                              isOpen: false,
+                            })
                           }}
                         >
                           <Show
@@ -141,7 +125,7 @@ export const RequestDetails = (props: RequestDetailsProps) => {
                           </span>
                         </button>
                       </Match>
-                      <Match when={local.request()?.open_for_transcripts === false}>
+                      <Match when={local.request?.data?.open_for_transcripts === false}>
                         <button
                           disabled={[
                             mutationWriteContractUpdateRequestStatus.isLoading,
@@ -149,27 +133,11 @@ export const RequestDetails = (props: RequestDetailsProps) => {
                           ].includes(true)}
                           class="disabled:opacity-50 w-full flex items-center justify-start cursor-pointer text-neutral-12 focus:bg-interactive-2 hover:bg-interactive-1 focus:text-interactive-12 hover:text-interactive-11 py-2 px-3"
                           onClick={async () => {
-                            await mutationWriteContractUpdateRequestStatus.mutateAsync(
-                              {
-                                idRequest: local.request()?.request_id as string,
-                                isFulfilled: local.request()?.fulfilled as boolean,
-                                isOpen: true,
-                              },
-                              {
-                                onSuccess() {
-                                  //@ts-ignore
-                                  props.mutate({
-                                    ...local.request(),
-                                    open_for_transcripts: true,
-                                    receiving_transcripts: true,
-                                  })
-                                  setTimeout(() => {
-                                    mutationTxWaitUpdateRequestStatus.reset()
-                                    mutationWriteContractUpdateRequestStatus.reset()
-                                  }, 4000)
-                                },
-                              },
-                            )
+                            await mutationWriteContractUpdateRequestStatus.mutateAsync({
+                              idRequest: local.request?.data?.request_id as string,
+                              isFulfilled: local.request?.data?.fulfilled as boolean,
+                              isOpen: true,
+                            })
                           }}
                         >
                           <Show
@@ -201,7 +169,7 @@ export const RequestDetails = (props: RequestDetailsProps) => {
                     class="disabled:opacity-50 w-full flex items-center justify-start cursor-pointer text-negative-12 focus:bg-negative-1 focus:text-negative-11 py-2 px-3"
                     onClick={async () => {
                       await mutationWriteContractDeleteRequest.mutateAsync({
-                        idRequest: local.request()?.request_id as string,
+                        idRequest: local.request?.data?.request_id as string,
                       })
                     }}
                   >
@@ -243,7 +211,7 @@ export const RequestDetails = (props: RequestDetailsProps) => {
                 ({queryListReceivedProposals?.data?.length})
               </Show>
             </button>
-            <Show when={!local.request()?.fulfilled && local.request()?.open_for_transcripts === true}>
+            <Show when={!local.request?.data?.fulfilled && local.request?.data?.open_for_transcripts === true}>
               <Button
                 intent="neutral-outline"
                 scale="xs"
@@ -262,9 +230,9 @@ export const RequestDetails = (props: RequestDetailsProps) => {
               <h2 class="pb-1 text-2xs uppercase tracking-wide text-accent-9 font-bold">Details</h2>
               <p class="mb-4">
                 {/* @ts-ignore */}
-                Language: <span class="font-bold">{LOCALES[local.request()?.language]}</span>
+                Language: <span class="font-bold">{LOCALES[local.request?.data?.language]}</span>
               </p>
-              <p class="whitespace-pre">{local.request()?.notes}</p>
+              <p class="whitespace-pre">{local.request?.data?.notes}</p>
             </section>
             <section>
               <h2 class="pb-1 text-2xs uppercase tracking-wide text-accent-9 font-bold">Source material</h2>
@@ -274,7 +242,7 @@ export const RequestDetails = (props: RequestDetailsProps) => {
 
               <ul class="pt-2 space-y-1.5">
                 {/* @ts-ignore */}
-                <For each={local.request()?.source_media_uris.split(',')}>
+                <For each={local.request?.data?.source_media_uris.split(',')}>
                   {(source_media_uri) => (
                     <li class="font-mono">
                       <A href={web3UriToUrl(source_media_uri)}>{source_media_uri}</A>
@@ -289,7 +257,7 @@ export const RequestDetails = (props: RequestDetailsProps) => {
                 The following people will review and accept/reject proposed transcriptions :
               </p>
               <ul class="pt-2 space-y-1.5">
-                <For each={local.request()?.collaborators}>
+                <For each={local.request?.data?.collaborators}>
                   {(collaborator) => (
                     <li class="font-mono">
                       <Identity address={collaborator} shortenOnFallback={false} />
@@ -306,25 +274,28 @@ export const RequestDetails = (props: RequestDetailsProps) => {
                 ({queryListReceivedProposals?.data?.length})
               </Show>
             </h2>
+
             <Switch>
               <Match when={queryListReceivedProposals?.isLoading}>
                 <p>Loading propositions...</p>
               </Match>
-              <Match when={queryListReceivedProposals?.data && queryListReceivedProposals?.data?.length > 0}>
-                <ListPropositions query={queryListReceivedProposals} />
+              <Match
+                when={params?.chain && queryListReceivedProposals?.data && queryListReceivedProposals?.data?.length > 0}
+              >
+                <ListPropositions chain={params.chain} query={queryListReceivedProposals} />
               </Match>
             </Switch>
           </div>
           {/* @ts-ignore */}
-          <div {...apiTabs().getContentProps({ value: 'propose', disabled: !props.request() })}>
-            <Show when={props.request()}>
+          <div {...apiTabs().getContentProps({ value: 'propose', disabled: !props.request?.data })}>
+            <Show when={props.request?.data}>
               {/* @ts-ignore */}
               <ProposeNewTranscription request={props.request} />
             </Show>
           </div>
         </div>
       </div>
-      <Show when={!props.request()?.fulfilled}>
+      <Show when={!props.request?.data?.fulfilled}>
         <section class="mt-16 sm:text-center bg-neutral-1 border border-neutral-6 p-6">
           <div class="max-w-prose mx-auto">
             <h3 class="text-lg mb-1 font-serif font-semibold text-accent-12">Need this transcription ?</h3>
@@ -336,8 +307,8 @@ export const RequestDetails = (props: RequestDetailsProps) => {
               class="flex items-center mx-auto"
               intent="neutral-outline"
               scale="sm"
-              voters={props.request()?.voters}
-              idRequest={props.request()?.id as string}
+              voters={props.request?.data?.voters}
+              idRequest={props.request?.data?.id as string}
             />
           </div>
         </section>

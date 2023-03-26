@@ -11,12 +11,14 @@ import { v4 as uuid } from 'uuid'
 import { z } from 'zod'
 import { ABI_TRANSCRIPTIONS, CHAINS_ALIAS, CONTRACT_TRANSCRIPTIONS } from '~/config'
 import { uploadFileToIPFS } from '~/helpers'
-import { usePolybase, useToast } from '~/hooks'
+import { useAuthentication, usePolybase, useToast } from '~/hooks'
 import { schema } from './schema'
 
 interface FormValues extends z.infer<typeof schema> {}
 
 export function useSmartContract() {
+  const { currentUser } = useAuthentication()
+
   // Query & cache
   const queryClient = useQueryClient()
   // DB (polybase)
@@ -95,6 +97,7 @@ export function useSmartContract() {
       const data = await waitForTransaction({ hash: args?.hash })
       const iface = new utils.Interface(ABI_TRANSCRIPTIONS)
       const log = data.logs
+
       const { request_id, created_at, creator, metadata_uri, last_updated_at } = iface.parseLog(log[0]).args
 
       return {
@@ -120,7 +123,7 @@ export function useSmartContract() {
       onSettled() {
         // Whether or not the transaction is successful, invalidate user balance query
         // this way we will refresh the balance
-        queryClient.invalidateQueries(['user-balance'])
+        queryClient.invalidateQueries({ queryKey: ['user-balance'] })
       },
     },
   )
@@ -153,10 +156,18 @@ export function useSmartContract() {
         args?.language,
         args?.keywords,
         args?.content_uri,
+        currentUser()?.address,
       ])
     },
     {
-      onSuccess() {
+      async onSuccess() {
+        await queryClient.invalidateQueries({
+          queryKey: ['requests-board'],
+        })
+        await queryClient.invalidateQueries({
+          queryKey: ['shortcuts', currentUser()?.address],
+        })
+
         //@ts-ignore
         toast().create({
           title: 'Request created and indexed successfully!',
@@ -177,7 +188,7 @@ export function useSmartContract() {
       onSettled() {
         // Whether or not the transaction is successful, invalidate user balance query
         // this way we will refresh the balance
-        queryClient.invalidateQueries(['user-balance'])
+        queryClient.invalidateQueries({ queryKey: ['user-balance'] })
       },
     },
   )

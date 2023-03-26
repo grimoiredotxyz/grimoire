@@ -70,7 +70,7 @@ export function useRequestActions() {
       onSettled() {
         // Whether or not the transaction is successful, invalidate user balance query
         // this way we will refresh the balance
-        queryClient.invalidateQueries(['user-balance'])
+        queryClient.invalidateQueries({ queryKey: ['user-balance'] })
       },
     },
   )
@@ -119,6 +119,27 @@ export function useRequestActions() {
     },
   )
 
+  const mutationToggleIsRequestActive = createMutation(
+    async (args: { idRequest: string; isActive: boolean }) => {
+      const dbCollectionReference = db.collection('Request')
+      await dbCollectionReference.record(args?.idRequest).call('toggleIsActive', [args?.isActive])
+    },
+    {
+      async onSuccess(data, variables) {
+        await queryClient.invalidateQueries({ queryKey: ['requests-board'] })
+      },
+      onError() {
+        //@ts-ignore
+        toast().create({
+          title: "Couldn't update the status of this request !",
+          description: 'Make sure to sign the message in your wallet.',
+          type: 'error',
+          placement: 'bottom-right',
+        })
+      },
+    },
+  )
+
   const mutationTxWaitUpdateRequestStatus = createMutation(
     async (args: {
       hash: `0x${string}`
@@ -130,7 +151,15 @@ export function useRequestActions() {
       await waitForTransaction({ hash: args.hash })
     },
     {
-      onSuccess(data, variables) {
+      async onSuccess(data, variables) {
+        const slug = `${CHAINS_ALIAS[variables.chainId]}/${variables.idRequest}`
+        mutationToggleIsRequestActive.mutateAsync({
+          idRequest: variables.idRequest,
+          isActive: variables.isFulfilled === true || variables.isOpen === false ? false : true,
+        })
+        await queryClient.invalidateQueries({ queryKey: ['request', slug] })
+        await queryClient.invalidateQueries({ queryKey: ['requests-board'] })
+
         //@ts-ignore
         toast().create({
           title: 'Request updated successfully!',
@@ -138,15 +167,14 @@ export function useRequestActions() {
           type: 'success',
           placement: 'bottom-right',
         })
-        const slug = `${CHAINS_ALIAS[variables.chainId]}/${variables.idRequest}`
-        const requestPreviousData = queryClient.getQueriesData(['request', slug])
-        queryClient.setQueryData(['request', slug], {
-          ...requestPreviousData,
-          fulfilled: variables.isFulfilled,
-          fullfiled: variables.isFulfilled,
-          receiving_transcripts: variables.isOpen,
-          open_for_transcripts: variables.isOpen,
-        })
+        // const requestPreviousData = queryClient.getQueriesData(['request', slug])
+        // queryClient.setQueryData(['request', slug], {
+        //   ...requestPreviousData,
+        //   fulfilled: variables.isFulfilled,
+        //   fullfiled: variables.isFulfilled,
+        //   receiving_transcripts: variables.isOpen,
+        //   open_for_transcripts: variables.isOpen,
+        // })
       },
       onError() {
         //@ts-ignore
@@ -160,7 +188,7 @@ export function useRequestActions() {
       onSettled() {
         // Whether or not the transaction is successful, invalidate user balance query
         // this way we will refresh the balance
-        queryClient.invalidateQueries(['user-balance'])
+        queryClient.invalidateQueries({ queryKey: ['user-balance'] })
       },
     },
   )
@@ -171,7 +199,9 @@ export function useRequestActions() {
       await dbCollectionReference.record(args?.idRequest).call('upvote')
     },
     {
-      onSuccess(data, variables) {
+      async onSuccess(data, variables) {
+        await queryClient.invalidateQueries({ queryKey: ['requests-board'] })
+
         //@ts-ignore
         toast().create({
           title: 'Your upvote was casted successfully successfully!',

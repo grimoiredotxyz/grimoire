@@ -10,7 +10,13 @@ export const SignIn = () => {
   return (
     <div class="max-w-screen-2xs mx-auto">
       <h1 class="text-2xl text-accent-12 font-serif font-bold">Make web3 content more accessible with Grimoire !</h1>
-      <p class="mt-2 mb-6 text-neutral-11 font-medium">Grimoire is [REDACTED]</p>
+      <p class="mt-2 mb-6 text-neutral-11 font-medium">
+        Grimoire is a platform that helps you and your community make online content more accessible and inclusive by
+        creating transcriptions of audio/video content using SRT, VTT, LRC files, and plain-text transcriptions. <br />{' '}
+        <br />
+        Grimoire supports multiple chains to guarantee this essential transcription service is accessible to as many
+        dapps as possible, making web3 truly inclusive, accessible, and ready to onboard millions of new users.
+      </p>
       <div class="px-6 pt-8 bg-neutral-1 rounded-lg border border-neutral-6">
         <h2 class="text-lg flex-wrap flex items-center font-bold text-accent-12">
           <Switch>

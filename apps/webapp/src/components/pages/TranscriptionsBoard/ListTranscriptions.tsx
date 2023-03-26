@@ -3,7 +3,7 @@ import { For, Match, Show, Switch } from 'solid-js'
 import { A } from 'solid-start'
 import { LOCALES, ROUTE_TRANSCRIPTION_DETAILS } from '~/config'
 import { deriveEthAddressFromPublicKey } from '~/helpers'
-import { Identity } from '~/ui'
+import { IconStarFilled, Identity } from '~/ui'
 
 interface ListTranscriptionsProps {
   query: CreateQueryResult<
@@ -47,6 +47,9 @@ export const ListTranscriptions = (props: ListTranscriptionsProps) => {
             <ul class="space-y-4">
               <For each={props.query?.data?.data}>
                 {(request) => {
+                  const averageRating = Object.values(request?.data?.rating).reduce((average, value, _, { length }) => {
+                    return (average as number) + (value as number) / length
+                  }, 0)
                   return (
                     <li class="relative bg-neutral-1 border focus-within:ring-2 border-neutral-6 p-3 xs:p-4 rounded-md">
                       <p class="pb-1 text-accent-11 text-xs">{LOCALES[request.data.language]} </p>
@@ -65,6 +68,24 @@ export const ListTranscriptions = (props: ListTranscriptionsProps) => {
                           />
                         </Show>
                       </span>
+                      <p class="pb-2 flex items-center text-2xs text-neutral-11">
+                        Average rating:{' '}
+                        <span class="pis-2 flex gap-0.5">
+                          <For each={[...Array(5).keys()]}>
+                            {(x, i) => (
+                              <>
+                                <IconStarFilled
+                                  class="w-3 h-3"
+                                  classList={{
+                                    'text-accent-5': averageRating <= x,
+                                    'text-accent-11': averageRating > x,
+                                  }}
+                                />
+                              </>
+                            )}
+                          </For>
+                        </span>
+                      </p>
 
                       <A
                         class="absolute z-0 inset-0 block w-full h-full opacity-0"

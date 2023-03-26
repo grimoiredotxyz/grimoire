@@ -1,6 +1,6 @@
 import { formatDistanceToNow } from 'date-fns'
 import { createEffect, createSignal, For, Match, Show, splitProps, Switch } from 'solid-js'
-import type { Resource, Accessor } from 'solid-js'
+import type { Accessor } from 'solid-js'
 import { A, useParams } from 'solid-start'
 import { LOCALES, ROUTE_REQUEST_DETAILS } from '~/config'
 import { callToAction } from '~/design-system'
@@ -23,13 +23,13 @@ import ListRevisions from './ListRevisions'
 import Rate from './Rate'
 import useDetails from './useDetails'
 import useTranscriptionActions from './useTranscriptionActions'
+import type { CreateQueryResult } from '@tanstack/solid-query'
 
 interface TranscriptionDetailsProps {
-  transcription: Resource<Transcription>
+  transcription: CreateQueryResult<Transcription, unknown>
 }
 export const TranscriptionDetails = (props: TranscriptionDetailsProps) => {
   const params = useParams()
-  const [isMounted, setIsMounted] = createSignal(false)
   const [local] = splitProps(props, ['transcription'])
   const {
     apiTabs,
@@ -42,15 +42,12 @@ export const TranscriptionDetails = (props: TranscriptionDetailsProps) => {
   const { mutationTxWaitDeleteTranscription, mutationWriteContractDeleteTranscription } = useTranscriptionActions()
   const { currentUser } = useAuthentication()
   const [currentUserRating, setCurrentUserRating] = createSignal(0)
-  createEffect(() => {
-    setIsMounted(true)
-  })
 
   createEffect(() => {
-    if (currentUser()?.address && local?.transcription()?.rating) {
-      Object.keys(local?.transcription()?.rating)?.filter((r) => {
+    if (currentUser()?.address && local?.transcription?.data?.rating) {
+      Object.keys(local?.transcription?.data?.rating)?.filter((r) => {
         if (deriveEthAddressFromPublicKey(r)?.toLowerCase() === currentUser()?.address?.toLowerCase()) {
-          setCurrentUserRating(local?.transcription()?.rating?.[r])
+          setCurrentUserRating(local?.transcription?.data?.rating?.[r])
         }
       })
     }
@@ -61,10 +58,10 @@ export const TranscriptionDetails = (props: TranscriptionDetailsProps) => {
       <div class="flex justify-between container mx-auto pb-6">
         <div class="max-w-prose">
           <div class="flex flex-col-reverse">
-            <h1 class="font-serif text-2xl flex flex-col font-bold">{local?.transcription()?.title}</h1>
+            <h1 class="font-serif text-2xl flex flex-col font-bold">{local?.transcription?.data?.title}</h1>
             <Show
               when={
-                local.transcription()?.id_request !==
+                local.transcription?.data?.id_request !==
                 '0x0000000000000000000000000000000000000000000000000000000000000000'
               }
             >
@@ -74,15 +71,15 @@ export const TranscriptionDetails = (props: TranscriptionDetailsProps) => {
           <section class="text-2xs pt-3">
             <p class="text-neutral-11">
               Original media title:{' '}
-              <span class="font-medium text-accent-11">"{local.transcription()?.source_media_title}"</span>
+              <span class="font-medium text-accent-11">"{local.transcription?.data?.source_media_title}"</span>
             </p>
             <p class="text-neutral-11 pt-1">
-              Language: <span class="font-medium text-accent-11">{LOCALES?.[local.transcription()?.language]}</span>
+              Language: <span class="font-medium text-accent-11">{LOCALES?.[local.transcription?.data?.language]}</span>
             </p>
             <div class="flex flex-wrap pt-1">
               <span class="text-neutral-11">Keywords:&nbsp;</span>
               <ul class="flex flex-wrap gap-2">
-                <For each={local.transcription()?.keywords?.split(',')}>
+                <For each={local.transcription?.data?.keywords?.split(',')}>
                   {(keyword) => (
                     <li class="leading-none font-medium text-[0.8em] py-[0.25em] px-[0.5em] rounded-md bg-accent-1 border-accent-6 text-accent-11 border">
                       {keyword}
@@ -100,8 +97,8 @@ export const TranscriptionDetails = (props: TranscriptionDetailsProps) => {
                       <IconStarFilled
                         class="w-3 h-3"
                         classList={{
-                          'text-accent-5': local.transcription().average_rating < x,
-                          'text-accent-11': local.transcription().average_rating >= x,
+                          'text-accent-5': local.transcription?.data.average_rating <= x,
+                          'text-accent-11': local.transcription?.data.average_rating > x,
                         }}
                       />
                     </>
@@ -110,18 +107,22 @@ export const TranscriptionDetails = (props: TranscriptionDetailsProps) => {
               </span>
             </p>
             <p class="pt-4 italic text-neutral-9 text-2xs">
-              Proposed {formatDistanceToNow(local.transcription()?.created_at_datetime, { addSuffix: true })} by{' '}
-              <Identity address={local.transcription()?.creator as `0x${string}`} shortenOnFallback={true} />{' '}
+              Proposed{' '}
+              <Show when={local.transcription?.created_at_datetime}>
+                {formatDistanceToNow(local.transcription?.data?.created_at_datetime, { addSuffix: true })}{' '}
+              </Show>
+              &nbsp;by{' '}
+              <Identity address={local.transcription?.data?.creator as `0x${string}`} shortenOnFallback={true} />{' '}
               <Show
                 when={
-                  local.transcription()?.id_request !==
+                  local.transcription?.data?.id_request !==
                   '0x0000000000000000000000000000000000000000000000000000000000000000'
                 }
               >
                 &nbsp;|&nbsp;
                 <A
                   class="link"
-                  href={ROUTE_REQUEST_DETAILS.replace('[idRequest]', local.transcription()?.id_request).replace(
+                  href={ROUTE_REQUEST_DETAILS.replace('[idRequest]', local.transcription?.data?.id_request).replace(
                     '[chain]',
                     params.chain,
                   )}
@@ -130,13 +131,16 @@ export const TranscriptionDetails = (props: TranscriptionDetailsProps) => {
                 </A>
               </Show>
             </p>
-            <p class="pt-1 italic text-neutral-9 text-2xs">
-              Last updated {formatDistanceToNow(local.transcription()?.last_updated_at_datetime, { addSuffix: true })}
-            </p>
+            <Show when={local.transcription?.created_at_datetime}>
+              <p class="pt-1 italic text-neutral-9 text-2xs">
+                Last updated{' '}
+                {formatDistanceToNow(local.transcription?.data?.last_updated_at_datetime, { addSuffix: true })}
+              </p>
+            </Show>
           </section>
         </div>
 
-        <Show when={currentUser()?.address === local.transcription()?.creator}>
+        <Show when={currentUser()?.address === local.transcription?.data?.creator}>
           <div class="xs:mt-2 xs:mis-auto">
             <button
               type="button"
@@ -168,7 +172,7 @@ export const TranscriptionDetails = (props: TranscriptionDetailsProps) => {
                     class="disabled:opacity-50 w-full flex items-center justify-start cursor-pointer text-negative-12 focus:bg-negative-1 focus:text-negative-11 py-2 px-3"
                     onClick={async () => {
                       await mutationWriteContractDeleteTranscription.mutateAsync({
-                        idTranscription: local.transcription()?.transcription_id as string,
+                        idTranscription: local.transcription?.data?.transcription_id as string,
                       })
                     }}
                   >
@@ -237,6 +241,7 @@ export const TranscriptionDetails = (props: TranscriptionDetailsProps) => {
             </Button>
           </div>
         </div>
+
         <div class="container pt-12 mx-auto">
           <div {...apiTabs().getContentProps({ value: 'about' })}>
             <div class="flex w-full relative container gap-x-12 mx-auto flex-col md:flex-row-reverse">
@@ -259,10 +264,10 @@ export const TranscriptionDetails = (props: TranscriptionDetailsProps) => {
                         {...apiAccordionDetails().getContentProps({ value: 'curator-notes' })}
                       >
                         <figure class="text-xs whitespace-pre-line">
-                          <blockquote class="italic text-accent-10">"{local.transcription()?.notes}"</blockquote>
+                          <blockquote class="italic text-accent-10">"{local.transcription?.data?.notes}"</blockquote>
                           <figcaption class="text-2xs font-medium pt-2 text-neutral-10">
                             <Identity
-                              address={local.transcription()?.creator as `0x${string}`}
+                              address={local.transcription?.data?.creator as `0x${string}`}
                               shortenOnFallback={true}
                             />
                           </figcaption>
@@ -286,7 +291,7 @@ export const TranscriptionDetails = (props: TranscriptionDetailsProps) => {
                         {...apiAccordionDetails().getContentProps({ value: 'contributors' })}
                       >
                         <ul class="text-ellispis overflow-hidden flex flex-col space-y-1.5">
-                          <For each={local.transcription()?.contributors}>
+                          <For each={local.transcription?.data?.contributors}>
                             {(contributor) => (
                               <li class="text-ellispis overflow-hidden">
                                 {<Identity address={contributor} shortenOnFallback={true} />}{' '}
@@ -320,11 +325,11 @@ export const TranscriptionDetails = (props: TranscriptionDetailsProps) => {
                         </>
                       }
                       when={
-                        local.transcription()?.transcription_plain_text?.length > 0 &&
-                        local.transcription()?.transcription_plain_text !== null
+                        local.transcription?.data?.transcription_plain_text?.length > 0 &&
+                        local.transcription?.data?.transcription_plain_text !== null
                       }
                     >
-                      <div class="whitespace-pre-line">{local.transcription()?.transcription_plain_text}</div>
+                      <div class="whitespace-pre-line">{local.transcription?.data?.transcription_plain_text}</div>
                     </Show>
                   </section>
                   <section class="pt-8">
@@ -341,13 +346,13 @@ export const TranscriptionDetails = (props: TranscriptionDetailsProps) => {
                           <Show
                             fallback={<p class="font-medium text-neutral-8 italic text-2xs">No file provided</p>}
                             when={
-                              local.transcription()?.srt_file_uri !== null &&
-                              (local.transcription()?.srt_file_uri?.length as number) > 0
+                              local.transcription?.data?.srt_file_uri !== null &&
+                              (local.transcription?.data?.srt_file_uri?.length as number) > 0
                             }
                           >
                             <a
                               class="text-[0.75em] link"
-                              href={web3UriToUrl(local.transcription()?.srt_file_uri as string)}
+                              href={web3UriToUrl(local.transcription?.data?.srt_file_uri as string)}
                               target="_blank"
                             >
                               Open in a new tab
@@ -357,8 +362,8 @@ export const TranscriptionDetails = (props: TranscriptionDetailsProps) => {
                               type="button"
                               onClick={async () => {
                                 await downloadFile({
-                                  filename: `${local.transcription()?.slug}.srt`,
-                                  uri: web3UriToUrl(local.transcription()?.srt_file_uri as string),
+                                  filename: `${local.transcription?.data?.slug}.srt`,
+                                  uri: web3UriToUrl(local.transcription?.data?.srt_file_uri as string),
                                 })
                               }}
                               class={callToAction({
@@ -381,13 +386,13 @@ export const TranscriptionDetails = (props: TranscriptionDetailsProps) => {
                           <Show
                             fallback={<p class="font-medium text-neutral-8 italic text-2xs">No file provided</p>}
                             when={
-                              local.transcription()?.vtt_file_uri !== null &&
-                              (local.transcription()?.vtt_file_uri?.length as number) > 0
+                              local.transcription?.data?.vtt_file_uri !== null &&
+                              (local.transcription?.data?.vtt_file_uri?.length as number) > 0
                             }
                           >
                             <a
                               class="text-[0.75em] link"
-                              href={web3UriToUrl(local.transcription()?.vtt_file_uri as string)}
+                              href={web3UriToUrl(local.transcription?.data?.vtt_file_uri as string)}
                               target="_blank"
                             >
                               Open in a new tab
@@ -397,8 +402,8 @@ export const TranscriptionDetails = (props: TranscriptionDetailsProps) => {
                               type="button"
                               onClick={async () => {
                                 await downloadFile({
-                                  filename: `${local.transcription()?.slug}.vtt`,
-                                  uri: web3UriToUrl(local.transcription()?.vtt_file_uri as string),
+                                  filename: `${local.transcription?.data?.slug}.vtt`,
+                                  uri: web3UriToUrl(local.transcription?.data?.vtt_file_uri as string),
                                 })
                               }}
                               class={callToAction({
@@ -419,13 +424,13 @@ export const TranscriptionDetails = (props: TranscriptionDetailsProps) => {
                           <Show
                             fallback={<p class="font-medium text-neutral-8 italic text-2xs">No file provided</p>}
                             when={
-                              local.transcription()?.lrc_file_uri !== null &&
-                              (local.transcription()?.lrc_file_uri?.length as number) > 0
+                              local.transcription?.data?.lrc_file_uri !== null &&
+                              (local.transcription?.data?.lrc_file_uri?.length as number) > 0
                             }
                           >
                             <a
                               class="text-[0.75em] link"
-                              href={web3UriToUrl(local.transcription()?.lrc_file_uri as string)}
+                              href={web3UriToUrl(local.transcription?.data?.lrc_file_uri as string)}
                               target="_blank"
                             >
                               Open in a new tab
@@ -435,8 +440,8 @@ export const TranscriptionDetails = (props: TranscriptionDetailsProps) => {
                               type="button"
                               onClick={async () => {
                                 await downloadFile({
-                                  filename: `${local.transcription()?.slug}.lrc`,
-                                  uri: web3UriToUrl(local.transcription()?.lrc_file_uri as string),
+                                  filename: `${local.transcription?.data?.slug}.lrc`,
+                                  uri: web3UriToUrl(local.transcription?.data?.lrc_file_uri as string),
                                 })
                               }}
                               class={callToAction({
@@ -463,11 +468,14 @@ export const TranscriptionDetails = (props: TranscriptionDetailsProps) => {
               </Show>
             </h2>
             <Switch>
-              <Match when={isMounted() && queryListAcceptedRevisions?.isLoading}>
+              <Match when={queryListAcceptedRevisions?.isLoading}>
                 <p>Loading revisions...</p>
               </Match>
-              <Match when={isMounted() && queryListAcceptedRevisions?.isSuccess && queryListAcceptedRevisions?.data}>
-                <ListRevisions contributors={local?.transcription()?.contributors} query={queryListAcceptedRevisions} />
+              <Match when={queryListAcceptedRevisions?.isSuccess && queryListAcceptedRevisions?.data}>
+                <ListRevisions
+                  contributors={local?.transcription?.data?.contributors}
+                  query={queryListAcceptedRevisions}
+                />
               </Match>
             </Switch>
           </div>
@@ -483,25 +491,19 @@ export const TranscriptionDetails = (props: TranscriptionDetailsProps) => {
               </Show>
             </h2>
             <Switch>
-              <Match when={isMounted() && queryListReceivedProposedRevisions?.isLoading}>
+              <Match when={queryListReceivedProposedRevisions?.isLoading}>
                 <p>Loading propositions...</p>
               </Match>
-              <Match
-                when={
-                  isMounted() &&
-                  queryListReceivedProposedRevisions?.isSuccess &&
-                  queryListReceivedProposedRevisions?.data
-                }
-              >
+              <Match when={queryListReceivedProposedRevisions?.isSuccess && queryListReceivedProposedRevisions?.data}>
                 <ListRevisions
-                  contributors={local?.transcription()?.contributors}
+                  contributors={local?.transcription?.data?.contributors}
                   query={queryListReceivedProposedRevisions}
                 />
               </Match>
             </Switch>
           </div>
-          <div {...apiTabs().getContentProps({ value: 'propose', disabled: !local?.transcription() })}>
-            <Show when={local?.transcription()}>
+          <div {...apiTabs().getContentProps({ value: 'propose', disabled: !local?.transcription?.data })}>
+            <Show when={local?.transcription?.data}>
               <ProposeNewRevision transcription={local?.transcription as Accessor<Transcription>} />
             </Show>
           </div>
@@ -515,7 +517,7 @@ export const TranscriptionDetails = (props: TranscriptionDetailsProps) => {
             fallback={
               <>
                 <span class="flex text-2xs text-accent-11 items-center justify-center">
-                  Average rating: {local.transcription()?.average_rating ?? 0}/5
+                  Average rating: {local.transcription?.data?.average_rating ?? 0}/5
                 </span>
                 <p class="text-center justify-center flex items-center pt-2 font-semibold text-[0.725em] text-accent-9">
                   <IconExclamationCircle class="mie-1ex w-4 h-4" />
@@ -523,12 +525,12 @@ export const TranscriptionDetails = (props: TranscriptionDetailsProps) => {
                 </p>
               </>
             }
-            when={currentUser()?.address && currentUserRating()}
+            when={currentUser()?.address}
           >
             <Rate
               currentUserInitialRating={currentUserRating()}
-              idTranscription={local?.transcription()?.transcription_id as string}
-              averageRating={local.transcription()?.average_rating ?? 0}
+              idTranscription={local?.transcription?.data?.transcription_id as string}
+              averageRating={local.transcription?.data?.average_rating ?? 0}
             />
           </Show>
         </div>

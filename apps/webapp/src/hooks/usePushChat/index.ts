@@ -1,10 +1,11 @@
-import { createMutation, createQuery } from '@tanstack/solid-query'
+import { createMutation } from '@tanstack/solid-query'
 import { fetchSigner } from '@wagmi/core'
 import * as PushAPI from '@pushprotocol/restapi'
-import { useAuthentication } from '../useAuthentication'
+import { useAuthentication, useToast } from '~/hooks'
 import { createSignal } from 'solid-js'
 
 export function usePushChat() {
+  const toast = useToast()
   const { currentUser, pushChatProfile } = useAuthentication()
   const [decryptedKey, setDecryptedKey] = createSignal()
   async function getKeyAndSigner() {
@@ -24,26 +25,6 @@ export function usePushChat() {
       signer,
     }
   }
-  const queryUserPushChats = createQuery(
-    () => ['user-push-chats', currentUser()?.address],
-    async () => {
-      const { decryptedKey } = await getKeyAndSigner()
-
-      // actual api
-      const chats = await PushAPI.chat.chats({
-        account: `eip155:${currentUser()?.address}`,
-        toDecrypt: true,
-        pgpPrivateKey: decryptedKey,
-      })
-      return chats
-    },
-    {
-      refetchOnWindowFocus: false,
-      get enabled() {
-        return !currentUser()?.address || !pushChatProfile()?.encryptedPrivateKey ? false : true
-      },
-    },
-  )
 
   const mutationSendMessage = createMutation(
     async (args: {
@@ -52,7 +33,6 @@ export function usePushChat() {
       receiverAddress: `0x${string}`
     }) => {
       const { signer, decryptedKey } = await getKeyAndSigner()
-
       return await PushAPI.chat.send({
         messageContent: args.messageContent,
         messageType: args.messageType,
@@ -105,9 +85,9 @@ export function usePushChat() {
   )
 
   return {
-    queryUserPushChats,
     mutationCreateGroupChat,
     mutationSendMessage,
+    getKeyAndSigner,
   }
 }
 export default usePushChat

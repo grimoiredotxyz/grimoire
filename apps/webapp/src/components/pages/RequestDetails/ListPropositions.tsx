@@ -1,14 +1,13 @@
 import { createQueries } from '@tanstack/solid-query'
 import { formatDistanceToNow, fromUnixTime } from 'date-fns'
 import { For, Show } from 'solid-js'
-import { A, useParams } from 'solid-start'
+import { A } from 'solid-start'
 import { CHAINS_ALIAS, ROUTE_TRANSCRIPTION_DETAILS } from '~/config'
 import { web3UriToUrl } from '~/helpers'
 import { Transcription } from '~/services'
 import { Identity } from '~/ui'
 
 export const ListPropositions = (props) => {
-  const params = useParams()
   const queriesTranscriptionsProposals = createQueries({
     queries: props.query?.data?.map(
       (raw: {
@@ -22,7 +21,7 @@ export const ListPropositions = (props) => {
         [7]: string // id request
         [8]: Array<string> // communities
       }) => ({
-        queryKey: () => ['transcription', `${params.chain}/${raw[0]}`],
+        queryKey: () => ['transcription', `${props.chain}/${raw[0]}`],
         queryFn: async () => {
           /**
              *     struct Transcription {
@@ -38,7 +37,7 @@ export const ListPropositions = (props) => {
                         bool exists;
                     }
              */
-          const chainId = CHAINS_ALIAS[params.chain]
+          const chainId = CHAINS_ALIAS[props.chain]
           const id = raw[0]
           const createdAt = raw[1]
           const lastUpdatedAt = raw[2]
@@ -53,7 +52,7 @@ export const ListPropositions = (props) => {
           const metadata = await response.json()
           let data: Transcription = {
             chainId,
-            slug: `${params.chain}/${id}`,
+            slug: `${props.chain}/${id}`,
             transcription_id: id,
             id,
             communities,
@@ -102,16 +101,16 @@ export const ListPropositions = (props) => {
                     <p class="font-bold font-serif text-accent-12">{query?.data?.title}</p>
                     <p class="italic text-neutral-11 text-2xs">
                       <span class="not:last:after:content-[','] font-semibold text-accent-10">
-                        <Show when={query?.data?.transcription_plain_text?.trim()?.length > 0}>
+                        <Show fallback="" when={query?.data?.transcription_plain_text?.trim()?.length > 0}>
                           <span>Plain text transcription ;&nbsp;</span>
                         </Show>
-                        <Show when={query?.data?.srt_file_uri?.trim()?.length > 0}>
+                        <Show fallback="" when={query?.data?.srt_file_uri?.trim()?.length > 0}>
                           <span>.srt file ;&nbsp;</span>
                         </Show>
-                        <Show when={query?.data?.vtt_file_uri?.trim()?.length > 0}>
+                        <Show fallback="" when={query?.data?.vtt_file_uri?.trim()?.length > 0}>
                           <span>.vtt file ;&nbsp;</span>
                         </Show>
-                        <Show when={query?.data?.lrc_file_uri?.trim()?.length > 0}>
+                        <Show fallback="" when={query?.data?.lrc_file_uri?.trim()?.length > 0}>
                           <span>.lrc file ;&nbsp;</span>
                         </Show>
                       </span>

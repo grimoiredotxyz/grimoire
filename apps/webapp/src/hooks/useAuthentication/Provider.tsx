@@ -52,15 +52,7 @@ export const ProviderAuthentication = (props: any) => {
           setIsAuthenticated(true)
           setCurrentUser(data?.currentUser)
           db.signer(async (data: string) => {
-            // A permission dialog will be presented to the user
-            const accounts = await eth.requestAccounts()
-
-            // If there is more than one account, you may wish to ask the user which
-            // account they would like to use
-            const account = accounts[0]
-
-            const sig = await eth.sign(data, account)
-
+            const sig = await eth.sign(data, currentUser()?.address)
             return { h: 'eth-personal-sign', sig }
           })
         } else {
@@ -130,6 +122,19 @@ export const ProviderAuthentication = (props: any) => {
     },
   )
 
+  const mutationGetPushUser = createMutation(async () => {
+    if (currentUser()?.address) {
+      const user = await PushAPI.user.get({
+        account: `eip155:${currentUser()?.address}`,
+      })
+
+      if (user === null) {
+        await mutationCreatePushChatProfile.mutateAsync()
+      } else {
+        setPushChatProfile(user)
+      }
+    }
+  })
   onMount(async () => {
     try {
       //@ts-ignore
@@ -152,22 +157,10 @@ export const ProviderAuthentication = (props: any) => {
     }
   })
 
-  const mutationGetPushUser = createMutation(async () => {
-    const user = await PushAPI.user.get({
-      account: `eip155:${currentUser()?.address}`,
-    })
-
-    if (user === null) {
-      await mutationCreatePushChatProfile.mutateAsync()
-    } else {
-      setPushChatProfile(user)
-    }
-  })
-
   const authentication = {
+    mutationGetPushUser,
     pushChatProfile,
     mutationCreatePushChatProfile,
-    mutationGetPushUser,
     currentNetwork,
     queryTokenBalance,
     isReady,

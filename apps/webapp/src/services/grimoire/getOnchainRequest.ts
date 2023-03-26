@@ -33,6 +33,7 @@ export interface Request extends OnChainRequest, MetadataRequest {
   last_updated_at_epoch_timestamp: number
   fulfilled: boolean
   open_for_transcripts: boolean
+  voters: any
 }
 
 /**

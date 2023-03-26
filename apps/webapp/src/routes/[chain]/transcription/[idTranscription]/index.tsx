@@ -1,39 +1,43 @@
 import { Title, useParams } from 'solid-start'
-import { createResource, Switch, Match } from 'solid-js'
+import { Switch, Match } from 'solid-js'
 import { useRouteData } from 'solid-start'
 import { getOnChainTranscription } from '~/services'
 import TranscriptionDetails from '~/components/pages/TranscriptionDetails'
+import { createQuery } from '@tanstack/solid-query'
 
 export function routeData() {
   const params = useParams<{ chain: string; idTranscription: string }>()
+  const queryTranscription = createQuery(
+    () => ['transcription', `${params?.chain}/${params?.idTranscription}`],
+    async () => {
+      return await getOnChainTranscription({
+        chainAlias: params?.chain,
+        idTranscription: params?.idTranscription,
+      })
+    },
+  )
 
-  const [transcription] = createResource(async () => {
-    return await getOnChainTranscription({
-      chainAlias: params?.chain,
-      idTranscription: params?.idTranscription,
-    })
-  })
-  return { transcription }
+  return queryTranscription
 }
 
 export default function Page() {
-  const { transcription } = useRouteData<typeof routeData>()
+  const queryTranscription = useRouteData<typeof routeData>()
 
   return (
     <>
-      <Switch
-        fallback={
+      <Switch>
+        <Match when={queryTranscription?.isLoading}>
           <div class="m-auto">
             <Title> Loading transcription... | Grimoire</Title>
 
             <p class="font-bold text-lg animate-pulse">Loading...</p>
           </div>
-        }
-      >
+        </Match>
         <Match
           when={
-            !transcription()?.transcription_id ||
-            transcription()?.transcription_id === '0x0000000000000000000000000000000000000000000000000000000000000000'
+            !queryTranscription?.data?.transcription_id ||
+            queryTranscription?.data?.transcription_id ===
+              '0x0000000000000000000000000000000000000000000000000000000000000000'
           }
         >
           <Title> Transcription not found | Grimoire</Title>
@@ -44,12 +48,13 @@ export default function Page() {
         </Match>
         <Match
           when={
-            transcription()?.transcription_id !== '0x0000000000000000000000000000000000000000000000000000000000000000'
+            queryTranscription?.data?.transcription_id !==
+            '0x0000000000000000000000000000000000000000000000000000000000000000'
           }
         >
-          <Title> {transcription()?.source_media_title} | Transcribed on Grimoire</Title>
+          <Title> {queryTranscription?.data?.source_media_title} | Transcribed on Grimoire</Title>
 
-          <TranscriptionDetails transcription={transcription} />
+          <TranscriptionDetails transcription={queryTranscription} />
         </Match>
       </Switch>
     </>

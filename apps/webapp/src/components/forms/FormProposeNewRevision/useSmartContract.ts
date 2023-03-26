@@ -11,12 +11,13 @@ import { utils } from 'ethers'
 import { v4 as uuid } from 'uuid'
 import { z } from 'zod'
 import { ABI_TRANSCRIPTIONS, CHAINS_ALIAS, CONTRACT_TRANSCRIPTIONS } from '~/config'
-import { useToast, usePolybase } from '~/hooks'
+import { useToast, usePolybase, useAuthentication } from '~/hooks'
 import { uploadFileToIPFS } from '~/helpers'
 import { schema } from './schema'
 
 interface FormValues extends z.infer<typeof schema> {}
 export function useSmartContract() {
+  const { currentUser } = useAuthentication()
   // DB
   //@ts-ignore
   const { db } = usePolybase()
@@ -110,7 +111,12 @@ export function useSmartContract() {
       }
     },
     {
-      onSuccess() {
+      async onSuccess(data) {
+        //  await queryClient.invalidateQueries({ queryKey: ['transcription', `${data.chainAlias}/${data.transcript_id}`] })
+
+        await queryClient.invalidateQueries({ queryKey: ['transcription-proposed-revisions'] })
+        await queryClient.invalidateQueries({ queryKey: ['transcription', `${data.chainAlias}/${data.id_revision}`] })
+        await queryClient.invalidateQueries({ queryKey: ['shortcuts', currentUser()?.address] })
         //@ts-ignore
         toast().create({
           title: 'Revision created successfully!',
@@ -131,7 +137,7 @@ export function useSmartContract() {
       onSettled() {
         // Whether or not the transaction is successful, invalidate user balance query
         // this way we will refresh the balance
-        queryClient.invalidateQueries(['user-balance'])
+        queryClient.invalidateQueries({ queryKey: ['user-balance'] })
       },
     },
   )
@@ -164,13 +170,16 @@ export function useSmartContract() {
         transcriptionReference,
         args?.change_type,
         args?.change_description,
+        currentUser()?.address,
       ])
     },
     {
-      onSuccess() {
+      async onSuccess() {
+        await queryClient.invalidateQueries(['shortcuts', currentUser()?.address])
+
         //@ts-ignore
         toast().create({
-          title: 'Revision created and indexed successfully!',
+          title: 'Revision indexed successfully!',
           description: 'The revision is now ready to be reviewed.',
           type: 'success',
           placement: 'bottom-right',
@@ -188,7 +197,7 @@ export function useSmartContract() {
       onSettled() {
         // Whether or not the transaction is successful, invalidate user balance query
         // this way we will refresh the balance
-        queryClient.invalidateQueries(['user-balance'])
+        queryClient.invalidateQueries({ queryKey: ['user-balance'] })
       },
     },
   )

@@ -50,7 +50,7 @@ export function useTranscriptionActions(args: { averageRating: number; id: strin
       await waitForTransaction({ hash: args.hash })
     },
     {
-      onSuccess() {
+      async onSuccess() {
         //@ts-ignore
         toast().create({
           title: 'Transcription deleted successfully!',
@@ -73,7 +73,7 @@ export function useTranscriptionActions(args: { averageRating: number; id: strin
       onSettled() {
         // Whether or not the transaction is successful, invalidate user balance query
         // this way we will refresh the balance
-        queryClient.invalidateQueries(['user-balance'])
+        queryClient.invalidateQueries({ queryKey: ['user-balance'] })
       },
     },
   )

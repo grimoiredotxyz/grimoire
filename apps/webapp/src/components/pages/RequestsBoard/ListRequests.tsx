@@ -65,7 +65,8 @@ export const ListRequests = (props: ListRequestsProps) => {
                             address={deriveEthAddressFromPublicKey(request?.data?.creator) as `0x${string}`}
                             shortenOnFallback={true}
                           />
-                        </Show>
+                        </Show>{' '}
+                        | <span>{Object.keys(request?.data?.voters).length} votes</span>
                       </span>
 
                       <A

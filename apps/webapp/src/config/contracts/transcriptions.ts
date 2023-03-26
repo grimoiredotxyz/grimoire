@@ -399,9 +399,21 @@ export const CONTRACT_TRANSCRIPTIONS = {
     address: '0x27B485cD095d4EC7181eE867c991E38654B7F3AA',
     abi: ABI_TRANSCRIPTIONS,
   },
-  // Scroll
+  // Scroll Alpha testnet
   534353: {
     chainId: 534353,
+    address: '0xF91F71e2AB73a5298CAb2aD8df0EBE6e176961Ce',
+    abi: ABI_TRANSCRIPTIONS,
+  },
+  // Taiko Sepolia
+  11155111: {
+    chainId: 11155111,
+    address: '0xF91F71e2AB73a5298CAb2aD8df0EBE6e176961Ce',
+    abi: ABI_TRANSCRIPTIONS,
+  },
+  // Polygon zkEVM Testnet
+  1442: {
+    chainId: 1442,
     address: '0xF91F71e2AB73a5298CAb2aD8df0EBE6e176961Ce',
     abi: ABI_TRANSCRIPTIONS,
   },
