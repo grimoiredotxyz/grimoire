@@ -362,21 +362,6 @@ export const RevisionDetails = (props) => {
                               </Switch>
                             </span>
                           </Button>
-
-                          <button
-                            onClick={async () => {
-                              const { signer, decryptedKey } = await getKeyAndSigner()
-                              await PushAPI.chat.send({
-                                messageContent: 'args.messageContent',
-                                messageType: 'Text',
-                                receiverAddress: `eip155:0xD8E6f4f880812562027EFF36B808DF3bc9229E48`,
-                                signer: signer,
-                                pgpPrivateKey: decryptedKey,
-                              })
-                            }}
-                          >
-                            Send message
-                          </button>
                         </div>
                       </Match>
                     </Switch>

@@ -3,13 +3,13 @@
 > Making web3 more inclusive and accessible with open, quality, community-checked captions and transcriptions.
 
 ## Features Overview
-- Create and manage transcriptions requests and their transcription proposals ;
-- Create and manage transcriptions and their revision proposals ;
-- Issue a social attestation for any successul contribution ; (accepted revision, accepted transcription proposal)
-- Rate transcriptions ;
-- Message reviewers openly (public group chat) ;
-- Search and filter through transcriptions ;
 
+[x] Create and manage transcriptions requests and their transcription proposals ;
+[x] Create and manage transcriptions and their revision proposals ;
+[x] Issue a social attestation for any successul contribution ; (accepted revision, accepted transcription proposal)
+[x] Rate transcriptions ;
+[ ] Message reviewers openly (public group chat) ; (work-in-progress)
+[ ] Search and filter through transcriptions ; (work-in-progress)
 
 ## Description
 
@@ -21,13 +21,13 @@ Available on multiple chains that all feature low gas fees, Grimoire ensures thi
 
 ## Tech stack overview
 
-* Front-end - @wagmi/core, solid-start, tailwindcss, @tanstack/query, @zag-js, cva, graphql-requesy
-* Web3 database: Polybase
-* Messaging - Push Protocol
-* Subgraph - The Graph Protocol
-* File upload - Fleek/IPFS
-* Relayer/gas sponsoring - Gelato Network 1Balance
-* Attestation - Optimism Attestation Station
+- Front-end - @wagmi/core, solid-start, tailwindcss, @tanstack/query, @zag-js, cva, graphql-requesy
+- Web3 database: Polybase
+- Messaging - Push Protocol
+- Subgraph - The Graph Protocol
+- File upload - Fleek/IPFS
+- Relayer/gas sponsoring - Gelato Network 1Balance
+- Attestation - Optimism Attestation Station
 
 ## Get started
 
@@ -60,14 +60,14 @@ This Solidity smart contract is compatible with EVM chains. It enables the manag
 - [Gnosis Chiado `0x92C410556C7AeD3C9aa6ED3552431C876770FF99`](https://repo.sourcify.dev/contracts/full_match/10200/0x92C410556C7AeD3C9aa6ED3552431C876770FF99/)
 - [Optimism Goerli `0x239b986D8B3bAB3e89D9586a5D83c5C0B08Fc3D3`](https://repo.sourcify.dev/contracts/full_match/420/0x239b986D8B3bAB3e89D9586a5D83c5C0B08Fc3D3/)
 - [Scroll Alpha tesnet `0xF91F71e2AB73a5298CAb2aD8df0EBE6e176961Ce`](https://blockscout.scroll.io/address/0xF91F71e2AB73a5298CAb2aD8df0EBE6e176961Ce)
-- [Filecoin Hyperspace `0xB293049B4940C3AF4191C8b03f79C8c0e5B39199`](https://w3s.link/ipfs/bafkreighmwwfhnothnmw53y2fz5xesjr5d7lpxz5oavcg5h76geg42dp4m)
--[Polygon zkEVM `0x239b986D8B3bAB3e89D9586a5D83c5C0B08Fc3D3`](https://explorer.public.zkevm-test.net/address/0x239b986D8B3bAB3e89D9586a5D83c5C0B08Fc3D3) 
-- [Taiko Sepolia  `0x239b986D8B3bAB3e89D9586a5D83c5C0B08Fc3D3`](https://sepolia.etherscan.io/address/0x239b986D8B3bAB3e89D9586a5D83c5C0B08Fc3D3)
-
+- [Filecoin Hyperspace `0xB293049B4940C3AF4191C8b03f79C8c0e5B39199`](https://w3s.link/ipfs/bafkreighmwwfhnothnmw53y2fz5xesjr5d7lpxz5oavcg5h76geg42dp4m) -[Polygon zkEVM `0x239b986D8B3bAB3e89D9586a5D83c5C0B08Fc3D3`](https://explorer.public.zkevm-test.net/address/0x239b986D8B3bAB3e89D9586a5D83c5C0B08Fc3D3)
+- [Taiko Sepolia `0x239b986D8B3bAB3e89D9586a5D83c5C0B08Fc3D3`](https://sepolia.etherscan.io/address/0x239b986D8B3bAB3e89D9586a5D83c5C0B08Fc3D3)
 
 ## Deployed subgraphs (hosted service)
+
 - [Mumbai](https://thegraph.com/hosted-service/subgraph/timotejgerzelj/grimoire-subgraph)
-We are also using the ENS subgraph to display human-friendly Ethereum addresses.
+  We are also using the ENS subgraph to display human-friendly Ethereum addresses.
 
 ## Polybase schema
+
 You can check the schema at this id `grimoirexyz-beta`

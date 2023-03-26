@@ -22,7 +22,9 @@ export const Upvote = (props: UpvoteProps) => {
         mutationUpvoteRequest.isLoading ||
         mutationUpvoteRequest.isSuccess ||
         Object.keys(local?.voters ?? {}).filter(
-          (pubKey) => deriveEthAddressFromPublicKey(pubKey) === currentUser()?.address.toLowerCase(),
+          (pubKey) =>
+            deriveEthAddressFromPublicKey(pubKey) === currentUser()?.address.toLowerCase() ||
+            deriveEthAddressFromPublicKey(pubKey) === currentUser()?.address,
         )?.length > 0
       }
       type="button"

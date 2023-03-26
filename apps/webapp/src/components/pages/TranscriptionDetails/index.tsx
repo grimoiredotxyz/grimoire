@@ -24,6 +24,7 @@ import Rate from './Rate'
 import useDetails from './useDetails'
 import useTranscriptionActions from './useTranscriptionActions'
 import type { CreateQueryResult } from '@tanstack/solid-query'
+import Discussion from '../Discussion'
 
 interface TranscriptionDetailsProps {
   transcription: CreateQueryResult<Transcription, unknown>
@@ -229,6 +230,12 @@ export const TranscriptionDetails = (props: TranscriptionDetailsProps) => {
               <Show fallback={<IconSpinner class="w-4 h-4 animate-spin" />} when={queryListAcceptedRevisions?.data}>
                 ({queryListAcceptedRevisions?.data?.length})
               </Show>
+            </button>
+            <button
+              class="disabled:opacity-50 data-[selected]:text-interactive-11 data-[selected]:underline xs:data-[selected]:no-underline p-2 xs:pb-2 xs:pt-0.5 font-semibold text-2xs text-neutral-11 xs:data-[selected]:border-b-2 xs:border-b-2 xs:border-transparent xs:data-[selected]:border-b-interactive-9"
+              {...apiTabs().getTriggerProps({ value: 'discussion', disabled: !currentUser()?.address ? true : false })}
+            >
+              Discussion
             </button>
             <Button
               intent="neutral-outline"
@@ -502,6 +509,15 @@ export const TranscriptionDetails = (props: TranscriptionDetailsProps) => {
               </Match>
             </Switch>
           </div>
+
+          <div
+            {...apiTabs().getContentProps({ value: 'discussion', disabled: !currentUser()?.address ? true : false })}
+          >
+            <Show when={local.transcription.data?.slug}>
+              <Discussion id={local.transcription.data?.slug as string} />
+            </Show>
+          </div>
+
           <div {...apiTabs().getContentProps({ value: 'propose', disabled: !local?.transcription?.data })}>
             <Show when={local?.transcription?.data}>
               <ProposeNewRevision transcription={local?.transcription as Accessor<Transcription>} />

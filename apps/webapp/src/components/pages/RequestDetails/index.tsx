@@ -1,4 +1,4 @@
-import { createEffect, For, Match, Show, splitProps, Switch } from 'solid-js'
+import { For, Match, Show, splitProps, Switch } from 'solid-js'
 import { formatDistanceToNow } from 'date-fns'
 import { web3UriToUrl } from '~/helpers'
 import { Button, IconEllipsisVertical, IconPlus, IconSpinner, IconTrash, Identity } from '~/ui'
@@ -12,6 +12,7 @@ import ListPropositions from './ListPropositions'
 import Upvote from './Upvote'
 import type { Request } from '~/services'
 import type { CreateQueryResult } from '@tanstack/solid-query'
+import Discussion from '../Discussion'
 
 interface RequestDetailsProps {
   request: CreateQueryResult<Request, unknown>
@@ -211,6 +212,12 @@ export const RequestDetails = (props: RequestDetailsProps) => {
                 ({queryListReceivedProposals?.data?.length})
               </Show>
             </button>
+            <button
+              class="disabled:opacity-50 data-[selected]:text-interactive-11 data-[selected]:underline xs:data-[selected]:no-underline p-2 xs:pb-2 xs:pt-0.5 font-semibold text-2xs text-neutral-11 xs:data-[selected]:border-b-2 xs:border-b-2 xs:border-transparent xs:data-[selected]:border-b-interactive-9"
+              {...apiTabs().getTriggerProps({ value: 'discussion', disabled: !currentUser()?.address ? true : false })}
+            >
+              Discussion
+            </button>
             <Show when={!local.request?.data?.fulfilled && local.request?.data?.open_for_transcripts === true}>
               <Button
                 intent="neutral-outline"
@@ -286,6 +293,14 @@ export const RequestDetails = (props: RequestDetailsProps) => {
               </Match>
             </Switch>
           </div>
+          <div
+            {...apiTabs().getContentProps({ value: 'discussion', disabled: !currentUser()?.address ? true : false })}
+          >
+            <Show when={props.request?.data}>
+              <Discussion id={props?.request?.data?.slug as string} />
+            </Show>
+          </div>
+
           {/* @ts-ignore */}
           <div {...apiTabs().getContentProps({ value: 'propose', disabled: !props.request?.data })}>
             <Show when={props.request?.data}>
